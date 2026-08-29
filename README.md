@@ -38,4 +38,4 @@ Fundamentos del modelo *Software as a Service*, diseño de sistemas multiinquili
 
 ---
 
-* **Tablero de Gestion:** [AquaTrack Board](https://github.com/users/LeandroAparicio2004/projects/2)
+* **Tablero de Gestion:** [AquaTrack Board](https://institutosm.atlassian.net?continue=https%3A%2F%2Finstitutosm.atlassian.net%2Fwelcome%2Fsoftware&atlOrigin=eyJpIjoiNzNiMzg2Y2NjYjM0NGUzNjgzOGQxMTFkZDc3N2M1YTUiLCJwIjoiaiJ9)
