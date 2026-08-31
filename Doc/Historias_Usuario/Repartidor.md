@@ -24,6 +24,14 @@
     * Cuando: Abro la función "Escanear QR" y enfoco el código provisto por el comprador
     * Entonces: El pedido pasa a estado "Entregado" y se descuentan los envases retornables vacíos.
 
+- Nombre: Historial de entregas y Ganacias
+    * Como: Repartidor
+    * Puedo: Consultar mis entregas pasadas y el total ganado por periodo
+    * Para: Llevar control de mi actividad e ingresos
+    * Dado que: Tengo entregas completadas
+    * Cuando: Ingreso a **"Mi Historial"** y selecciono un rango de fechas
+    * Entonces: El sistema muestra la lista de entregas realizadas y el monto acumulado correspondiente
+
 - Nombre: Solicitud de Ingreso a Distribuidora
     * Como: Repartidor freelance registrado en AquaTrack
     * Puedo: Buscar distribuidoras disponibles y enviarles una solicitud para trabajar con ellas
@@ -31,3 +39,11 @@
     * Dado que: Existen distribuidoras activas registradas en la plataforma
     * Cuando: Accedo a "Buscar empresas" desde mi panel y envío una solicitud con un mensaje opcional sobre mi disponibilidad y vehículo
     * Entonces: La solicitud queda pendiente de aprobación por parte del vendedor.
+
+- Nombre: Desvinculacion de Distribuidora
+    * Como: Repartidor Freelance
+    * Puedo: Dejar de trabajar con una distribuidora a la que estoy vinculado
+    * Para: Poder ofrecer mi disponibilidad a otra distribuidora o pausar mi actividad
+    * Dado que: Estoy vinculado activamente a una distribuidora
+    * Cuando: Presiono **"Desvincularme"** desde mi panel 
+    * Entonces: El sistema me desvincula y dejo de recibir asignaciones de esa distribuidora.
