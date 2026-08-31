@@ -32,6 +32,14 @@
     * Cuando: Completo el formulario con nombre, capacidad en litros, precio y descripción
     * Entonces: El producto se publica en la tienda de la distribuidora.
 
+- Nombre: Control de Stock
+    * Como: Vendedor
+    * Puedo: Registrar y actualizar la cantidad disponible de cada producto de mi inventario
+    * Para: Evitar vender bidones que no tengo disponibles y planificar reposicion
+    * Dado que: Tengo productos publicados en mi catalogo
+    * Cuando: Actualizo manualmente el stock o el sistema lo descuenta automaticamente al confirmarse un pedido
+    * Entonces: El sistema refleja el Stock actualizado y advierte cuando un producto esta por agotarse
+
 - Nombre: Administración de Flota de Repartidores
     * Como: Vendedor
     * Puedo: Gestionar repartidores propios, aceptar solicitudes de repartidores independientes o agregarlos directamente por email/usuario
@@ -39,3 +47,11 @@
     * Dado que: Necesito incorporar personal de reparto
     * Cuando: Reviso las solicitudes o añado un usuario en "Gestión de repartidores"
     * Entonces: El repartidor queda vinculado a la empresa para realizar despachos.
+
+- Nombre: Desvinculacion de Repartidor
+    * Como: Vendedor
+    * Puedo: Remover un repartidor de mi flota
+    * Para: Dejar de asignarle pedidos cuando ya no trabaje conmigo
+    * Dado que: Tengo repartidores vinculador a mi distribuidora
+    * Cuando: Presiono **"Quitar"** sobre un repartidor en **"Gestion de Repartidores"**
+    * Entonces: El sistema desvincula al repartidor, que deja de recibir asignaciones de mi distribuidora.
