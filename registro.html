@@ -1,175 +1,215 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Crear cuenta — AquaTrack</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/comunes.css">
-<link rel="stylesheet" href="css/registro.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear cuenta — AquaTrack</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/comunes.css">
+    <link rel="stylesheet" href="css/autenticacion.css">
+    <link rel="stylesheet" href="css/registro.css">
 </head>
+
 <body>
 
-<main class="pantalla-autenticacion">
-  <div class="tarjeta-autenticacion tarjeta-ancha">
-    <a href="index.html" class="logo logo-auth">AquaTrack</a>
-    <h1 class="titulo-autenticacion" id="titulo-autenticacion">Crear cuenta</h1>
-    <div class="chip-rol oculto" id="chip-rol">
-      <span id="chip-rol-texto">Cuenta de Cliente</span>
-      
-    </div>
+    <main class="pantalla-autenticacion">
+        <div class="tarjeta-autenticacion tarjeta-ancha">
+            <div class="marca-auth">
+                <a href="index.html" class="logo logo-auth">AquaTrack</a>
 
-    <div class="barra-progreso">
-      <span class="paso-indicador activo" data-paso="1">1</span>
-      <span class="linea-progreso"></span>
-      <span class="paso-indicador" data-paso="2">2</span>
-      <span class="linea-progreso"></span>
-      <span class="paso-indicador" data-paso="3">3</span>
-      <span class="linea-progreso"></span>
-      <span class="paso-indicador" data-paso="4">4</span>
-    </div>
-
-    <div id="mensaje-estado" class="mensaje-estado oculto" role="alert"></div>
-
-    <form id="formulario-registro" novalidate>
-
-      <div class="paso" id="paso-1">
-        <p class="texto-paso">¿Cómo vas a usar AquaTrack?</p>
-        <div class="grilla-roles">
-          <button type="button" class="tarjeta-rol" data-rol="cliente">
-            <h3>Cliente</h3>
-            <p>Quiero pedir agua a domicilio</p>
-          </button>
-          <button type="button" class="tarjeta-rol" data-rol="vendedor">
-            <h3>Vendedor</h3>
-            <p>Tengo una distribuidora</p>
-          </button>
-          <button type="button" class="tarjeta-rol" data-rol="repartidor">
-            <h3>Repartidor</h3>
-            <p>Quiero repartir pedidos</p>
-          </button>
-        </div>
-      </div>
-
-      <div class="paso oculto" id="paso-2">
-        <p class="texto-paso">¿Cómo te llamás?</p>
-        <div class="campo">
-          <label for="nombre">Nombre</label>
-          <input type="" id="nombre" required autocomplete="given-name">
-        </div>
-        <div class="campo">
-          <label for="apellido">Apellido</label>
-          <input type="text" id="apellido" required autocomplete="family-name">
-        </div>
-        <div class="fila-botones">
-          <button type="button" class="btn btn-secundario" id="btn-atras-2">Atrás</button>
-          <button type="button" class="btn btn-principal" id="btn-siguiente-2">Siguiente</button>
-        </div>
-      </div>
-
-      <div class="paso oculto" id="paso-3">
-        <p class="texto-paso">Datos de contacto y acceso</p>
-        <div class="campo">
-          <label for="correo">Correo electrónico</label>
-          <input type="email" id="correo" required autocomplete="email">
-        </div>
-        <div class="campo">
-          <label for="telefono">Teléfono</label>
-          <input type="tel" id="telefono" autocomplete="tel">
-        </div>
-        <div class="campo">
-          <label for="contrasena">Contraseña</label>
-          <div class="entrada-contrasena">
-            <input type="password" id="contrasena" required autocomplete="new-password" minlength="8">
-            <button type="button" class="btn-ver-contrasena" data-objetivo="contrasena">Ver</button>
-          </div>
-        </div>
-        <div class="campo">
-          <label for="repetir-contrasena">Repetir contraseña</label>
-          <div class="entrada-contrasena">
-            <input type="password" id="repetir-contrasena" required autocomplete="new-password" minlength="8">
-            <button type="button" class="btn-ver-contrasena" data-objetivo="repetir-contrasena">Ver</button>
-          </div>
-        </div>
-        <div class="fila-botones">
-          <button type="button" class="btn btn-secundario" id="btn-atras-3">Atrás</button>
-          <button type="button" class="btn btn-principal" id="btn-siguiente-3">Siguiente</button>
-        </div>
-      </div>
-
-      <div class="paso oculto" id="paso-4">
-
-        <div class="campos-rol oculto" id="campos-vendedor">
-          <p class="texto-paso">Datos de tu distribuidora</p>
-          <div class="campo">
-            <label for="dni-vendedor">DNI</label>
-            <input type="text" id="dni-vendedor" inputmode="numeric">
-          </div>
-          <div class="campo">
-            <label for="nombre-negocio">Nombre de tu distribuidora</label>
-            <input type="text" id="nombre-negocio">
-          </div>
-          <div class="fila-doble">
-            <div class="campo">
-              <label for="calle-negocio">Calle</label>
-              <input type="text" id="calle-negocio">
+                <svg class="decoracion-marca" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                    aria-hidden="true">
+                    <path fill="currentColor"
+                        d="M13.4697 5.46967C13.7626 5.17678 14.2374 5.17678 14.5303 5.46967L20.5303 11.4697C20.8232 11.7626 20.8232 12.2374 20.5303 12.5303L14.5303 18.5303C14.2374 18.8232 14.2374 18.8232 13.4697 18.5303C13.1768 18.2374 13.1768 17.7626 13.4697 17.4697L18.1893 12.75H4C3.58579 12.75 3.25 12.4142 3.25 12C3.25 11.5858 3.58579 11.25 4 11.25H18.1893L13.4697 6.53033C13.1768 6.23744 13.1768 5.76256 13.4697 5.46967Z" />
+                </svg>
             </div>
-            <div class="campo">
-              <label for="numero-negocio">Número</label>
-              <input type="text" id="numero-negocio">
+            
+
+            <h1 class="titulo-autenticacion" id="titulo-autenticacion" aria-live="polite">
+                Crear tu cuenta
+            </h1>
+
+            <p class="subtitulo-autenticacion">
+                Configurá tu cuenta en unos pocos pasos.
+            </p>
+
+            <div class="chip-rol oculto" id="chip-rol">
+                <span id="chip-rol-texto">Cuenta de Cliente</span>
+                <button type="button" id="btn-cambiar-rol">Cambiar rol</button>
             </div>
-          </div>
-          <div class="campo">
-            <label for="ciudad-negocio">Ciudad</label>
-            <input type="text" id="ciudad-negocio">
-          </div>
-          <div class="campo">
-            <label for="provincia-negocio">Provincia</label>
-            <input type="text" id="provincia-negocio">
-          </div>
+
+            <div class="barra-progreso">
+                <span class="paso-indicador activo" data-paso="1">1</span>
+                <span class="linea-progreso"></span>
+                <span class="paso-indicador" data-paso="2">2</span>
+                <span class="linea-progreso"></span>
+                <span class="paso-indicador" data-paso="3">3</span>
+                <span class="linea-progreso"></span>
+                <span class="paso-indicador" data-paso="4">4</span>
+            </div>
+
+            <div id="mensaje-estado" class="mensaje-estado oculto" role="alert"></div>
+
+            <form id="formulario-registro" novalidate>
+
+                <div class="paso" id="paso-1">
+                    <p class="texto-paso" id="texto-paso-1">
+                        Elegí cómo vas a usar AquaTrack.
+                    </p>
+                    <div class="grilla-roles">
+                        <button type="button" class="tarjeta-rol" data-rol="cliente">
+                            <h3>Cliente</h3>
+                            <p>Quiero pedir agua a domicilio</p>
+                        </button>
+                        <button type="button" class="tarjeta-rol" data-rol="vendedor">
+                            <h3>Vendedor</h3>
+                            <p>Tengo una distribuidora</p>
+                        </button>
+                        <button type="button" class="tarjeta-rol" data-rol="repartidor">
+                            <h3>Repartidor</h3>
+                            <p>Quiero repartir pedidos</p>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="paso oculto" id="paso-2">
+                    <p class="texto-paso" id="texto-paso-2">
+                        Usaremos estos datos para personalizar tu experiencia.
+                    </p>
+                    <div class="campo">
+                        <label for="nombre">Nombre</label>
+                        <input type="text" id="nombre" required autocomplete="given-name" inputmode="text"
+                            maxlength="50">
+                    </div>
+                    <div class="campo">
+                        <label for="apellido">Apellido</label>
+                        <input type="text" id="apellido" required autocomplete="family-name" inputmode="text"
+                            maxlength="50">
+                    </div>
+                    <div class="fila-botones">
+                        <button type="button" class="btn btn-secundario" id="btn-atras-2">Atrás</button>
+                        <button type="button" class="btn btn-principal" id="btn-siguiente-2">Siguiente</button>
+                    </div>
+                </div>
+
+                <div class="paso oculto" id="paso-3">
+                    <p class="texto-paso" id="texto-paso-3">
+                        Creá tus datos de acceso para entrar de forma segura.
+                    </p>
+                    <div class="campo">
+                        <label for="correo">Correo electrónico</label>
+                        <input type="email" id="correo" required autocomplete="email">
+                    </div>
+                    <div class="campo">
+                        <label for="telefono">Teléfono</label>
+                        <input type="tel" id="telefono" autocomplete="tel">
+                    </div>
+                    <div class="campo">
+                        <label for="contrasena">Contraseña</label>
+                        <div class="entrada-contrasena">
+                            <input type="password" id="contrasena" required autocomplete="new-password" minlength="8">
+                            <button type="button" class="btn-ver-contrasena" data-objetivo="contrasena">Ver</button>
+                        </div>
+                    </div>
+                    <div class="campo">
+                        <label for="repetir-contrasena">Repetir contraseña</label>
+                        <div class="entrada-contrasena">
+                            <input type="password" id="repetir-contrasena" required autocomplete="new-password"
+                                minlength="8">
+                            <button type="button" class="btn-ver-contrasena"
+                                data-objetivo="repetir-contrasena">Ver</button>
+                        </div>
+                    </div>
+                    <div class="fila-botones">
+                        <button type="button" class="btn btn-secundario" id="btn-atras-3">Atrás</button>
+                        <button type="button" class="btn btn-principal" id="btn-siguiente-3">Siguiente</button>
+                    </div>
+                </div>
+
+                <div class="paso oculto" id="paso-4">
+
+                    <div class="campos-rol oculto" id="campos-vendedor">
+                        <p class="texto-paso">Datos de tu distribuidora</p>
+                        <div class="campo">
+                            <label for="dni-vendedor">DNI</label>
+                            <input type="text" id="dni-vendedor" inputmode="numeric">
+                        </div>
+                        <div class="campo">
+                            <label for="nombre-negocio">Nombre de tu distribuidora</label>
+                            <input type="text" id="nombre-negocio">
+                        </div>
+                        <div class="fila-doble">
+                            <div class="campo">
+                                <label for="calle-negocio">Calle</label>
+                                <input type="text" id="calle-negocio">
+                            </div>
+                            <div class="campo">
+                                <label for="numero-negocio">Número</label>
+                                <input type="text" id="numero-negocio">
+                            </div>
+                        </div>
+                        <div class="campo">
+                            <label for="ciudad-negocio">Ciudad</label>
+                            <input type="text" id="ciudad-negocio">
+                        </div>
+                        <div class="campo">
+                            <label for="provincia-negocio">Provincia</label>
+                            <input type="text" id="provincia-negocio">
+                        </div>
+                    </div>
+
+                    <div class="campos-rol oculto" id="campos-repartidor">
+                        <p class="texto-paso">Datos como repartidor</p>
+                        <div class="campo">
+                            <label for="dni-repartidor">DNI</label>
+                            <input type="text" id="dni-repartidor" inputmode="numeric">
+                        </div>
+                        <div class="campo">
+                            <label for="tipo-vehiculo">Vehículo</label>
+                            <select id="tipo-vehiculo">
+                                <option value="a_pie">A pie</option>
+                                <option value="bicicleta">Bicicleta</option>
+                                <option value="moto">Moto</option>
+                                <option value="auto">Auto</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <p class="texto-paso" id="texto-paso-4">
+                        Completá los últimos datos para finalizar.
+                    </p>
+
+                    <div class="campo campo-checkbox">
+                        <label>
+                            <input type="checkbox" id="acepta-terminos" required>
+                            Acepto los
+                            <a href="terminos.html" target="_blank" rel="noopener noreferrer">
+                                Términos y Condiciones
+                            </a>
+                            y la
+                            <a href="privacidad.html" target="_blank" rel="noopener noreferrer">
+                                Política de Privacidad
+                            </a>
+                        </label>
+                    </div>
+
+                    <div class="fila-botones">
+                        <button type="button" class="btn btn-secundario" id="btn-atras-4">Atras</button>
+                        <button type="submit" class="btn btn-principal" id="btn-enviar">Crear cuenta</button>
+                    </div>
+                </div>
+
+            </form>
+
+            <p class="enlace-secundario">¿Ya tienes cuenta? <a href="login.html">Iniciar sesion</a></p>
         </div>
+    </main>
 
-        <div class="campos-rol oculto" id="campos-repartidor">
-          <p class="texto-paso">Datos como repartidor</p>
-          <div class="campo">
-            <label for="dni-repartidor">DNI</label>
-            <input type="text" id="dni-repartidor" inputmode="numeric">
-          </div>
-          <div class="campo">
-            <label for="tipo-vehiculo">Vehículo</label>
-            <select id="tipo-vehiculo">
-              <option value="a_pie">A pie</option>
-              <option value="bicicleta">Bicicleta</option>
-              <option value="moto">Moto</option>
-              <option value="auto">Auto</option>
-            </select>
-          </div>
-        </div>
-
-        <p class="texto-paso" id="texto-paso-final">Ya casi esta</p>
-
-        <div class="campo campo-checkbox">
-          <label>
-            <input type="checkbox" id="acepta-terminos" required>
-            Acepto los <a href="terminos.html" target="_blank">Terminos y Condiciones</a> y la <a href="privacidad.html" target="_blank">Política de Privacidad</a>
-          </label>
-        </div>
-
-        <div class="fila-botones">
-          <button type="button" class="btn btn-secundario" id="btn-atras-4">Atras</button>
-          <button type="submit" class="btn btn-principal" id="btn-enviar">Crear cuenta</button>
-        </div>
-      </div>
-
-    </form>
-
-    <p class="enlace-secundario">¿Ya tienes cuenta? <a href="login.html">Iniciar sesion</a></p>
-  </div>
-</main>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<script src="js/supabase-config.js"></script>
-<script src="js/registro.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/registro.js"></script>
 </body>
+
 </html>

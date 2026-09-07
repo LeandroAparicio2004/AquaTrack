@@ -1,88 +1,229 @@
-.pantalla-autenticacion {
-  min-height: 100vh;
-  display: flex; align-items: center; justify-content: center;
-  padding: 24px;
-  background: #f3f4f6;
+.tarjeta-ancha {
+    max-width: 520px;
 }
-.tarjeta-autenticacion {
-  width: 100%; max-width: 400px;
-  background: #ffffff;
-  border: 1px solid #f3f4f6;
-  border-radius: 10px;
-  padding: 40px 32px;
-}
-.tarjeta-ancha { max-width: 460px; }
-.logo-auth { display: block; text-align: center; margin-bottom: 24px; }
-.titulo-autenticacion { text-align: center; font-size: 1.5rem; font-weight: 800; margin-bottom: 8px; }
 
-/* Chip de rol seleccionado */
 .chip-rol {
-  display: flex; align-items: center; justify-content: center; gap: 8px;
-  margin-bottom: 18px; font-size: 0.85rem; color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: -12px 0 25px;
+    padding: 8px 10px 8px 13px;
+    border: 1px solid #dcecf0;
+    border-radius: 10px;
+    color: #61747d;
+    background: #f7fcfd;
+    font-size: 0.82rem;
 }
-.chip-rol span { background: #eff6ff; color: #1d4ed8; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
-.chip-rol button { background: none; border: none; color: #6b7280; text-decoration: underline; cursor: pointer; font-size: 0.85rem; }
 
-/* Barra de progreso */
-.barra-progreso { display: flex; align-items: center; justify-content: center; margin-bottom: 28px; }
+.chip-rol.oculto {
+    display: none;
+}
+
+.chip-rol span {
+    color: #0b718f;
+    font-weight: 800;
+}
+
+.chip-rol button {
+    padding: 4px 6px;
+    border: 0;
+    color: #0b718f;
+    background: transparent;
+    font-size: 0.78rem;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.barra-progreso {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 0 30px;
+}
+
 .paso-indicador {
-  width: 26px; height: 26px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.8rem; font-weight: 700;
-  background: #f3f4f6; color: #6b7280;
+    width: 27px;
+    height: 27px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    border: 1px solid #dce8ed;
+    border-radius: 50%;
+    color: #8a9aa2;
+    background: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 800;
+    transition:
+        color 0.2s ease,
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        transform 0.2s ease;
 }
-.paso-indicador.activo { background: #1d4ed8; color: #ffffff; }
-.paso-indicador.completado { background: #1e3a8a; color: #ffffff; }
-.linea-progreso { width: 24px; height: 2px; background: #f3f4f6; }
 
-.texto-paso { text-align: center; color: #6b7280; font-size: 0.95rem; margin-bottom: 20px; }
+.paso-indicador.activo {
+    border-color: #0b718f;
+    color: #ffffff;
+    background: #0b718f;
+    transform: scale(1.08);
+}
 
-/* Selección de rol */
-.grilla-roles { display: flex; flex-direction: column; gap: 10px; }
+.paso-indicador.completado {
+    border-color: #b7dbe3;
+    color: #0b718f;
+    background: #eaf7fa;
+}
+
+.linea-progreso {
+    width: 38px;
+    height: 1px;
+    background: #dce8ed;
+}
+
+.texto-paso {
+    max-width: 380px;
+    margin: 0 auto 24px;
+    color: #6d7d86;
+    font-size: 0.91rem;
+    line-height: 1.55;
+    text-align: center;
+}
+
+.paso:not(.oculto) {
+    animation: aparecer-paso 0.25s ease both;
+}
+
+.grilla-roles {
+    display: grid;
+    gap: 11px;
+}
+
 .tarjeta-rol {
-  text-align: left; padding: 14px 16px;
-  border: 1px solid #d1d5db; border-radius: 8px;
-  background: #ffffff; cursor: pointer;
-}
-.tarjeta-rol:hover { border-color: #1d4ed8; }
-.tarjeta-rol.seleccionado { border-color: #1d4ed8; background: #eff6ff; }
-.tarjeta-rol h3 { font-size: 1rem; margin-bottom: 2px; }
-.tarjeta-rol p { font-size: 0.85rem; color: #6b7280; }
-
-/* Campos */
-.campo { margin-bottom: 18px; text-align: left; }
-.campo label { display: block; font-weight: 500; font-size: 0.9rem; margin-bottom: 6px; color: #111827; }
-.campo input, .campo select {
-  width: 100%; padding: 10px 12px; border: 1px solid #d1d5db;
-  border-radius: 6px; font-family: 'Manrope', system-ui, sans-serif; font-size: 1rem;
-  background: #ffffff; color: #111827;
-}
-.campo input:focus, .campo select:focus { outline: 2px solid #1d4ed8; outline-offset: 1px; border-color: #1d4ed8; }
-
-.fila-doble { display: flex; gap: 12px; }
-.fila-doble .campo { flex: 1; }
-
-.campo-checkbox label { display: flex; align-items: flex-start; gap: 8px; font-weight: 400; font-size: 0.85rem; color: #6b7280; }
-.campo-checkbox input { width: auto; margin-top: 3px; }
-.campo-checkbox a { color: #1d4ed8; font-weight: 600; }
-
-.entrada-contrasena { position: relative; }
-.entrada-contrasena input { padding-right: 70px; }
-.btn-ver-contrasena {
-  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
-  background: none; border: none; color: #1d4ed8;
-  font-weight: 600; font-size: 0.85rem; cursor: pointer; padding: 4px 6px;
+    width: 100%;
+    padding: 17px 18px;
+    border: 1px solid #dce8ed;
+    border-radius: 13px;
+    outline: none;
+    color: #12232d;
+    background: #ffffff;
+    font-family: var(--fuente-base);
+    text-align: left;
+    cursor: pointer;
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
 }
 
-.mensaje-estado { padding: 12px 14px; border-radius: 6px; font-size: 0.9rem; margin-bottom: 18px; }
-.mensaje-estado.oculto { display: none; }
-.mensaje-estado.exito { background: #f0fdf4; color: #15803d; }
-.mensaje-estado.error { background: #fef2f2; color: #b91c1c; }
+.tarjeta-rol:hover,
+.tarjeta-rol:focus-visible {
+    border-color: #8fc5d1;
+    background: #fbfeff;
+    box-shadow: 0 8px 20px rgba(24, 67, 82, 0.07);
+    transform: translateY(-1px);
+}
 
-.enlace-secundario { text-align: center; font-size: 0.9rem; color: #6b7280; margin-top: 20px; }
-.enlace-secundario a { color: #1d4ed8; font-weight: 600; }
+.tarjeta-rol.seleccionado {
+    border-color: #0b718f;
+    background: #eaf7fa;
+    box-shadow: 0 0 0 3px rgba(11, 113, 143, 0.1);
+}
 
-/* Pasos y botones */
-.paso.oculto, .campos-rol.oculto { display: none; }
-.fila-botones { display: flex; gap: 10px; margin-top: 8px; }
-.fila-botones .btn { flex: 1; text-align: center; }
+.tarjeta-rol h3 {
+    margin-bottom: 4px;
+    font-size: 0.96rem;
+}
+
+.tarjeta-rol p {
+    color: #6d7d86;
+    font-size: 0.83rem;
+    line-height: 1.45;
+}
+
+.campos-rol.oculto,
+.paso.oculto {
+    display: none;
+}
+
+.fila-doble {
+    display: flex;
+    gap: 13px;
+}
+
+.fila-doble .campo {
+    flex: 1;
+}
+
+.campo-checkbox {
+    margin-top: 8px;
+}
+
+.campo-checkbox label {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+    color: #6d7d86;
+    font-size: 0.82rem;
+    font-weight: 400;
+    line-height: 1.45;
+}
+
+.campo-checkbox input {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    margin: 2px 0 0;
+    accent-color: #0b718f;
+}
+
+.campo-checkbox a {
+    color: #0b718f;
+    font-weight: 800;
+}
+
+.fila-botones {
+    display: flex;
+    gap: 11px;
+    margin-top: 27px;
+}
+
+.fila-botones .btn {
+    flex: 1;
+    text-align: center;
+}
+
+.enlace-secundario {
+    margin-top: 28px;
+}
+
+@keyframes aparecer-paso {
+    from {
+        opacity: 0;
+        transform: translateX(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@media (max-width: 520px) {
+    .fila-doble {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .fila-botones {
+        flex-direction: column-reverse;
+    }
+
+    .fila-botones .btn {
+        width: 100%;
+    }
+
+    .linea-progreso {
+        width: 22px;
+    }
+}
