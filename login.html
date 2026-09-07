@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iniciar sesión — AquaTrack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/comunes.css">
+<link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+
+<main class="pantalla-autenticacion">
+  <div class="tarjeta-autenticacion">
+    <a href="index.html" class="logo logo-auth">AquaTrack</a>
+    <h1 class="titulo-autenticacion">Iniciar sesión</h1>
+
+    <div id="mensaje-estado" class="mensaje-estado oculto" role="alert"></div>
+
+    <form id="formulario-login" novalidate>
+      <div class="campo">
+        <label for="correo">Correo electrónico</label>
+        <input type="email" id="correo" name="correo" required autocomplete="email">
+      </div>
+
+      <div class="campo">
+        <label for="contrasena">Contraseña</label>
+        <div class="entrada-contrasena">
+          <input type="password" id="contrasena" name="contrasena" required autocomplete="current-password">
+          <button type="button" class="btn-ver-contrasena" id="btn-ver-contrasena">Ver</button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-principal btn-ancho" id="btn-enviar">Iniciar sesión</button>
+    </form>
+
+    <p class="enlace-secundario">¿No tenés cuenta? <a href="registro.html">Registrate</a></p>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/supabase-config.js"></script>
+<script src="js/login.js"></script>
+</body>
+</html>

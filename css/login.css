@@ -1,0 +1,41 @@
+.pantalla-autenticacion {
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px;
+  background: #f3f4f6;
+}
+.tarjeta-autenticacion {
+  width: 100%; max-width: 400px;
+  background: #ffffff;
+  border: 1px solid #f3f4f6;
+  border-radius: 10px;
+  padding: 40px 32px;
+}
+.logo-auth { display: block; text-align: center; margin-bottom: 24px; }
+.titulo-autenticacion { text-align: center; font-size: 1.5rem; font-weight: 800; margin-bottom: 24px; }
+
+.campo { margin-bottom: 18px; text-align: left; }
+.campo label { display: block; font-weight: 500; font-size: 0.9rem; margin-bottom: 6px; color: #111827; }
+.campo input {
+  width: 100%; padding: 10px 12px; border: 1px solid #7fb1fb;
+  border-radius: 6px; font-family: 'Manrope', system-ui, sans-serif; font-size: 1rem;
+  background: #ffffff; color: #111827;
+}
+.campo input:focus { outline: 2px solid #1d4ed8; outline-offset: 1px; border-color: #1d4ed8; }
+
+.entrada-contrasena { position: relative; }
+.entrada-contrasena input { padding-right: 70px; }
+.btn-ver-contrasena {
+  position: absolute; right: 8px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: #1d4ed8;
+  font-weight: 600; font-size: 0.85rem; cursor: pointer; padding: 4px 6px;
+}
+
+.mensaje-estado { padding: 12px 14px; border-radius: 6px; font-size: 0.9rem; margin-bottom: 18px; }
+.mensaje-estado.oculto { display: none; }
+.mensaje-estado.exito { background: #f0fdf4; color: #15803d; }
+.mensaje-estado.error { background: #fef2f2; color: #b91c1c; }
+
+.enlace-secundario { text-align: center; font-size: 0.9rem; color: #6b7280; margin-top: 20px; }
+.enlace-secundario a { color: #1d4ed8; font-weight: 600; }
+.btn-ancho { width: 100%; text-align: center; }
