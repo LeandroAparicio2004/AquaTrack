@@ -8,6 +8,12 @@ btnVerContrasena.addEventListener('click', () => {
   const oculta = campoContrasena.type === 'password';
   campoContrasena.type = oculta ? 'text' : 'password';
   btnVerContrasena.textContent = oculta ? 'Ocultar' : 'Ver';
+
+  // Actualizar el estado del ojo
+  const ojoCerrado = btnVerContrasena.querySelector('.ojo-cerrado');
+  const ojoAberto = btnVerContrasena.querySelector('.ojo-aberto');
+  ojoCerrado.style.display = oculta ? 'none' : 'inline-block';
+  ojoAberto.style.display = oculta ? 'inline-block' : 'none';
 });
 
 function mostrarMensaje(texto, tipo) {
