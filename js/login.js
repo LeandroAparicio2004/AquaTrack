@@ -35,7 +35,7 @@ formulario.addEventListener('submit', async (evento) => {
   const contrasena = campoContrasena.value;
 
   try {
-    const { error } = await supabaseCliente.auth.signInWithPassword({ email: correo, password: contrasena });
+    const { data, error } = await supabaseCliente.auth.signInWithPassword({ email: correo, password: contrasena });
 
     if (error) {
       mostrarMensaje('Correo o contraseña incorrectos.', 'error');
@@ -44,8 +44,19 @@ formulario.addEventListener('submit', async (evento) => {
       return;
     }
 
+    // redirige segun rol
+    const { data: perfil } = await supabaseCliente
+      .from('usuarios')
+      .select('rol')
+      .eq('id', data.user.id)
+      .single();
+
+    const paginaDestino = perfil?.rol === 'vendedor'
+      ? 'panel-vendedor.html'
+      : 'index.html';
+
     mostrarMensaje('¡Bienvenido! Redirigiendo...', 'exito');
-    setTimeout(() => { window.location.href = 'index.html'; }, 1200);
+    setTimeout(() => { window.location.href = paginaDestino; }, 1200);
   } catch (error) {
     mostrarMensaje('No pudimos conectar con el servicio. Intentá nuevamente.', 'error');
     btnEnviar.disabled = false;
