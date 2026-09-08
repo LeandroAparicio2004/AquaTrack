@@ -1,14 +1,18 @@
 const listaProductos = document.getElementById('lista-productos');
 const estadoCatalogo = document.getElementById('estado-catalogo');
-const contadorProductos = document.getElementById('contador-productos');
-const buscadorProductos = document.getElementById('buscador-productos');
-const filtroCapacidad = document.getElementById('filtro-capacidad');
 const botonCarrito = document.getElementById('boton-carrito');
 const cantidadCarrito = document.getElementById('cantidad-carrito');
 const modalAcceso = document.getElementById('modal-acceso');
 const botonCerrarModal = document.getElementById('boton-cerrar-modal');
 const botonContinuar = document.getElementById('boton-continuar');
 const notificacion = document.getElementById('notificacion');
+
+// mostrar "Iniciar sesion/Crear cuenta" o "Salir"
+const navInvitado = document.getElementById('nav-invitado');
+const navUsuario = document.getElementById('nav-usuario');
+const botonCerrarSesion = document.getElementById('boton-cerrar-sesion');
+
+const CANTIDAD_DESTACADOS = 4;
 
 let productosDisponibles = [];
 let temporizadorNotificacion;
@@ -103,45 +107,20 @@ function crearIconoProducto() {
   `;
 }
 
-function renderizarProductos() {
-    const textoBusqueda = buscadorProductos.value.trim().toLowerCase();
-    const capacidadSeleccionada = filtroCapacidad.value;
-
-    const productosFiltrados = productosDisponibles.filter((producto) => {
-        const distribuidora = obtenerDistribuidora(producto);
-        const contenidoProducto = [
-            producto.nombre,
-            producto.descripcion,
-            distribuidora.nombre
-        ]
-            .join(' ')
-            .toLowerCase();
-
-        const coincideBusqueda = contenidoProducto.includes(textoBusqueda);
-        const coincideCapacidad =
-            capacidadSeleccionada === 'todas' ||
-            String(producto.capacidad_litros) === capacidadSeleccionada;
-
-        return coincideBusqueda && coincideCapacidad;
-    });
-
+function renderizarDestacados() {
     listaProductos.innerHTML = '';
 
-    if (productosFiltrados.length === 0) {
+    if (productosDisponibles.length === 0) {
         estadoCatalogo.textContent =
-            'No encontramos productos con esos filtros.';
+            'Todavía no hay productos publicados.';
         estadoCatalogo.className = 'estado-catalogo';
-        contadorProductos.textContent = 'Sin resultados';
         return;
     }
 
     estadoCatalogo.textContent = '';
     estadoCatalogo.className = 'estado-catalogo oculto';
 
-    contadorProductos.textContent =
-        `${productosFiltrados.length} producto${productosFiltrados.length === 1 ? '' : 's'}`;
-
-    productosFiltrados.forEach((producto) => {
+    productosDisponibles.forEach((producto) => {
         const distribuidora = obtenerDistribuidora(producto);
         const descripcion = producto.descripcion || 'Agua mineral a domicilio.';
 
@@ -191,22 +170,7 @@ function renderizarProductos() {
     });
 }
 
-function cargarOpcionesCapacidad() {
-    const capacidades = [...new Set(
-        productosDisponibles.map((producto) => producto.capacidad_litros)
-    )].sort((a, b) => Number(a) - Number(b));
-
-    capacidades.forEach((capacidad) => {
-        const opcion = document.createElement('option');
-
-        opcion.value = capacidad;
-        opcion.textContent = `${capacidad} litros`;
-
-        filtroCapacidad.appendChild(opcion);
-    });
-}
-
-async function cargarProductos() {
+async function cargarDestacados() {
     estadoCatalogo.textContent = 'Cargando productos...';
     estadoCatalogo.className = 'estado-catalogo';
 
@@ -229,20 +193,18 @@ async function cargarProductos() {
     `)
         .eq('activo', true)
         .eq('distribuidoras.estado', 'activa')
-        .order('nombre');
+        .order('nombre')
+        .limit(CANTIDAD_DESTACADOS);
 
     if (error) {
         estadoCatalogo.textContent =
             'No pudimos cargar el catálogo. Intentá nuevamente más tarde.';
         estadoCatalogo.className = 'estado-catalogo error';
-        contadorProductos.textContent = 'Catálogo no disponible';
         return;
     }
 
     productosDisponibles = data || [];
-
-    cargarOpcionesCapacidad();
-    renderizarProductos();
+    renderizarDestacados();
 }
 
 async function agregarProducto(idProducto) {
@@ -299,9 +261,6 @@ listaProductos.addEventListener('click', (evento) => {
     agregarProducto(boton.dataset.agregarProducto);
 });
 
-buscadorProductos.addEventListener('input', renderizarProductos);
-filtroCapacidad.addEventListener('change', renderizarProductos);
-
 botonCarrito.addEventListener('click', async () => {
     const {
         data: { session }
@@ -343,5 +302,24 @@ document.addEventListener('keydown', (evento) => {
     }
 });
 
+// revisa si hay una sesion activa y muestra el bloque de nav correspond 
+async function verificarSesion() {
+    const {
+        data: { session }
+    } = await supabaseCliente.auth.getSession();
+
+    navInvitado.classList.toggle('oculto', Boolean(session));
+    navUsuario.classList.toggle('oculto', !session);
+}
+
+//logout, vuelve a la pantalla de login
+async function cerrarSesion() {
+    await supabaseCliente.auth.signOut();
+    window.location.href = 'login.html';
+}
+
+botonCerrarSesion.addEventListener('click', cerrarSesion);
+
 actualizarCantidadCarrito();
-cargarProductos();
+cargarDestacados();
+verificarSesion();
