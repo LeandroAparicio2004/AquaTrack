@@ -140,26 +140,31 @@
 }
 
 .entrada-contrasena input {
-    padding-right: 76px !important;
+    padding-right: 46px !important;
 }
 
 .btn-ver-contrasena {
+    width: 34px;
+    height: 34px;
+    display: grid;
     position: absolute;
     top: 50%;
     right: 9px;
-    height: 34px;
-    padding: 0 8px;
+    place-items: center;
     border: 0;
     border-radius: 7px;
     color: var(--color-acento-auth);
     background: transparent;
-    font-size: 0.8rem;
-    font-weight: 800;
     cursor: pointer;
     transform: translateY(-50%);
     transition:
         color 0.2s ease,
         background-color 0.2s ease;
+}
+
+.btn-ver-contrasena svg {
+    width: 19px;
+    height: 19px;
 }
 
 .btn-ver-contrasena:hover {

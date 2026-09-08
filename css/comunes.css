@@ -33,12 +33,20 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--color-acento); 
   border-radius: 6px;
   font-weight: 700;
   font-size: 0.95rem;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.1s ease;
 }
 .btn-principal { background: var(--color-acento); color: #ffffff; }
 .btn-principal:hover { background: var(--color-acento-oscuro); }
 .btn-secundario { border: 1px solid var(--color-acento); color: var(--color-acento); }
 .btn-secundario:hover { background: var(--color-superficie); }
+.btn:active { transform: scale(0.96); }
 .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn:disabled:active { transform: none; }
 
 .encabezado { border-bottom: 1px solid var(--color-superficie); }
 .encabezado-interno {

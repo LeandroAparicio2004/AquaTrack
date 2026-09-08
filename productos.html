@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Catálogo completo de agua a domicilio en AquaTrack.">
+  <title>Catálogo de productos — AquaTrack</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/comunes.css">
+  <link rel="stylesheet" href="css/inicio.css">
+</head>
+
+<body>
+  <header class="encabezado inicio-encabezado">
+    <div class="contenedor encabezado-interno">
+      <a href="index.html" class="marca-inicio" aria-label="Ir al inicio de AquaTrack">
+        <span class="logo">AquaTrack</span>
+      </a>
+
+      <nav class="navegacion-inicio" aria-label="Navegación principal">
+        <a href="productos.html" class="enlace-nav">Productos</a>
+
+        <!-- Visible solo si NO hay sesión iniciada -->
+        <div class="nav-sesion" id="nav-invitado">
+          <a href="login.html" class="enlace-nav">Iniciar sesión</a>
+          <a href="registro.html" class="btn btn-secundario">Crear cuenta</a>
+        </div>
+
+        <!-- Visible solo si SÍ hay sesión iniciada -->
+        <div class="nav-sesion oculto" id="nav-usuario">
+          <button type="button" class="btn btn-secundario" id="boton-cerrar-sesion">Salir</button>
+        </div>
+
+        <button type="button" class="boton-carrito" id="boton-carrito" aria-label="Ver pedido">
+          Pedido
+          <span id="cantidad-carrito">0</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="destacados">
+      <div class="contenedor">
+        <div class="encabezado-seccion">
+          <div>
+            <p class="etiqueta-seccion">Catálogo completo</p>
+            <h2>Todos los productos</h2>
+          </div>
+
+          <p class="contador-productos" id="contador-productos"></p>
+        </div>
+
+        <div class="filtros-catalogo">
+          <div class="campo-busqueda">
+            <label for="buscador-productos">Buscar</label>
+            <div class="entrada-busqueda">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8" />
+                <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+              </svg>
+              <input type="text" id="buscador-productos" placeholder="Producto o distribuidora...">
+            </div>
+          </div>
+
+          <div class="campo-filtro">
+            <label for="filtro-capacidad">Capacidad</label>
+            <select id="filtro-capacidad">
+              <option value="todas">Todas</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="estado-catalogo" id="estado-catalogo" role="status" aria-live="polite">
+          Cargando productos...
+        </div>
+
+        <div class="grilla-productos" id="lista-productos"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-fondo oculto" id="modal-acceso" role="dialog" aria-modal="true"
+    aria-labelledby="titulo-modal-acceso">
+    <div class="modal-acceso">
+      <button type="button" class="boton-cerrar-modal" id="boton-cerrar-modal" aria-label="Cerrar ventana">
+        ×
+      </button>
+
+      <div class="modal-icono">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path
+            d="M12 3.5C12 3.5 5.5 10.4 5.5 15.1C5.5 18.7 8.4 21.5 12 21.5C15.6 21.5 18.5 18.7 18.5 15.1C18.5 10.4 12 3.5 12 3.5Z"
+            fill="currentColor" />
+        </svg>
+      </div>
+
+      <h2 id="titulo-modal-acceso">Creá tu cuenta para continuar</h2>
+
+      <p>
+        Podés explorar todo el catálogo sin registrarte. Para agregar un
+        producto a tu pedido necesitamos identificarte.
+      </p>
+
+      <div class="acciones-modal">
+        <a href="login.html" class="btn btn-secundario">
+          Iniciar sesión
+        </a>
+
+        <a href="registro.html" class="btn btn-principal">
+          Crear cuenta
+        </a>
+      </div>
+
+      <button type="button" class="enlace-continuar" id="boton-continuar">
+        Seguir explorando
+      </button>
+    </div>
+  </div>
+
+  <div class="notificacion" id="notificacion" role="status" aria-live="polite"></div>
+
+  <footer class="pie-pagina">
+    <div class="contenedor">
+      <p>© 2026 AquaTrack — Catamarca, Argentina</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/productos.js"></script>
+</body>
+
+</html>
