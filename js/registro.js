@@ -46,6 +46,9 @@ const chipRolTexto = document.getElementById('chip-rol-texto');
 const btnCambiarRol = document.getElementById('btn-cambiar-rol');
 const botonEnviar = document.getElementById('btn-enviar');
 
+const iconoOjoAbierto = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="12" r="2.8" stroke="currentColor" stroke-width="1.6"/></svg>`;
+const iconoOjoCerrado = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3.5 3.5l17 17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M6.4 6.9C4 8.6 2.5 12 2.5 12S6 18.5 12 18.5c1.5 0 2.9-.4 4.1-1M9.9 5.7c.7-.1 1.4-.2 2.1-.2 6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-3.1 4.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.9 12a2.8 2.8 0 0 0 4-2.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>`;
+
 function mostrarMensaje(texto, tipo) {
     mensajeEstado.textContent = texto;
     mensajeEstado.className = `mensaje-estado ${tipo}`;
@@ -308,13 +311,21 @@ document.querySelectorAll('#dni-vendedor, #dni-repartidor').forEach((entrada) =>
     });
 });
 
+function actualizarIconoContrasena(boton, contrasenaVisible) {
+    boton.innerHTML = contrasenaVisible ? iconoOjoAbierto : iconoOjoCerrado;
+    boton.setAttribute('aria-pressed', String(contrasenaVisible));
+    boton.setAttribute('aria-label', contrasenaVisible ? 'Ocultar contraseña' : 'Mostrar contraseña');
+}
+
 document.querySelectorAll('.btn-ver-contrasena').forEach((boton) => {
+    actualizarIconoContrasena(boton, false);
+
     boton.addEventListener('click', () => {
         const campo = document.getElementById(boton.dataset.objetivo);
-        const mostrarContrasena = campo.type === 'password';
+        const contrasenaVisible = campo.type === 'password';
 
-        campo.type = mostrarContrasena ? 'text' : 'password';
-        boton.textContent = mostrarContrasena ? 'Ocultar' : 'Ver';
+        campo.type = contrasenaVisible ? 'text' : 'password';
+        actualizarIconoContrasena(boton, contrasenaVisible);
     });
 });
 

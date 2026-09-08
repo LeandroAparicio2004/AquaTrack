@@ -30,11 +30,6 @@ body {
   font-size: 1.25rem;
 }
 
-.logo-auth::after {
-  content: ' |';
-  margin-left: 8px;
-}
-
 .decoracion-marca {
   margin-top: 16px;
 }
