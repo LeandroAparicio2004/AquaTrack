@@ -218,10 +218,10 @@ a:focus-visible {
 
 .mensaje-estado {
     margin-bottom: 20px;
-    padding: 13px 14px;
-    border: 1px solid transparent;
-    border-radius: 11px;
+    padding: 2px 0 2px 13px;
+    border-left: 3px solid transparent;
     font-size: 0.88rem;
+    font-weight: 600;
     line-height: 1.45;
 }
 
@@ -230,15 +230,13 @@ a:focus-visible {
 }
 
 .mensaje-estado.error {
-    border-color: #f3c4bf;
+    border-color: var(--color-error-auth);
     color: var(--color-error-auth);
-    background: var(--color-error-fondo-auth);
 }
 
 .mensaje-estado.exito {
-    border-color: #b9e4ce;
+    border-color: var(--color-exito-auth);
     color: var(--color-exito-auth);
-    background: var(--color-exito-fondo-auth);
 }
 
 .enlace-secundario {
@@ -295,6 +293,18 @@ a:focus-visible {
 
     .marca-auth {
         margin-bottom: 30px;
+    }
+
+    .enlace-volver {
+        display: block;
+        margin-top: 6px;
+        color: var(--color-texto-secundario-auth);
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .enlace-volver:hover {
+        color: var(--color-acento-auth);
     }
 
     .titulo-autenticacion {
