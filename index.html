@@ -24,13 +24,13 @@
       <nav class="navegacion-inicio" aria-label="Navegación principal">
         <a href="productos.html" class="enlace-nav">Productos</a>
 
-        <!-- Visible solo si NO hay sesión iniciada -->
+        <!-- Muestra solo si no iniciaron sesion (Iniciar Sesion - Crear cuenta) -->
         <div class="nav-sesion" id="nav-invitado">
           <a href="login.html" class="enlace-nav">Iniciar sesión</a>
           <a href="registro.html" class="btn btn-secundario">Crear cuenta</a>
         </div>
 
-        <!-- Visible solo si SÍ hay sesión iniciada -->
+        <!-- Muestra si estan en cuenta -->
         <div class="nav-sesion oculto" id="nav-usuario">
           <button type="button" class="btn btn-secundario" id="boton-cerrar-sesion">Salir</button>
         </div>
@@ -60,10 +60,6 @@
             <a href="productos.html" class="btn btn-principal">
               Ver catálogo completo
             </a>
-
-            <span class="texto-apoyo">
-              Sin registro para explorar
-            </span>
           </div>
         </div>
 
@@ -91,26 +87,26 @@
         <div class="pasos-funcionamiento">
           <div class="paso-funcionamiento">
             <span class="paso-numero">1</span>
-            <h3>Elegí tu distribuidora</h3>
-            <p>Explorá el catálogo y comparalos por precio, capacidad y cercanía.</p>
+            <h3>Elije tu distribuidora</h3>
+            <p>Explorá el catálogo, compara los precio y cercanía</p>
           </div>
 
           <div class="paso-funcionamiento">
             <span class="paso-numero">2</span>
-            <h3>Pedí tus bidones</h3>
-            <p>Sumá productos a tu pedido y confirmá con el método de pago que prefieras.</p>
+            <h3>Pide tus bidones</h3>
+            <p>Sumá productos a tu pedido y confirmá con el método de pago que prefieras</p>
           </div>
 
           <div class="paso-funcionamiento">
             <span class="paso-numero">3</span>
-            <h3>Seguí tu entrega</h3>
-            <p>Mirá en el mapa cuándo llega el repartidor a tu domicilio.</p>
+            <h3>Sigue tu entrega</h3>
+            <p>Mirá en el mapa en cuanto llega el repartidor a tu domicilio</p>
           </div>
 
           <div class="paso-funcionamiento">
             <span class="paso-numero">4</span>
-            <h3>Devolvé el envase</h3>
-            <p>Entregá el bidón vacío y sumá un descuento en tu próximo pedido.</p>
+            <h3>Devuelve el envase</h3>
+            <p>Entregá el bidón vacío y sumá un descuento en tu próximo pedido</p>
           </div>
         </div>
       </div>
@@ -238,8 +234,37 @@
 
   <div class="notificacion" id="notificacion" role="status" aria-live="polite"></div>
 
+<!------------------------------------- Footer ------------------------------------->
   <footer class="pie-pagina">
-    <div class="contenedor">
+    <div class="contenedor pie-pagina-superior">
+      <div class="pie-pagina-marca">
+        <span class="logo">AquaTrack</span>
+        <p>Agua a domicilio en Catamarca.</p>
+      </div>
+
+      <nav class="pie-pagina-columnas" aria-label="Enlaces del pie de página">
+        <div class="pie-pagina-columna">
+          <h3>Empresa</h3>
+          <a href="#">Sobre nosotros</a>
+          <a href="#">Cómo funciona</a>
+          <a href="registro.html">Sumate como Vendedor</a>
+        </div>
+
+        <div class="pie-pagina-columna">
+          <h3>Ayuda</h3>
+          <a href="#">Preguntas frecuentes</a>
+          <a href="#">Contacto</a>
+        </div>
+
+        <div class="pie-pagina-columna">
+          <h3>Legal</h3>
+          <a href="#">Términos y Condiciones</a>
+          <a href="#">Política de Privacidad</a>
+        </div>
+      </nav>
+    </div>
+
+    <div class="contenedor pie-pagina-inferior">
       <p>© 2026 AquaTrack — Catamarca, Argentina</p>
     </div>
   </footer>

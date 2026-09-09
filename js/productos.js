@@ -122,7 +122,8 @@ function renderizarProductos() {
             .join(' ')
             .toLowerCase();
 
-        const coincideBusqueda = contenidoProducto.includes(textoBusqueda);
+        const coincideBusqueda =
+            textoBusqueda.length < 3 || contenidoProducto.includes(textoBusqueda);
         const coincideCapacidad =
             capacidadSeleccionada === 'todas' ||
             String(producto.capacidad_litros) === capacidadSeleccionada;

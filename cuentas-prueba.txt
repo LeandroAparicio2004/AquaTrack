@@ -1,0 +1,9 @@
+Cliente{
+    leandroaparicio91@gmail.com
+    12345678
+}
+
+Vendedor{
+    vendedor@gmail.com
+    12345678
+}

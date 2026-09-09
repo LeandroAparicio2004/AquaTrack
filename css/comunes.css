@@ -67,7 +67,77 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--color-acento); 
 
 .pie-pagina {
   border-top: 1px solid var(--color-superficie);
-  padding: 28px 0;
+  padding: 48px 0 0;
+  margin-top: 60px;
+}
+
+.pie-pagina-superior {
+  display: flex;
+  justify-content: space-between;
+  gap: 40px;
+  padding-bottom: 36px;
+}
+
+.pie-pagina-marca .logo {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.pie-pagina-marca p {
+  max-width: 220px;
+  color: var(--color-texto-secundario);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.pie-pagina-columnas {
+  display: flex;
+  gap: 56px;
+}
+
+.pie-pagina-columna {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pie-pagina-columna h3 {
+  margin-bottom: 4px;
+  color: var(--color-texto);
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pie-pagina-columna a {
+  color: var(--color-texto-secundario);
+  font-size: 0.9rem;
+}
+
+.pie-pagina-columna a:hover {
+  color: var(--color-texto);
+}
+
+.pie-pagina-inferior {
+  padding: 20px 0;
+  border-top: 1px solid var(--color-superficie);
   text-align: center;
 }
-.pie-pagina p { color: var(--color-texto-secundario); font-size: 0.9rem; }
+
+.pie-pagina-inferior p {
+  color: var(--color-texto-secundario);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 620px) {
+  .pie-pagina-superior {
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .pie-pagina-columnas {
+    gap: 28px;
+    flex-wrap: wrap;
+  }
+}
