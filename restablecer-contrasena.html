@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear nueva contraseña — AquaTrack</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/comunes.css">
+    <link rel="stylesheet" href="css/autenticacion.css">
+    <link rel="stylesheet" href="css/restablecer-contrasena.css">
+</head>
+
+<body>
+
+    <main class="pantalla-autenticacion">
+        <div class="envoltorio-auth">
+            <a href="index.html" class="logo-flotante">
+                <img src="img/logo.svg" alt="AquaTrack">
+            </a>
+
+            <div class="tarjeta-autenticacion">
+                <h1 class="titulo-autenticacion">Crear nueva contraseña</h1>
+
+                <p class="subtitulo-autenticacion">
+                    Elegí una contraseña nueva para tu cuenta.
+                </p>
+
+                <div id="mensaje-estado" class="mensaje-estado oculto" role="alert"></div>
+
+                <form id="formulario-restablecer" novalidate>
+                    <div class="campo">
+                        <label for="contrasena">Nueva contraseña</label>
+                        <div class="entrada-contrasena">
+                            <input type="password" id="contrasena" required autocomplete="new-password"
+                                minlength="8">
+                            <button type="button" class="btn-ver-contrasena" data-objetivo="contrasena"></button>
+                        </div>
+                    </div>
+
+                    <div class="campo">
+                        <label for="repetir-contrasena">Repetir contraseña</label>
+                        <div class="entrada-contrasena">
+                            <input type="password" id="repetir-contrasena" required autocomplete="new-password"
+                                minlength="8">
+                            <button type="button" class="btn-ver-contrasena"
+                                data-objetivo="repetir-contrasena"></button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-principal btn-ancho" id="btn-enviar">Guardar
+                        contraseña</button>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!------------------------------------- Footer ------------------------------------->
+    <footer class="pie-pagina">
+        <div class="contenedor pie-pagina-superior">
+            <div class="pie-pagina-marca">
+                <span class="logo">AquaTrack</span>
+                <p>Agua a domicilio en Catamarca.</p>
+            </div>
+
+            <nav class="pie-pagina-columnas" aria-label="Enlaces del pie de página">
+                <div class="pie-pagina-columna">
+                    <h3>Empresa</h3>
+                    <a href="#">Sobre nosotros</a>
+                    <a href="#">Cómo funciona</a>
+                    <a href="registro.html">Sumate como Vendedor</a>
+                </div>
+
+                <div class="pie-pagina-columna">
+                    <h3>Ayuda</h3>
+                    <a href="#">Preguntas frecuentes</a>
+                    <a href="#">Contacto</a>
+                </div>
+
+                <div class="pie-pagina-columna">
+                    <h3>Legal</h3>
+                    <a href="#">Términos y Condiciones</a>
+                    <a href="#">Política de Privacidad</a>
+                </div>
+            </nav>
+        </div>
+
+        <div class="contenedor pie-pagina-inferior">
+            <p>© 2026 AquaTrack — Catamarca, Argentina</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/restablecer-contrasena.js"></script>
+</body>
+
+</html>

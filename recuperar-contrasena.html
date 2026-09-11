@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar contraseña — AquaTrack</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/comunes.css">
+    <link rel="stylesheet" href="css/autenticacion.css">
+    <link rel="stylesheet" href="css/recuperar-contrasena.css">
+</head>
+
+<body>
+
+    <main class="pantalla-autenticacion">
+        <div class="envoltorio-auth">
+            <a href="index.html" class="logo-flotante">
+                <img src="img/logo.svg" alt="AquaTrack">
+            </a>
+
+            <div class="tarjeta-autenticacion">
+                <div class="marca-auth">
+                    <a href="login.html" class="logo logo-auth">← Volver</a>
+                </div>
+
+                <h1 class="titulo-autenticacion">Recuperar contraseña</h1>
+
+                <p class="subtitulo-autenticacion">
+                    Ingrese su correo y le mandaremos instrucciones para crear una contraseña nueva
+                </p>
+
+                <div id="mensaje-estado" class="mensaje-estado oculto" role="alert"></div>
+
+                <form id="formulario-recuperar" novalidate>
+                    <div class="campo">
+                        <label for="correo">Correo electrónico</label>
+                        <input type="email" id="correo" name="correo" required autocomplete="email">
+                    </div>
+
+                    <button type="submit" class="btn btn-principal btn-ancho" id="btn-enviar">Enviar
+                        instrucciones</button>
+                </form>
+
+                <p class="enlace-secundario">¿Ya te acordaste? <a href="login.html">Iniciar sesión</a></p>
+            </div>
+        </div>
+    </main>
+
+    <!------------------------------------- Footer ------------------------------------->
+    <footer class="pie-pagina">
+        <div class="contenedor pie-pagina-superior">
+            <div class="pie-pagina-marca">
+                <span class="logo">AquaTrack</span>
+                <p>Agua a domicilio en Catamarca.</p>
+            </div>
+
+            <nav class="pie-pagina-columnas" aria-label="Enlaces del pie de página">
+                <div class="pie-pagina-columna">
+                    <h3>Empresa</h3>
+                    <a href="#">Sobre nosotros</a>
+                    <a href="#">Cómo funciona</a>
+                    <a href="registro.html">Sumate como Vendedor</a>
+                </div>
+
+                <div class="pie-pagina-columna">
+                    <h3>Ayuda</h3>
+                    <a href="#">Preguntas frecuentes</a>
+                    <a href="#">Contacto</a>
+                </div>
+
+                <div class="pie-pagina-columna">
+                    <h3>Legal</h3>
+                    <a href="#">Términos y Condiciones</a>
+                    <a href="#">Política de Privacidad</a>
+                </div>
+            </nav>
+        </div>
+
+        <div class="contenedor pie-pagina-inferior">
+            <p>© 2026 AquaTrack — Catamarca, Argentina</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/recuperar-contrasena.js"></script>
+</body>
+
+</html>
