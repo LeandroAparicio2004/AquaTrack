@@ -15,41 +15,51 @@
 <body>
 
     <main class="pantalla-autenticacion">
-        <div class="tarjeta-autenticacion">
-            <div class="marca-auth">
-                <a href="index.html" class="logo logo-auth">← Volver</a>
-            </div>
+        <div class="envoltorio-auth">
+            <a href="index.html" class="logo-flotante">
+                <img src="img/logo.svg" alt="AquaTrack">
+            </a>
 
-            <h1 class="titulo-autenticacion">Iniciar sesión</h1>
-
-            <p class="subtitulo-autenticacion">
-                Accedé a tu cuenta para gestionar tus pedidos y entregas.
-            </p>
-
-            <div id="mensaje-estado" class="mensaje-estado oculto" role="alert"></div>
-            <form id="formulario-login" novalidate>
-                <div class="campo">
-                    <label for="correo">Correo electrónico</label>
-                    <input type="email" id="correo" name="correo" required autocomplete="email">
+            <div class="tarjeta-autenticacion">
+                <div class="marca-auth">
+                    <a href="index.html" class="logo logo-auth">← Volver</a>
                 </div>
 
-                <div class="campo">
-                    <label for="contrasena">Contraseña</label>
-                    <div class="entrada-contrasena">
-                        <input type="password" id="contrasena" name="contrasena" required
-                            autocomplete="current-password">
-                        <button type="button" class="btn-ver-contrasena" id="btn-ver-contrasena"></button>
+                <h1 class="titulo-autenticacion">Iniciar sesión</h1>
+
+                <p class="subtitulo-autenticacion">
+                    Accedé a tu cuenta para gestionar tus pedidos y entregas.
+                </p>
+
+                <div id="mensaje-estado" class="mensaje-estado oculto" role="alert"></div>
+                <form id="formulario-login" novalidate>
+                    <div class="campo">
+                        <label for="correo">Correo electrónico</label>
+                        <input type="email" id="correo" name="correo" required autocomplete="email">
                     </div>
-                </div>
 
-                <button type="submit" class="btn btn-principal btn-ancho" id="btn-enviar">Iniciar sesión</button>
-            </form>
+                    <div class="campo">
+                        <label for="contrasena">Contraseña</label>
+                        <div class="entrada-contrasena">
+                            <input type="password" id="contrasena" name="contrasena" required
+                                autocomplete="current-password">
+                            <button type="button" class="btn-ver-contrasena" id="btn-ver-contrasena"></button>
+                        </div>
+                    </div>
 
-            <p class="enlace-secundario">¿No tenés cuenta? <a href="registro.html">Registrate</a></p>
-        </div>
+                    <p class="enlace-olvide">
+                        <a href="recuperar-contrasena.html">¿Olvidaste tu contraseña?</a>
+                    </p>
+
+                    <button type="submit" class="btn btn-principal btn-ancho" id="btn-enviar">Iniciar sesión</button>
+                </form>
+
+                <p class="enlace-secundario">¿No tenés cuenta? <a href="registro.html">Registrate</a></p>
+              </div>
+      </div>
     </main>
-    
-<!------------------------------------- Footer ------------------------------------->
+
+    <!------------------------------------- Footer ------------------------------------->
     <footer class="pie-pagina">
         <div class="contenedor pie-pagina-superior">
             <div class="pie-pagina-marca">

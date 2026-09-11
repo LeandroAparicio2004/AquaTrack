@@ -39,6 +39,27 @@
     border-radius: 50%;
 }
 
+.envoltorio-auth {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 440px;
+    position: relative;
+    z-index: 1;
+}
+
+.logo-flotante {
+    display: block;
+    margin-bottom: 20px;
+}
+
+.logo-flotante img {
+    height: 34px;
+    width: auto;
+    display: block;
+}
+
 .tarjeta-autenticacion {
     width: 100%;
     max-width: 440px;
@@ -141,6 +162,21 @@
 
 .entrada-contrasena input {
     padding-right: 46px !important;
+}
+
+.enlace-olvide {
+    margin: -8px 0 19px;
+    text-align: right;
+    font-size: 0.85rem;
+}
+
+.enlace-olvide a {
+    color: var(--color-acento-auth);
+    font-weight: 700;
+}
+
+.enlace-olvide a:hover {
+    color: var(--color-acento-oscuro-auth);
 }
 
 .btn-ver-contrasena {
@@ -293,18 +329,6 @@ a:focus-visible {
 
     .marca-auth {
         margin-bottom: 30px;
-    }
-
-    .enlace-volver {
-        display: block;
-        margin-top: 6px;
-        color: var(--color-texto-secundario-auth);
-        font-size: 0.85rem;
-        font-weight: 600;
-    }
-
-    .enlace-volver:hover {
-        color: var(--color-acento-auth);
     }
 
     .titulo-autenticacion {
