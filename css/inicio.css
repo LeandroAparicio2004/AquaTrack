@@ -1,13 +1,33 @@
 :root {
   --color-fondo-inicio: #f5fafc;
   --color-superficie-inicio: #ffffff;
+  --color-superficie-hover-inicio: #f3f7f8;
+  --color-campo-inicio: #ffffff;
   --color-texto-inicio: #12232d;
   --color-texto-secundario-inicio: #6d7d86;
   --color-borde-inicio: #dce8ed;
+  --color-borde-hover-inicio: #a9cbd4;
   --color-acento-inicio: #0b718f;
   --color-acento-oscuro-inicio: #07566d;
   --color-acento-suave-inicio: #eaf7fa;
-  --sombra-tarjeta-inicio: 0 15px 38px rgba(24, 67, 82, 0.08);
+  --color-exito-texto-inicio: #24734f;
+  --color-exito-fondo-inicio: #eefaf4;
+}
+
+[data-tema="oscuro"] {
+  --color-fondo-inicio: #0f1a1f;
+  --color-superficie-inicio: #1b2a31;
+  --color-superficie-hover-inicio: #22343c;
+  --color-campo-inicio: #22343c;
+  --color-texto-inicio: #e7eef0;
+  --color-texto-secundario-inicio: #9fb1b8;
+  --color-borde-inicio: #2a3b43;
+  --color-borde-hover-inicio: #3a4f58;
+  --color-acento-inicio: #2dd4bf;
+  --color-acento-oscuro-inicio: #5eead4;
+  --color-acento-suave-inicio: #16333a;
+  --color-exito-texto-inicio: #4ade80;
+  --color-exito-fondo-inicio: #14311f;
 }
 
 body {
@@ -64,7 +84,7 @@ body {
   border: 1px solid var(--color-borde-inicio);
   border-radius: 9px;
   color: var(--color-texto-inicio);
-  background: #ffffff;
+  background: var(--color-superficie-inicio);
   font-family: var(--fuente-base);
   font-size: 0.86rem;
   font-weight: 700;
@@ -75,8 +95,8 @@ body {
 }
 
 .boton-carrito:hover {
-  border-color: #a9cbd4;
-  background: #f8fcfd;
+  border-color: var(--color-borde-hover-inicio);
+  background: var(--color-superficie-hover-inicio);
 }
 
 .boton-carrito span {
@@ -246,7 +266,7 @@ body {
   position: absolute;
   top: 50%;
   left: 14px;
-  color: #8aa0a9;
+  color: var(--color-texto-secundario-inicio);
   transform: translateY(-50%);
 }
 
@@ -259,7 +279,7 @@ body {
   border-radius: 10px;
   outline: none;
   color: var(--color-texto-inicio);
-  background: #ffffff;
+  background: var(--color-campo-inicio);
   font-family: var(--fuente-base);
   font-size: 0.9rem;
   transition:
@@ -290,15 +310,16 @@ body {
   padding: 21px;
   border: 1px solid var(--color-borde-inicio);
   border-radius: 16px;
-  background: #ffffff;
+  background: var(--color-superficie-inicio);
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease,
+    background-color 0.3s ease,
     transform 0.2s ease;
 }
 
 .tarjeta-producto:hover {
-  border-color: #b8d5dc;
+  border-color: var(--color-borde-hover-inicio);
   box-shadow: var(--sombra-tarjeta-inicio);
   transform: translateY(-3px);
 }
@@ -328,8 +349,8 @@ body {
 .etiqueta-producto {
   padding: 5px 9px;
   border-radius: 20px;
-  color: #24734f;
-  background: #eefaf4;
+  color: var(--color-exito-texto-inicio);
+  background: var(--color-exito-fondo-inicio);
   font-size: 0.72rem;
   font-weight: 800;
 }
@@ -420,7 +441,7 @@ body {
   position: relative;
   padding: 35px 30px 28px;
   border-radius: 18px;
-  background: #ffffff;
+  background: var(--color-superficie-inicio);
   box-shadow: 0 24px 70px rgba(18, 35, 45, 0.2);
   animation: aparecer-modal 0.25s ease both;
 }
@@ -435,8 +456,8 @@ body {
   place-items: center;
   border: 0;
   border-radius: 50%;
-  color: #6d7d86;
-  background: #f3f7f8;
+  color: var(--color-texto-secundario-inicio);
+  background: var(--color-superficie-hover-inicio);
   font-size: 1.35rem;
   line-height: 1;
   cursor: pointer;
@@ -500,10 +521,10 @@ body {
   right: 16px;
   bottom: 16px;
   padding: 13px 16px;
-  border: 1px solid #c6e2e8;
+  border: 1px solid var(--color-borde-inicio);
   border-radius: 11px;
-  color: #07566d;
-  background: #eaf7fa;
+  color: var(--color-acento-oscuro-inicio);
+  background: var(--color-acento-suave-inicio);
   box-shadow: var(--sombra-tarjeta-inicio);
   font-size: 0.84rem;
   opacity: 0;
@@ -553,7 +574,7 @@ body.sin-desplazamiento {
 
 .como-funciona {
   padding: 70px 0;
-  background: #ffffff;
+  background: var(--color-superficie-inicio);
 }
 
 .pasos-funcionamiento {
@@ -607,7 +628,7 @@ body.sin-desplazamiento {
 
 .porque-aquatrack {
   padding: 80px 0;
-  background: #ffffff;
+  background: var(--color-superficie-inicio);
 }
 
 .grilla-beneficios {

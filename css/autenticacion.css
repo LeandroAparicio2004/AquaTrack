@@ -1,9 +1,11 @@
 :root {
     --color-fondo-auth: #f5fafc;
     --color-superficie-auth: #ffffff;
+    --color-campo-auth: #ffffff;
     --color-texto-auth: #12232d;
     --color-texto-secundario-auth: #6d7d86;
     --color-borde-auth: #dce8ed;
+    --color-borde-hover-auth: #b9d2db;
     --color-acento-auth: #0b718f;
     --color-acento-oscuro-auth: #07566d;
     --color-acento-suave-auth: #eaf7fa;
@@ -13,6 +15,23 @@
     --color-exito-fondo-auth: #eefaf4;
     --sombra-auth: 0 20px 55px rgba(24, 67, 82, 0.1);
     --radio-auth: 18px;
+}
+
+[data-tema="oscuro"] {
+    --color-fondo-auth: #0f1a1f;
+    --color-superficie-auth: #1b2a31;
+    --color-campo-auth: #22343c;
+    --color-texto-auth: #e7eef0;
+    --color-texto-secundario-auth: #9fb1b8;
+    --color-borde-auth: #2a3b43;
+    --color-borde-hover-auth: #3a4f58;
+    --color-acento-auth: #2dd4bf;
+    --color-acento-oscuro-auth: #5eead4;
+    --color-acento-suave-auth: #16333a;
+    --color-error-auth: #f87171;
+    --color-error-fondo-auth: #3a1a1a;
+    --color-exito-auth: #4ade80;
+    --color-exito-fondo-auth: #14311f;
 }
 
 .pantalla-autenticacion {
@@ -131,7 +150,7 @@
     border-radius: 11px;
     outline: none;
     color: var(--color-texto-auth);
-    background: #ffffff;
+    background: var(--color-campo-auth);
     font-family: var(--fuente-base);
     font-size: 0.96rem;
     transition:
@@ -142,13 +161,13 @@
 
 .campo input:not([type="checkbox"]):hover,
 .campo select:hover {
-    border-color: #b9d2db;
+    border-color: var(--color-borde-hover-auth);
 }
 
 .campo input:not([type="checkbox"]):focus,
 .campo select:focus {
     border-color: var(--color-acento-auth);
-    background: #ffffff;
+    background: var(--color-campo-auth);
     box-shadow: 0 0 0 4px rgba(11, 113, 143, 0.12);
 }
 
@@ -237,12 +256,12 @@
 .btn-secundario {
     border: 1px solid var(--color-borde-auth);
     color: var(--color-texto-auth);
-    background: #ffffff;
+    background: var(--color-superficie-auth);
 }
 
 .btn-secundario:hover {
-    border-color: #b9d2db;
-    background: #f8fbfc;
+    border-color: var(--color-borde-hover-auth);
+    background: var(--color-acento-suave-auth);
 }
 
 .btn:focus-visible,
@@ -346,4 +365,17 @@ a:focus-visible {
         scroll-behavior: auto !important;
         transition-duration: 0.01ms !important;
     }
+}
+
+.tarjeta-autenticacion {
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.pantalla-autenticacion {
+    transition: background-color 0.3s ease;
+}
+
+.btn-tema-flotante {
+    background: var(--color-superficie-auth) !important;
+    border-color: var(--color-borde-auth) !important;
 }
