@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <script>
+        (function () {
+            if (localStorage.getItem('aquatrack_tema') === 'oscuro') {
+                document.documentElement.setAttribute('data-tema', 'oscuro');
+            }
+        })();
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Vendedor — AquaTrack</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/comunes.css">
+    <link rel="stylesheet" href="css/panel-vendedor.css">
+</head>
+
+<body>
+
+    <header class="encabezado panel-encabezado">
+        <div class="contenedor encabezado-interno">
+            <div class="panel-marca">
+                <span class="logo">AquaTrack</span>
+                <span class="panel-etiqueta">Panel Vendedor</span>
+            </div>
+
+            <nav class="panel-nav">
+                <button type="button" class="btn-tema" id="btn-tema" aria-label="Cambiar tema"></button>
+                <button type="button" class="btn btn-secundario" id="boton-cerrar-sesion">Salir</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="panel-contenido">
+        <div class="contenedor">
+
+            <div class="aviso-estado aviso-pendiente" id="aviso-estado">
+                <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M12 8v5M12 16.5h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                    <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
+                </svg>
+                <div>
+                    <strong>Tu distribuidora está pendiente de aprobación</strong>
+                    <p>Podés cargar tus productos mientras tanto, pero no van a verse en el catálogo público hasta
+                        que un administrador la apruebe.</p>
+                </div>
+            </div>
+
+            <div class="panel-encabezado-negocio">
+                <p class="etiqueta-seccion">Tu distribuidora</p>
+                <h1 id="nombre-distribuidora">Del Valle</h1>
+            </div>
+
+            <div class="panel-pestanas" role="tablist">
+                <button type="button" class="panel-pestana activa" data-pestana="productos" role="tab"
+                    aria-selected="true">Mis Productos</button>
+                <button type="button" class="panel-pestana" data-pestana="perfil" role="tab"
+                    aria-selected="false">Perfil del negocio</button>
+            </div>
+
+            <section class="panel-seccion" id="seccion-productos" role="tabpanel">
+                <div class="panel-seccion-encabezado">
+                    <h2>Mis Productos</h2>
+                    <button type="button" class="btn btn-principal" id="btn-agregar-producto">+ Agregar
+                        producto</button>
+                </div>
+
+                <div class="grilla-productos-panel" id="lista-productos-panel">
+                    <article class="tarjeta-producto-panel">
+                        <div class="tarjeta-producto-panel-superior">
+                            <h3>Bidón 20L</h3>
+                            <span class="etiqueta-estado-producto activo">Activo</span>
+                        </div>
+                        <p class="tarjeta-producto-panel-descripcion">Agua mineral sin gas, envase retornable.</p>
+                        <div class="tarjeta-producto-panel-detalle">
+                            <span>20 litros</span>
+                            <strong>$3.500</strong>
+                        </div>
+                        <div class="tarjeta-producto-panel-acciones">
+                            <button type="button" class="btn btn-secundario btn-chico">Editar</button>
+                            <button type="button" class="btn btn-secundario btn-chico">Desactivar</button>
+                        </div>
+                    </article>
+
+                    <article class="tarjeta-producto-panel">
+                        <div class="tarjeta-producto-panel-superior">
+                            <h3>Bidón 12L</h3>
+                            <span class="etiqueta-estado-producto inactivo">Inactivo</span>
+                        </div>
+                        <p class="tarjeta-producto-panel-descripcion">Agua mineral sin gas, envase retornable.</p>
+                        <div class="tarjeta-producto-panel-detalle">
+                            <span>12 litros</span>
+                            <strong>$2.200</strong>
+                        </div>
+                        <div class="tarjeta-producto-panel-acciones">
+                            <button type="button" class="btn btn-secundario btn-chico">Editar</button>
+                            <button type="button" class="btn btn-principal btn-chico">Activar</button>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <section class="panel-seccion oculto" id="seccion-perfil" role="tabpanel">
+                <h2>Perfil del negocio</h2>
+
+                <form id="formulario-perfil" novalidate>
+                    <div class="panel-perfil-grilla">
+
+                        <div class="panel-foto-negocio">
+                            <div class="panel-foto-vista" id="panel-foto-vista">
+                                <span>Sin foto</span>
+                            </div>
+                            <label class="btn btn-secundario btn-chico" for="foto-negocio">Subir foto</label>
+                            <input type="file" id="foto-negocio" accept="image/*" hidden>
+                        </div>
+
+                        <div class="panel-perfil-campos">
+                            <div class="campo">
+                                <label for="descripcion-negocio">Descripción</label>
+                                <textarea id="descripcion-negocio" rows="3"
+                                    placeholder="Contales a tus clientes de qué se trata tu distribuidora..."></textarea>
+                            </div>
+
+                            <div class="fila-doble">
+                                <div class="campo">
+                                    <label for="calle-perfil">Calle</label>
+                                    <input type="text" id="calle-perfil" value="Sinnombre">
+                                </div>
+                                <div class="campo">
+                                    <label for="numero-perfil">Número</label>
+                                    <input type="text" id="numero-perfil" value="12">
+                                </div>
+                            </div>
+
+                            <div class="fila-doble">
+                                <div class="campo">
+                                    <label for="ciudad-perfil">Ciudad</label>
+                                    <input type="text" id="ciudad-perfil" value="Fray Mamerto Esquiú">
+                                </div>
+                                <div class="campo">
+                                    <label for="provincia-perfil">Provincia</label>
+                                    <input type="text" id="provincia-perfil" value="Catamarca">
+                                </div>
+                            </div>
+
+                            <div class="campo campo-checkbox">
+                                <label>
+                                    <input type="checkbox" id="acepta-efectivo" checked>
+                                    Acepto pagos en efectivo
+                                </label>
+                            </div>
+
+                            <div class="campo campo-checkbox">
+                                <label>
+                                    <input type="checkbox" id="acepta-transferencia">
+                                    Acepto transferencias
+                                </label>
+                            </div>
+
+                            <div class="campo oculto" id="campo-alias">
+                                <label for="alias-cbu">Alias o CBU</label>
+                                <input type="text" id="alias-cbu" placeholder="mi.alias.mp">
+                            </div>
+
+                            <button type="submit" class="btn btn-principal">Guardar cambios</button>
+                        </div>
+
+                    </div>
+                </form>
+            </section>
+
+        </div>
+    </main>
+
+    <div class="modal-fondo oculto" id="modal-producto" role="dialog" aria-modal="true"
+        aria-labelledby="titulo-modal-producto">
+        <div class="modal-producto">
+            <button type="button" class="boton-cerrar-modal" id="boton-cerrar-modal-producto"
+                aria-label="Cerrar ventana">×</button>
+
+            <h2 id="titulo-modal-producto">Agregar producto</h2>
+
+            <form id="formulario-producto" novalidate>
+                <div class="campo">
+                    <label for="nombre-producto">Nombre</label>
+                    <input type="text" id="nombre-producto" required placeholder="Bidón 20 litros">
+                </div>
+
+                <div class="campo">
+                    <label for="descripcion-producto">Descripción</label>
+                    <textarea id="descripcion-producto" rows="2" placeholder="Agua mineral sin gas..."></textarea>
+                </div>
+
+                <div class="fila-doble">
+                    <div class="campo">
+                        <label for="litros-producto">Capacidad (litros)</label>
+                        <input type="number" id="litros-producto" min="1" step="0.5" required>
+                    </div>
+                    <div class="campo">
+                        <label for="precio-producto">Precio</label>
+                        <input type="number" id="precio-producto" min="0" step="1" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-principal btn-ancho" id="btn-guardar-producto">Guardar
+                    producto</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/panel-vendedor.js"></script>
+    <script src="js/tema.js"></script>
+</body>
+
+</html>
