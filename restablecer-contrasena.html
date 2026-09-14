@@ -2,6 +2,13 @@
 <html lang="es">
 
 <head>
+    <script>
+        (function () {
+            if (localStorage.getItem('aquatrack_tema') === 'oscuro') {
+                document.documentElement.setAttribute('data-tema', 'oscuro');
+            }
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crear nueva contraseña — AquaTrack</title>
@@ -33,8 +40,7 @@
                     <div class="campo">
                         <label for="contrasena">Nueva contraseña</label>
                         <div class="entrada-contrasena">
-                            <input type="password" id="contrasena" required autocomplete="new-password"
-                                minlength="8">
+                            <input type="password" id="contrasena" required autocomplete="new-password" minlength="8">
                             <button type="button" class="btn-ver-contrasena" data-objetivo="contrasena"></button>
                         </div>
                     </div>

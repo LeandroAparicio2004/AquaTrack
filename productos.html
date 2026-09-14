@@ -2,6 +2,13 @@
 <html lang="es">
 
 <head>
+  <script>
+    (function () {
+      if (localStorage.getItem('aquatrack_tema') === 'oscuro') {
+        document.documentElement.setAttribute('data-tema', 'oscuro');
+      }
+    })();
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Catálogo completo de agua a domicilio en AquaTrack.">
@@ -34,6 +41,8 @@
         <div class="nav-sesion oculto" id="nav-usuario">
           <button type="button" class="btn btn-secundario" id="boton-cerrar-sesion">Salir</button>
         </div>
+
+        <button type="button" class="btn-tema" id="btn-tema" aria-label="Cambiar tema"></button>
 
         <button type="button" class="boton-carrito" id="boton-carrito" aria-label="Ver pedido">
           Pedido
@@ -124,7 +133,7 @@
 
   <div class="notificacion" id="notificacion" role="status" aria-live="polite"></div>
 
-<!------------------------------------- Footer ------------------------------------->
+  <!------------------------------------- Footer ------------------------------------->
   <footer class="pie-pagina">
     <div class="contenedor pie-pagina-superior">
       <div class="pie-pagina-marca">
