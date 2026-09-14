@@ -53,7 +53,7 @@ formulario.addEventListener('submit', async (evento) => {
 
     const paginaDestino = perfil?.rol === 'vendedor'
       ? 'panel-vendedor.html'
-      : 'index.html';
+      : 'productos.html';
 
     mostrarMensaje('¡Bienvenido! Redirigiendo...', 'exito');
     setTimeout(() => { window.location.href = paginaDestino; }, 1200);

@@ -16,6 +16,8 @@
   --color-header-borde-inicio: rgba(220, 232, 237, 0.8);
   --color-hero-resumen-fondo-inicio: rgba(255, 255, 255, 0.78);
   --color-hero-resumen-borde-inicio: rgba(174, 213, 221, 0.7);
+  --color-banner-inicio: #0b718f;
+
 }
 
 
@@ -123,7 +125,7 @@ body {
   background: var(--color-superficie-hover-inicio);
 }
 
-.boton-carrito span {
+#cantidad-carrito {
   display: inline-grid;
   min-width: 21px;
   height: 21px;
@@ -697,7 +699,7 @@ body.sin-desplazamiento {
 
 .cta-roles {
   padding: 64px 0;
-  background: var(--color-acento-inicio);
+  background: var(--color-banner-inicio);
   color: #ffffff;
 }
 
@@ -732,7 +734,7 @@ body.sin-desplazamiento {
 }
 
 .cta-roles-acciones .btn-principal {
-  color: var(--color-acento-inicio);
+  color: var(--color-banner-inicio);
   background: #ffffff;
 }
 

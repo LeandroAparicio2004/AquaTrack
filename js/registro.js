@@ -376,12 +376,14 @@ formulario.addEventListener('submit', async (evento) => {
             return;
         }
 
-        mostrarMensaje(
-            'Cuenta creada. Revise su correo para confirmar el registro.',
-            'exito'
-        );
-
+        mostrarMensaje('¡Cuenta creada! Redirigiendo...', 'exito');
         botonEnviar.textContent = 'Cuenta creada';
+
+        const paginaDestino = rolSeleccionado === 'vendedor'
+            ? 'panel-vendedor.html'
+            : 'productos.html';
+
+        setTimeout(() => { window.location.href = paginaDestino; }, 1200);
     } catch (error) {
         mostrarMensaje(
             'No pudimos conectar con el servicio. Intente nuevamente.',
