@@ -44,8 +44,8 @@ function renderizarProductosPanel() {
         tarjeta.innerHTML = `
             <div class="tarjeta-producto-panel-foto">
                 ${producto.foto_url
-                    ? `<img src="${escaparHtml(producto.foto_url)}" alt="${escaparHtml(producto.nombre)}">`
-                    : '<span>Sin foto</span>'}
+                ? `<img src="${escaparHtml(producto.foto_url)}" alt="${escaparHtml(producto.nombre)}">`
+                : '<span>Sin foto</span>'}
             </div>
 
             <div class="tarjeta-producto-panel-superior">
@@ -193,7 +193,7 @@ function precargarFormularioPerfil() {
         const vistaFoto = document.getElementById('panel-foto-vista');
         vistaFoto.innerHTML = `<img src="${distribuidoraActual.foto_url}" alt="Foto de la distribuidora">`;
         vistaFoto.classList.add('tiene-foto');
-    }    if (distribuidoraActual.foto_url) {
+    } if (distribuidoraActual.foto_url) {
         const vistaFoto = document.getElementById('panel-foto-vista');
         vistaFoto.innerHTML = `<img src="${distribuidoraActual.foto_url}" alt="Foto de la distribuidora">`;
         vistaFoto.classList.add('tiene-foto');
@@ -357,7 +357,7 @@ document.getElementById('lista-productos-panel').addEventListener('click', async
         return;
     }
 
-// Activar/Desactivar producto
+    // Activar/Desactivar producto
     const botonAlternar = evento.target.closest('[data-alternar]');
 
     if (botonAlternar) {
@@ -433,4 +433,9 @@ document.getElementById('formulario-perfil').addEventListener('submit', async (e
 
     btnGuardarPerfil.disabled = false;
     btnGuardarPerfil.textContent = 'Guardar cambios';
+});
+
+document.getElementById('boton-cerrar-sesion').addEventListener('click', async () => {
+    await supabaseCliente.auth.signOut();
+    window.location.href = 'login.html';
 });
