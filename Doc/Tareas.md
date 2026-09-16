@@ -14,11 +14,11 @@ SCRUM-43 Registro Repartidor X
 SCRUM-30 Cierre de Sesion X
 
 Sprint 2 - Distribuidora y Catálogo
-SCRUM-19 Catalogo de Productos
+SCRUM-19 Catalogo de Productos X 
 SCRUM-15 Solicitud de Ingreso a Distribuidora
 SCRUM-11 Aprobacion de Distribuidoras
 SCRUM-20 Administración de Flota de Repartidores
-SCRUM- 49 Creacion de Admin
+SCRUM- 49 Creacion de Admin X
 
 Sprint 3 - Pedidos
 SCRUM-18 Control de Pedidos
