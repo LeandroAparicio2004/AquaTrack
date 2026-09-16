@@ -4,6 +4,14 @@ Cliente{
 }
 
 Vendedor{
-    vendedor@gmail.com
+    vendedor@gmail.com | Aprobado
+    12345678
+
+    vendedor2@gmail.com | Pendiente
+    12345678
+}
+
+admin{
+    admin@gmail.com
     12345678
 }
