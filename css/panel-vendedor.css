@@ -262,6 +262,16 @@ body {
     color: var(--color-texto-secundario-panel);
     background: var(--color-acento-suave-panel);
 }
+.etiqueta-estado-producto.pendiente {
+    color: var(--color-advertencia-panel);
+    background: var(--color-advertencia-fondo-panel);
+}
+
+.etiqueta-estado-producto.rechazada,
+.etiqueta-estado-producto.suspendida {
+    color: var(--color-peligro-panel);
+    background: var(--color-peligro-fondo-panel);
+}
 
 .tarjeta-producto-panel-descripcion {
     margin-bottom: 14px;

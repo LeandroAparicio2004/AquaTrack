@@ -47,9 +47,22 @@
                 <h1>Panel de Administración</h1>
             </div>
 
-            <p class="estado-productos-panel">
-                Acá vamos a construir la aprobación de distribuidoras y el resto de las herramientas de Admin.
-            </p>
+            <div class="panel-pestanas" role="tablist">
+                <button type="button" class="panel-pestana activa" data-pestana="pendientes" role="tab"
+                    aria-selected="true">Pendientes</button>
+                <button type="button" class="panel-pestana" data-pestana="todas" role="tab"
+                    aria-selected="false">Todas las distribuidoras</button>
+            </div>
+
+            <section class="panel-seccion" id="seccion-pendientes" role="tabpanel">
+                <p class="estado-productos-panel oculto" id="estado-pendientes"></p>
+                <div class="grilla-productos-panel" id="lista-pendientes"></div>
+            </section>
+
+            <section class="panel-seccion oculto" id="seccion-todas" role="tabpanel">
+                <p class="estado-productos-panel oculto" id="estado-todas"></p>
+                <div class="grilla-productos-panel" id="lista-todas"></div>
+            </section>
         </div>
     </main>
 
