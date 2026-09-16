@@ -309,23 +309,67 @@ body {
     gap: 12px;
 }
 
+.panel-foto-negocio .btn-chico {
+    flex: none;
+}
+
 .panel-foto-vista {
     width: 100%;
     aspect-ratio: 1;
-    display: grid;
-    place-items: center;
-    border: 1px dashed var(--color-borde-panel);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    position: relative;
+    border: 1.5px dashed var(--color-borde-panel);
     border-radius: 16px;
     color: var(--color-texto-secundario-panel);
     background: var(--color-acento-suave-panel);
     font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
     overflow: hidden;
+    transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.panel-foto-vista:hover {
+    border-color: var(--color-acento-panel);
+    color: var(--color-acento-panel);
+}
+
+.panel-foto-icono {
+    width: 26px;
+    height: 26px;
 }
 
 .panel-foto-vista img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    position: absolute;
+    inset: 0;
+}
+
+.panel-foto-vista.tiene-foto {
+    border-style: solid;
+}
+
+.panel-foto-vista.tiene-foto::after {
+    content: 'Cambiar foto';
+    position: absolute;
+    inset: auto 0 0 0;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #ffffff;
+    font-size: 0.76rem;
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.panel-foto-vista.tiene-foto:hover::after {
+    opacity: 1;
 }
 
 .panel-perfil-campos {

@@ -84,10 +84,15 @@
                     <div class="panel-perfil-grilla">
 
                         <div class="panel-foto-negocio">
-                            <div class="panel-foto-vista" id="panel-foto-vista">
-                                <span>Sin foto</span>
-                            </div>
-                            <label class="btn btn-secundario btn-chico" for="foto-negocio">Subir foto</label>
+                            <label class="panel-foto-vista" id="panel-foto-vista" for="foto-negocio">
+                                <svg class="panel-foto-icono" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path
+                                        d="M4 7h3l2-2.5h6L17 7h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"
+                                        stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                                    <circle cx="12" cy="13" r="3.4" stroke="currentColor" stroke-width="1.6" />
+                                </svg>
+                                <span>Subir foto</span>
+                            </label>
                             <input type="file" id="foto-negocio" accept="image/*" hidden>
                         </div>
 
@@ -139,7 +144,15 @@
                                 <input type="text" id="alias-cbu" placeholder="mi.alias.mp">
                             </div>
 
-                            <button type="submit" class="btn btn-principal">Guardar cambios</button>
+                            <div class="campo oculto" id="campo-titular">
+                                <label for="titular-cuenta">Titular de la cuenta</label>
+                                <input type="text" id="titular-cuenta" placeholder="Nombre y apellido">
+                            </div>
+
+                            <p class="mensaje-estado oculto" id="mensaje-perfil"></p>
+
+                            <button type="submit" class="btn btn-principal" id="btn-guardar-perfil">Guardar
+                                cambios</button>
                         </div>
 
                     </div>

@@ -172,6 +172,32 @@ async function inicializarPanel() {
     document.getElementById('panel-main').classList.remove('oculto');
 
     cargarProductosPanel();
+    precargarFormularioPerfil();
+}
+
+function precargarFormularioPerfil() {
+    document.getElementById('descripcion-negocio').value = distribuidoraActual.descripcion || '';
+    document.getElementById('calle-perfil').value = distribuidoraActual.calle || '';
+    document.getElementById('numero-perfil').value = distribuidoraActual.numero || '';
+    document.getElementById('ciudad-perfil').value = distribuidoraActual.ciudad || '';
+    document.getElementById('provincia-perfil').value = distribuidoraActual.provincia || '';
+    document.getElementById('acepta-efectivo').checked = Boolean(distribuidoraActual.acepta_efectivo);
+    document.getElementById('acepta-transferencia').checked = Boolean(distribuidoraActual.acepta_transferencia);
+    document.getElementById('alias-cbu').value = distribuidoraActual.alias_cbu || '';
+    document.getElementById('titular-cuenta').value = distribuidoraActual.titular_cuenta || '';
+
+    document.getElementById('campo-alias').classList.toggle('oculto', !distribuidoraActual.acepta_transferencia);
+    document.getElementById('campo-titular').classList.toggle('oculto', !distribuidoraActual.acepta_transferencia);
+
+    if (distribuidoraActual.foto_url) {
+        const vistaFoto = document.getElementById('panel-foto-vista');
+        vistaFoto.innerHTML = `<img src="${distribuidoraActual.foto_url}" alt="Foto de la distribuidora">`;
+        vistaFoto.classList.add('tiene-foto');
+    }    if (distribuidoraActual.foto_url) {
+        const vistaFoto = document.getElementById('panel-foto-vista');
+        vistaFoto.innerHTML = `<img src="${distribuidoraActual.foto_url}" alt="Foto de la distribuidora">`;
+        vistaFoto.classList.add('tiene-foto');
+    }
 }
 
 inicializarPanel();
@@ -360,11 +386,51 @@ document.getElementById('lista-productos-panel').addEventListener('click', async
 
 const checkTransferencia = document.getElementById('acepta-transferencia');
 const campoAlias = document.getElementById('campo-alias');
+const campoTitular = document.getElementById('campo-titular');
 
 checkTransferencia.addEventListener('change', () => {
     campoAlias.classList.toggle('oculto', !checkTransferencia.checked);
+    campoTitular.classList.toggle('oculto', !checkTransferencia.checked);
 });
 
-document.getElementById('formulario-perfil').addEventListener('submit', (evento) => {
+function mostrarMensajePerfil(texto, tipo) {
+    const mensaje = document.getElementById('mensaje-perfil');
+    mensaje.textContent = texto;
+    mensaje.className = `mensaje-estado ${tipo}`;
+}
+
+document.getElementById('formulario-perfil').addEventListener('submit', async (evento) => {
     evento.preventDefault();
+
+    const btnGuardarPerfil = document.getElementById('btn-guardar-perfil');
+
+    const datosDistribuidora = {
+        descripcion: document.getElementById('descripcion-negocio').value.trim(),
+        calle: document.getElementById('calle-perfil').value.trim(),
+        numero: document.getElementById('numero-perfil').value.trim(),
+        ciudad: document.getElementById('ciudad-perfil').value.trim(),
+        provincia: document.getElementById('provincia-perfil').value.trim(),
+        acepta_efectivo: document.getElementById('acepta-efectivo').checked,
+        acepta_transferencia: checkTransferencia.checked,
+        alias_cbu: document.getElementById('alias-cbu').value.trim() || null,
+        titular_cuenta: document.getElementById('titular-cuenta').value.trim() || null
+    };
+
+    btnGuardarPerfil.disabled = true;
+    btnGuardarPerfil.textContent = 'Guardando...';
+
+    const { error } = await supabaseCliente
+        .from('distribuidoras')
+        .update(datosDistribuidora)
+        .eq('id', distribuidoraActual.id);
+
+    if (error) {
+        mostrarMensajePerfil('No pudimos guardar los cambios. Intente de nuevo.', 'error');
+    } else {
+        Object.assign(distribuidoraActual, datosDistribuidora);
+        mostrarMensajePerfil('Cambios guardados correctamente.', 'exito');
+    }
+
+    btnGuardarPerfil.disabled = false;
+    btnGuardarPerfil.textContent = 'Guardar cambios';
 });
