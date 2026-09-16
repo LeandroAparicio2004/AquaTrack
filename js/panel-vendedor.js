@@ -42,6 +42,12 @@ function renderizarProductosPanel() {
         tarjeta.className = 'tarjeta-producto-panel';
 
         tarjeta.innerHTML = `
+            <div class="tarjeta-producto-panel-foto">
+                ${producto.foto_url
+                    ? `<img src="${escaparHtml(producto.foto_url)}" alt="${escaparHtml(producto.nombre)}">`
+                    : '<span>Sin foto</span>'}
+            </div>
+
             <div class="tarjeta-producto-panel-superior">
                 <h3>${escaparHtml(producto.nombre)}</h3>
                 <span class="etiqueta-estado-producto ${producto.activo ? 'activo' : 'inactivo'}">
