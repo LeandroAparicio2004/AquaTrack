@@ -107,6 +107,18 @@ function crearIconoProducto() {
   `;
 }
 
+function crearBloqueImagen(producto) {
+    if (!producto.foto_url) {
+        return '';
+    }
+
+    return `
+    <div class="imagen-producto">
+      <img src="${escaparHtml(producto.foto_url)}" alt="${escaparHtml(producto.nombre)}">
+    </div>
+  `;
+}
+
 function renderizarDestacados() {
     listaProductos.innerHTML = '';
 
@@ -129,6 +141,8 @@ function renderizarDestacados() {
         tarjeta.className = 'tarjeta-producto';
 
         tarjeta.innerHTML = `
+      ${crearBloqueImagen(producto)}
+
       <div class="tarjeta-producto-superior">
         <div class="icono-producto">
           ${crearIconoProducto()}
@@ -183,6 +197,7 @@ async function cargarDestacados() {
       capacidad_litros,
       precio,
       activo,
+      foto_url,
       distribuidoras!inner (
         id,
         nombre,

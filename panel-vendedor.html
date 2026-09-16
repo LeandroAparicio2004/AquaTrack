@@ -21,7 +21,11 @@
 
 <body>
 
-    <header class="encabezado panel-encabezado">
+    <div class="panel-cargando" id="panel-cargando">
+        <p>Cargando tu panel...</p>
+    </div>
+
+    <header class="encabezado panel-encabezado oculto" id="panel-header">
         <div class="contenedor encabezado-interno">
             <div class="panel-marca">
                 <span class="logo">AquaTrack</span>
@@ -35,24 +39,23 @@
         </div>
     </header>
 
-    <main class="panel-contenido">
+    <main class="panel-contenido oculto" id="panel-main">
         <div class="contenedor">
 
-            <div class="aviso-estado aviso-pendiente" id="aviso-estado">
+            <div class="aviso-estado oculto" id="aviso-estado">
                 <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                     <path d="M12 8v5M12 16.5h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
                     <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
                 </svg>
                 <div>
-                    <strong>Tu distribuidora está pendiente de aprobación</strong>
-                    <p>Podés cargar tus productos mientras tanto, pero no van a verse en el catálogo público hasta
-                        que un administrador la apruebe.</p>
+                    <strong id="aviso-estado-titulo"></strong>
+                    <p id="aviso-estado-texto"></p>
                 </div>
             </div>
 
             <div class="panel-encabezado-negocio">
                 <p class="etiqueta-seccion">Tu distribuidora</p>
-                <h1 id="nombre-distribuidora">Del Valle</h1>
+                <h1 id="nombre-distribuidora">Cargando...</h1>
             </div>
 
             <div class="panel-pestanas" role="tablist">
@@ -69,39 +72,9 @@
                         producto</button>
                 </div>
 
-                <div class="grilla-productos-panel" id="lista-productos-panel">
-                    <article class="tarjeta-producto-panel">
-                        <div class="tarjeta-producto-panel-superior">
-                            <h3>Bidón 20L</h3>
-                            <span class="etiqueta-estado-producto activo">Activo</span>
-                        </div>
-                        <p class="tarjeta-producto-panel-descripcion">Agua mineral sin gas, envase retornable.</p>
-                        <div class="tarjeta-producto-panel-detalle">
-                            <span>20 litros</span>
-                            <strong>$3.500</strong>
-                        </div>
-                        <div class="tarjeta-producto-panel-acciones">
-                            <button type="button" class="btn btn-secundario btn-chico">Editar</button>
-                            <button type="button" class="btn btn-secundario btn-chico">Desactivar</button>
-                        </div>
-                    </article>
+                <p class="estado-productos-panel oculto" id="estado-productos-panel"></p>
 
-                    <article class="tarjeta-producto-panel">
-                        <div class="tarjeta-producto-panel-superior">
-                            <h3>Bidón 12L</h3>
-                            <span class="etiqueta-estado-producto inactivo">Inactivo</span>
-                        </div>
-                        <p class="tarjeta-producto-panel-descripcion">Agua mineral sin gas, envase retornable.</p>
-                        <div class="tarjeta-producto-panel-detalle">
-                            <span>12 litros</span>
-                            <strong>$2.200</strong>
-                        </div>
-                        <div class="tarjeta-producto-panel-acciones">
-                            <button type="button" class="btn btn-secundario btn-chico">Editar</button>
-                            <button type="button" class="btn btn-principal btn-chico">Activar</button>
-                        </div>
-                    </article>
-                </div>
+                <div class="grilla-productos-panel" id="lista-productos-panel"></div>
             </section>
 
             <section class="panel-seccion oculto" id="seccion-perfil" role="tabpanel">
@@ -185,6 +158,14 @@
             <h2 id="titulo-modal-producto">Agregar producto</h2>
 
             <form id="formulario-producto" novalidate>
+                <div class="campo-foto-producto">
+                    <div class="vista-foto-producto" id="vista-foto-producto">
+                        <span>Sin foto</span>
+                    </div>
+                    <label class="btn btn-secundario btn-chico" for="foto-producto">Subir foto</label>
+                    <input type="file" id="foto-producto" accept="image/*" hidden>
+                </div>
+
                 <div class="campo">
                     <label for="nombre-producto">Nombre</label>
                     <input type="text" id="nombre-producto" required placeholder="Bidón 20 litros">

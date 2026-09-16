@@ -397,6 +397,21 @@ body {
   letter-spacing: -0.025em;
 }
 
+.imagen-producto {
+  width: calc(100% + 42px);
+  aspect-ratio: 16 / 10;
+  margin: -21px -21px 16px;
+  border-radius: 16px 16px 0 0;
+  overflow: hidden;
+}
+
+.imagen-producto img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
 .descripcion-producto {
   min-height: 42px;
   margin-bottom: 20px;

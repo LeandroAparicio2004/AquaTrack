@@ -186,7 +186,7 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--color-acento); 
 .btn-tema:active {
   transform: scale(0.94);
 }
-
+  
 .btn-tema-flotante {
   position: fixed;
   top: 20px;
