@@ -322,12 +322,39 @@ formularioProducto.addEventListener('submit', async (evento) => {
     }
 });
 
-document.getElementById('lista-productos-panel').addEventListener('click', (evento) => {
+document.getElementById('lista-productos-panel').addEventListener('click', async (evento) => {
     const botonEditar = evento.target.closest('[data-editar]');
 
     if (botonEditar) {
         const producto = productosDelPanel.find((item) => item.id === botonEditar.dataset.editar);
         abrirModalProducto(producto);
+        return;
+    }
+
+// Activar/Desactivar producto
+    const botonAlternar = evento.target.closest('[data-alternar]');
+
+    if (botonAlternar) {
+        const producto = productosDelPanel.find((item) => item.id === botonAlternar.dataset.alternar);
+
+        if (!producto) {
+            return;
+        }
+
+        botonAlternar.disabled = true;
+
+        const { error } = await supabaseCliente
+            .from('productos')
+            .update({ activo: !producto.activo })
+            .eq('id', producto.id);
+
+        if (error) {
+            alert('No pudimos actualizar el producto. Intentá de nuevo.');
+            botonAlternar.disabled = false;
+            return;
+        }
+
+        await cargarProductosPanel();
     }
 });
 
