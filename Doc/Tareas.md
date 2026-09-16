@@ -10,23 +10,25 @@ SCRUM-28 Registro Vendedor X
 SCRUM-29 Inicio de Sesion X
 SCRUM-30 Cierre de Sesion X
 SCRUM-33 Configurar Supabase Auth X
+SCRUM-43 Registro Repartidor X 
+SCRUM-30 Cierre de Sesion X
 
 Sprint 2 - Distribuidora y Catálogo
-SCRUM-11 Aprobacion de Distribuidoras
+SCRUM-19 Catalogo de Productos
 SCRUM-15 Solicitud de Ingreso a Distribuidora
-SCRUM-19 Catalogo de Productos 
+SCRUM-11 Aprobacion de Distribuidoras
 SCRUM-20 Administración de Flota de Repartidores
+SCRUM- 49 Creacion de Admin
 
 Sprint 3 - Pedidos
 SCRUM-18 Control de Pedidos
 SCRUM-22 Realizacion de Pedido 
 SCRUM-23 Visualizacion de codigo de confirmacion 
+SCRUM-14 Validación de Recepción
 
 Sprint 4 - Entregas y Seguimiento 
 SCRUM-12 Gestion de Entregas
 SCRUM-13 Visualizacion de Ruta Optimizadas 
-SCRUM-14 Validacion de Recepcion 
-SCRUM-20 Administracion de Flota de Repartidores
 SCRUM-24 Seguimiento en Vivo
 SCRUM-26 Comunicacion con Repartidor 
 SCRUM-36 Configurar Supabase Realtime (msj)
@@ -38,3 +40,7 @@ SCRUM-17 Analisis de Metricas Comerciales
 SCRUM-21 Consulta de Dashboard Cliente
 SCRUM-25 Programacion de Suscripciones
 
+Sprint 6 - UX
+SCRUM-46 Modo Claro / Oscuro
+SCRUM-47 Btn Hamburguesa (Cel)
+SCRUM-48 Pop-ups de productos
