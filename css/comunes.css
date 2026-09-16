@@ -194,3 +194,15 @@ a:focus-visible, button:focus-visible { outline: 2px solid var(--color-acento); 
   z-index: 5;
   background: var(--color-fondo);
 }
+
+.btn.btn-peligro {
+  border-color: #dc2626;
+  color: #dc2626;
+  background: transparent;
+}
+
+.btn.btn-peligro:hover {
+  border-color: #b91c1c;
+  color: #b91c1c;
+  background: #fef2f2;
+}
