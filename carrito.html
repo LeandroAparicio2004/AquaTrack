@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <script>
+    (function () {
+      if (localStorage.getItem('aquatrack_tema') === 'oscuro') {
+        document.documentElement.setAttribute('data-tema', 'oscuro');
+      }
+    })();
+  </script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tu pedido — AquaTrack</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/comunes.css">
+  <link rel="stylesheet" href="css/inicio.css">
+  <link rel="stylesheet" href="css/carrito.css">
+</head>
+
+<body>
+  <header class="encabezado inicio-encabezado">
+    <div class="contenedor encabezado-interno">
+      <a href="index.html" class="marca-inicio" aria-label="Ir al inicio de AquaTrack">
+        <span class="logo">AquaTrack</span>
+      </a>
+
+      <nav class="navegacion-inicio" aria-label="Navegación principal">
+        <a href="productos.html" class="enlace-nav">Productos</a>
+
+        <div class="nav-sesion" id="nav-invitado">
+          <a href="login.html" class="enlace-nav">Iniciar sesión</a>
+          <a href="registro.html" class="btn btn-secundario">Crear cuenta</a>
+        </div>
+
+        <div class="nav-sesion oculto" id="nav-usuario">
+          <button type="button" class="btn btn-secundario btn-peligro" id="boton-cerrar-sesion">Salir</button>
+        </div>
+
+        <button type="button" class="btn-tema" id="btn-tema" aria-label="Cambiar tema"></button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="pagina-carrito">
+    <div class="contenedor">
+      <div class="encabezado-carrito">
+        <p class="etiqueta-seccion">Tu pedido</p>
+        <h1 id="nombre-distribuidora-carrito">Cargando...</h1>
+      </div>
+
+      <div class="estado-carrito oculto" id="estado-carrito-vacio">
+        <p>Todavía no agregaste productos a tu pedido.</p>
+        <a href="productos.html" class="btn btn-principal">Ver catálogo</a>
+      </div>
+
+      <form id="formulario-checkout" class="grilla-checkout oculto" novalidate>
+        <div class="columna-carrito">
+          <div class="lista-items-carrito" id="lista-items-carrito"></div>
+
+          <div class="bloque-carrito">
+            <h2>Dirección de entrega</h2>
+            <div class="campo">
+              <label for="calle-entrega">Calle</label>
+              <input type="text" id="calle-entrega" required>
+            </div>
+            <div class="fila-doble">
+              <div class="campo">
+                <label for="numero-entrega">Número</label>
+                <input type="text" id="numero-entrega">
+              </div>
+              <div class="campo">
+                <label for="ciudad-entrega">Ciudad</label>
+                <input type="text" id="ciudad-entrega" required>
+              </div>
+            </div>
+            <div class="fila-doble">
+              <div class="campo">
+                <label for="provincia-entrega">Provincia</label>
+                <input type="text" id="provincia-entrega" required value="Catamarca">
+              </div>
+              <div class="campo">
+                <label for="referencia-entrega">Referencia (opcional)</label>
+                <input type="text" id="referencia-entrega" placeholder="Entre calles, color de casa...">
+              </div>
+            </div>
+          </div>
+
+          <div class="bloque-carrito">
+            <h2>Método de pago</h2>
+            <div id="opciones-pago"></div>
+          </div>
+
+          <div class="bloque-carrito">
+            <h2>Envases vacíos a devolver</h2>
+            <p class="texto-ayuda-carrito">Cada envase devuelto te descuenta $300 del total.</p>
+            <input type="number" id="envases-devueltos" min="0" step="1" value="0">
+          </div>
+        </div>
+
+        <div class="columna-resumen">
+          <div class="tarjeta-resumen">
+            <h2>Resumen</h2>
+            <div class="fila-resumen">
+              <span>Subtotal</span>
+              <span id="resumen-subtotal">$0</span>
+            </div>
+            <div class="fila-resumen">
+              <span>Descuento por envases</span>
+              <span id="resumen-descuento">-$0</span>
+            </div>
+            <div class="fila-resumen fila-resumen-total">
+              <span>Total</span>
+              <span id="resumen-total">$0</span>
+            </div>
+
+            <p class="mensaje-estado oculto" id="mensaje-checkout"></p>
+
+            <button type="submit" class="btn btn-principal btn-ancho" id="btn-confirmar-pedido">Confirmar
+              pedido</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <footer class="pie-pagina">
+    <div class="contenedor pie-pagina-superior">
+      <div class="pie-pagina-marca">
+        <span class="logo">AquaTrack</span>
+        <p>Agua a domicilio en Catamarca.</p>
+      </div>
+
+      <nav class="pie-pagina-columnas" aria-label="Enlaces del pie de página">
+        <div class="pie-pagina-columna">
+          <h3>Empresa</h3>
+          <a href="#">Sobre nosotros</a>
+          <a href="#">Cómo funciona</a>
+          <a href="registro.html">Sumate como Vendedor</a>
+        </div>
+
+        <div class="pie-pagina-columna">
+          <h3>Ayuda</h3>
+          <a href="#">Preguntas frecuentes</a>
+          <a href="#">Contacto</a>
+        </div>
+
+        <div class="pie-pagina-columna">
+          <h3>Legal</h3>
+          <a href="#">Términos y Condiciones</a>
+          <a href="#">Política de Privacidad</a>
+        </div>
+      </nav>
+    </div>
+
+    <div class="contenedor pie-pagina-inferior">
+      <p>© 2026 AquaTrack — Catamarca, Argentina</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/carrito.js"></script>
+  <script src="js/tema.js"></script>
+</body>
+
+</html>

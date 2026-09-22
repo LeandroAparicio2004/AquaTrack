@@ -284,7 +284,24 @@ async function agregarProducto(idProducto) {
         return;
     }
 
-    const carrito = obtenerCarrito();
+    let carrito = obtenerCarrito();
+    const distribuidora = obtenerDistribuidora(producto);
+
+    const distribuidoraDelCarrito = carrito[0]?.distribuidora_id;
+
+    if (distribuidoraDelCarrito && distribuidoraDelCarrito !== distribuidora.id) {
+        const nombreAnterior = carrito[0].distribuidora_nombre;
+        const confirmado = confirm(
+            `Tu pedido ya tiene productos de "${nombreAnterior}". Solo podés pedirle a una distribuidora por vez. ¿Vaciamos el carrito para agregar este producto de "${distribuidora.nombre}"?`
+        );
+
+        if (!confirmado) {
+            return;
+        }
+
+        carrito = [];
+    }
+
     const productoExistente = carrito.find(
         (elemento) => elemento.id === idProducto
     );
@@ -292,8 +309,6 @@ async function agregarProducto(idProducto) {
     if (productoExistente) {
         productoExistente.cantidad += 1;
     } else {
-        const distribuidora = obtenerDistribuidora(producto);
-
         carrito.push({
             id: producto.id,
             nombre: producto.nombre,
@@ -340,9 +355,7 @@ botonCarrito.addEventListener('click', async () => {
         return;
     }
 
-    mostrarNotificacion(
-        `Tu pedido tiene ${cantidad} producto${cantidad === 1 ? '' : 's'}.`
-    );
+    window.location.href = 'carrito.html';
 });
 
 botonCerrarModal.addEventListener('click', cerrarModalAcceso);
