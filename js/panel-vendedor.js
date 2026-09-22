@@ -450,6 +450,8 @@ document.getElementById('boton-cerrar-sesion').addEventListener('click', async (
     window.location.href = 'login.html';
 });
 
+let repartidoresCargados = [];
+
 function renderizarListaRepartidores(lista, contenedorId, estadoVacioId, conAcciones) {
     const contenedor = document.getElementById(contenedorId);
     const estadoVacio = document.getElementById(estadoVacioId);
@@ -481,8 +483,16 @@ function renderizarListaRepartidores(lista, contenedorId, estadoVacioId, conAcci
         const tarjeta = document.createElement('article');
         tarjeta.className = 'tarjeta-producto-panel';
         tarjeta.innerHTML = `
-            <div class="tarjeta-producto-panel-superior">
-                <h3>${escaparHtml(repartidor.nombre || 'Repartidor')}</h3>
+            <div class="tarjeta-repartidor-cabecera" data-detalle-repartidor="${miembro.id}">
+                <div class="tarjeta-repartidor-foto">
+                    ${repartidor.foto_url
+                        ? `<img src="${escaparHtml(repartidor.foto_url)}" alt="${escaparHtml(repartidor.nombre)}">`
+                        : '<span>Sin foto</span>'}
+                </div>
+                <div>
+                    <h3>${escaparHtml(repartidor.nombre || 'Repartidor')}</h3>
+                    <p class="tarjeta-repartidor-dni">DNI: ${escaparHtml(repartidor.dni || 'Sin cargar')}</p>
+                </div>
             </div>
             <p class="tarjeta-producto-panel-descripcion">
                 ${escaparHtml(repartidor.telefono || 'Sin teléfono')}
@@ -500,7 +510,13 @@ function renderizarListaRepartidores(lista, contenedorId, estadoVacioId, conAcci
 async function cargarRepartidores() {
     const { data, error } = await supabaseCliente
         .from('miembros_distribuidoras')
-        .select('id, estado, mensaje_solicitud, usuario_id, usuarios!usuario_id (nombre, telefono)')
+        .select(`
+            id, estado, mensaje_solicitud, usuario_id,
+            usuarios!usuario_id (
+                nombre, telefono, dni, foto_url,
+                marca_vehiculo, modelo_vehiculo, patente_vehiculo, numero_licencia
+            )
+        `)
         .eq('distribuidora_id', distribuidoraActual.id)
         .eq('rol', 'repartidor')
         .order('creado_en', { ascending: false });
@@ -512,12 +528,43 @@ async function cargarRepartidores() {
         return;
     }
 
-    const todos = data || [];
-    const pendientes = todos.filter((miembro) => miembro.estado === 'pendiente');
-    const flota = todos.filter((miembro) => miembro.estado === 'activo');
+    repartidoresCargados = data || [];
+    const pendientes = repartidoresCargados.filter((miembro) => miembro.estado === 'pendiente');
+    const flota = repartidoresCargados.filter((miembro) => miembro.estado === 'activo');
 
     renderizarListaRepartidores(pendientes, 'lista-solicitudes-repartidor', 'estado-solicitudes-repartidor', true);
     renderizarListaRepartidores(flota, 'lista-flota', 'estado-flota', false);
+}
+
+function abrirDetalleRepartidor(miembro) {
+    const repartidor = miembro.usuarios || {};
+
+    document.getElementById('titulo-modal-repartidor').textContent = repartidor.nombre || 'Repartidor';
+
+    document.getElementById('detalle-repartidor-contenido').innerHTML = `
+        <div class="detalle-repartidor-fila">
+            <span>DNI</span>
+            <span>${escaparHtml(repartidor.dni || 'Sin cargar')}</span>
+        </div>
+        <div class="detalle-repartidor-fila">
+            <span>Teléfono</span>
+            <span>${escaparHtml(repartidor.telefono || 'Sin cargar')}</span>
+        </div>
+        <div class="detalle-repartidor-fila">
+            <span>Vehículo</span>
+            <span>${escaparHtml([repartidor.marca_vehiculo, repartidor.modelo_vehiculo].filter(Boolean).join(' ') || 'Sin cargar')}</span>
+        </div>
+        <div class="detalle-repartidor-fila">
+            <span>Patente</span>
+            <span>${escaparHtml(repartidor.patente_vehiculo || 'Sin cargar')}</span>
+        </div>
+        <div class="detalle-repartidor-fila">
+            <span>N° de licencia</span>
+            <span>${escaparHtml(repartidor.numero_licencia || 'Sin cargar')}</span>
+        </div>
+    `;
+
+    document.getElementById('modal-detalle-repartidor').classList.remove('oculto');
 }
 
 document.getElementById('seccion-repartidores').addEventListener('click', async (evento) => {
@@ -607,5 +654,29 @@ document.getElementById('formulario-invitar-repartidor').addEventListener('submi
     if (tipo === 'exito') {
         document.getElementById('formulario-invitar-repartidor').reset();
         await cargarRepartidores();
+    }
+});
+
+document.getElementById('boton-cerrar-modal-repartidor').addEventListener('click', () => {
+    document.getElementById('modal-detalle-repartidor').classList.add('oculto');
+});
+
+document.getElementById('modal-detalle-repartidor').addEventListener('click', (evento) => {
+    if (evento.target.id === 'modal-detalle-repartidor') {
+        document.getElementById('modal-detalle-repartidor').classList.add('oculto');
+    }
+});
+
+document.getElementById('seccion-repartidores').addEventListener('click', (evento) => {
+    const cabecera = evento.target.closest('[data-detalle-repartidor]');
+
+    if (!cabecera) {
+        return;
+    }
+
+    const miembro = repartidoresCargados.find((item) => item.id === cabecera.dataset.detalleRepartidor);
+
+    if (miembro) {
+        abrirDetalleRepartidor(miembro);
     }
 });

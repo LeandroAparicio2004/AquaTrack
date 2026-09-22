@@ -39,6 +39,7 @@ SCRUM-16 Consulta de Dashboard Vendedor
 SCRUM-17 Analisis de Metricas Comerciales
 SCRUM-21 Consulta de Dashboard Cliente
 SCRUM-25 Programacion de Suscripciones
+SCRUM-50 Promociones y Combos de Productos
 
 Sprint 6 - UX
 SCRUM-46 Modo Claro / Oscuro
