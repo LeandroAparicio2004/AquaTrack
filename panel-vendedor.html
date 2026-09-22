@@ -61,6 +61,8 @@
             <div class="panel-pestanas" role="tablist">
                 <button type="button" class="panel-pestana activa" data-pestana="productos" role="tab"
                     aria-selected="true">Mis Productos</button>
+                <button type="button" class="panel-pestana" data-pestana="repartidores" role="tab"
+                    aria-selected="false">Repartidores</button>
                 <button type="button" class="panel-pestana" data-pestana="perfil" role="tab"
                     aria-selected="false">Perfil del negocio</button>
             </div>
@@ -75,6 +77,32 @@
                 <p class="estado-productos-panel oculto" id="estado-productos-panel"></p>
 
                 <div class="grilla-productos-panel" id="lista-productos-panel"></div>
+            </section>
+
+            <section class="panel-seccion oculto" id="seccion-repartidores" role="tabpanel">
+                <div class="panel-seccion-encabezado">
+                    <h2>Solicitudes pendientes</h2>
+                </div>
+                <p class="estado-productos-panel oculto" id="estado-solicitudes-repartidor"></p>
+                <div class="grilla-productos-panel" id="lista-solicitudes-repartidor"></div>
+
+                <div class="panel-seccion-encabezado panel-subseccion">
+                    <h2>Mi flota</h2>
+                </div>
+                <p class="estado-productos-panel oculto" id="estado-flota"></p>
+                <div class="grilla-productos-panel" id="lista-flota"></div>
+
+                <div class="panel-seccion-encabezado panel-subseccion">
+                    <h2>Agregar repartidor por email</h2>
+                </div>
+                <form id="formulario-invitar-repartidor" class="formulario-invitar">
+                    <div class="campo">
+                        <label for="email-repartidor">Email del repartidor</label>
+                        <input type="email" id="email-repartidor" required placeholder="repartidor@ejemplo.com">
+                    </div>
+                    <button type="submit" class="btn btn-principal" id="btn-invitar-repartidor">Agregar</button>
+                </form>
+                <p class="mensaje-estado oculto" id="mensaje-invitar-repartidor"></p>
             </section>
 
             <section class="panel-seccion oculto" id="seccion-perfil" role="tabpanel">

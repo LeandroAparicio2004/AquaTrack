@@ -11,6 +11,11 @@ Vendedor{
     12345678
 }
 
+Repartidor {
+    repartidor@gmail.com
+    12345678
+}
+
 admin{
     admin@gmail.com
     12345678

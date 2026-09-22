@@ -379,9 +379,12 @@ formulario.addEventListener('submit', async (evento) => {
         mostrarMensaje('¡Cuenta creada! Redirigiendo...', 'exito');
         botonEnviar.textContent = 'Cuenta creada';
 
-        const paginaDestino = rolSeleccionado === 'vendedor'
-            ? 'panel-vendedor.html'
-            : 'productos.html';
+        const destinosPorRol = {
+            vendedor: 'panel-vendedor.html',
+            repartidor: 'panel-repartidor.html'
+        };
+
+        const paginaDestino = destinosPorRol[rolSeleccionado] || 'productos.html';
 
         setTimeout(() => { window.location.href = paginaDestino; }, 1200);
     } catch (error) {

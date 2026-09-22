@@ -51,11 +51,13 @@ formulario.addEventListener('submit', async (evento) => {
       .eq('id', data.user.id)
       .single();
 
-    const paginaDestino = perfil?.rol === 'admin'
-      ? 'admin.html'
-      : perfil?.rol === 'vendedor'
-        ? 'panel-vendedor.html'
-        : 'productos.html';
+    const destinosPorRol = {
+      admin: 'admin.html',
+      vendedor: 'panel-vendedor.html',
+      repartidor: 'panel-repartidor.html'
+    };
+
+    const paginaDestino = destinosPorRol[perfil?.rol] || 'productos.html';
 
     mostrarMensaje('¡Bienvenido! Redirigiendo...', 'exito');
     setTimeout(() => { window.location.href = paginaDestino; }, 1200);

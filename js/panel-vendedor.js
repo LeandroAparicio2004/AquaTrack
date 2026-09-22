@@ -1,5 +1,6 @@
 let distribuidoraActual = null;
 let productosDelPanel = [];
+let usuarioActualId = null;
 
 function escaparHtml(valor) {
     return String(valor ?? '').replace(/[&<>"']/g, (caracter) => {
@@ -132,6 +133,8 @@ async function inicializarPanel() {
         return;
     }
 
+    usuarioActualId = session.user.id;
+
     const { data: perfil } = await supabaseCliente
         .from('usuarios')
         .select('rol')
@@ -205,8 +208,10 @@ inicializarPanel();
 const pestanas = document.querySelectorAll('.panel-pestana');
 const secciones = {
     productos: document.getElementById('seccion-productos'),
+    repartidores: document.getElementById('seccion-repartidores'),
     perfil: document.getElementById('seccion-perfil')
 };
+let seccionRepartidoresCargada = false;
 
 pestanas.forEach((pestana) => {
     pestana.addEventListener('click', () => {
@@ -221,6 +226,11 @@ pestanas.forEach((pestana) => {
         Object.entries(secciones).forEach(([nombre, seccion]) => {
             seccion.classList.toggle('oculto', nombre !== pestana.dataset.pestana);
         });
+
+        if (pestana.dataset.pestana === 'repartidores' && !seccionRepartidoresCargada) {
+            seccionRepartidoresCargada = true;
+            cargarRepartidores();
+        }
     });
 });
 
@@ -438,4 +448,164 @@ document.getElementById('formulario-perfil').addEventListener('submit', async (e
 document.getElementById('boton-cerrar-sesion').addEventListener('click', async () => {
     await supabaseCliente.auth.signOut();
     window.location.href = 'login.html';
+});
+
+function renderizarListaRepartidores(lista, contenedorId, estadoVacioId, conAcciones) {
+    const contenedor = document.getElementById(contenedorId);
+    const estadoVacio = document.getElementById(estadoVacioId);
+
+    contenedor.innerHTML = '';
+
+    if (lista.length === 0) {
+        estadoVacio.textContent = conAcciones
+            ? 'No hay solicitudes pendientes por ahora.'
+            : 'Todavía no tenés repartidores en tu flota.';
+        estadoVacio.classList.remove('oculto');
+        return;
+    }
+
+    estadoVacio.classList.add('oculto');
+
+    lista.forEach((miembro) => {
+        const repartidor = miembro.usuarios || {};
+
+        const acciones = conAcciones
+            ? `
+              <div class="tarjeta-producto-panel-acciones">
+                <button type="button" class="btn btn-principal btn-chico" data-aceptar-repartidor="${miembro.id}">Aceptar</button>
+                <button type="button" class="btn btn-secundario btn-peligro btn-chico" data-rechazar-repartidor="${miembro.id}">Rechazar</button>
+              </div>
+            `
+            : '';
+
+        const tarjeta = document.createElement('article');
+        tarjeta.className = 'tarjeta-producto-panel';
+        tarjeta.innerHTML = `
+            <div class="tarjeta-producto-panel-superior">
+                <h3>${escaparHtml(repartidor.nombre || 'Repartidor')}</h3>
+            </div>
+            <p class="tarjeta-producto-panel-descripcion">
+                ${escaparHtml(repartidor.telefono || 'Sin teléfono')}
+            </p>
+            <p class="tarjeta-producto-panel-descripcion">
+                ${escaparHtml(miembro.mensaje_solicitud || 'Sin mensaje adjunto.')}
+            </p>
+            ${acciones}
+        `;
+
+        contenedor.appendChild(tarjeta);
+    });
+}
+
+async function cargarRepartidores() {
+    const { data, error } = await supabaseCliente
+        .from('miembros_distribuidoras')
+        .select('id, estado, mensaje_solicitud, usuario_id, usuarios!usuario_id (nombre, telefono)')
+        .eq('distribuidora_id', distribuidoraActual.id)
+        .eq('rol', 'repartidor')
+        .order('creado_en', { ascending: false });
+
+    if (error) {
+        document.getElementById('estado-solicitudes-repartidor').textContent =
+            'No pudimos cargar las solicitudes. Recargá la página.';
+        document.getElementById('estado-solicitudes-repartidor').classList.remove('oculto');
+        return;
+    }
+
+    const todos = data || [];
+    const pendientes = todos.filter((miembro) => miembro.estado === 'pendiente');
+    const flota = todos.filter((miembro) => miembro.estado === 'activo');
+
+    renderizarListaRepartidores(pendientes, 'lista-solicitudes-repartidor', 'estado-solicitudes-repartidor', true);
+    renderizarListaRepartidores(flota, 'lista-flota', 'estado-flota', false);
+}
+
+document.getElementById('seccion-repartidores').addEventListener('click', async (evento) => {
+    const botonAceptar = evento.target.closest('[data-aceptar-repartidor]');
+    const botonRechazar = evento.target.closest('[data-rechazar-repartidor]');
+
+    if (botonAceptar) {
+        botonAceptar.disabled = true;
+
+        const { error } = await supabaseCliente
+            .from('miembros_distribuidoras')
+            .update({
+                estado: 'activo',
+                aprobado_por: usuarioActualId,
+                aprobado_en: new Date().toISOString()
+            })
+            .eq('id', botonAceptar.dataset.aceptarRepartidor);
+
+        if (error) {
+            alert('No pudimos aceptar la solicitud. Intentá de nuevo.');
+            botonAceptar.disabled = false;
+            return;
+        }
+
+        await cargarRepartidores();
+    }
+
+    if (botonRechazar) {
+        const confirmado = confirm('¿Seguro que querés rechazar a este repartidor?');
+
+        if (!confirmado) {
+            return;
+        }
+
+        botonRechazar.disabled = true;
+
+        const { error } = await supabaseCliente
+            .from('miembros_distribuidoras')
+            .update({ estado: 'rechazado' })
+            .eq('id', botonRechazar.dataset.rechazarRepartidor);
+
+        if (error) {
+            alert('No pudimos rechazar la solicitud. Intentá de nuevo.');
+            botonRechazar.disabled = false;
+            return;
+        }
+
+        await cargarRepartidores();
+    }
+});
+
+document.getElementById('formulario-invitar-repartidor').addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+
+    const btnInvitar = document.getElementById('btn-invitar-repartidor');
+    const mensaje = document.getElementById('mensaje-invitar-repartidor');
+    const email = document.getElementById('email-repartidor').value.trim();
+
+    btnInvitar.disabled = true;
+    btnInvitar.textContent = 'Agregando...';
+
+    const { data, error } = await supabaseCliente.rpc('invitar_repartidor_por_email', {
+        p_distribuidora_id: distribuidoraActual.id,
+        p_email: email
+    });
+
+    btnInvitar.disabled = false;
+    btnInvitar.textContent = 'Agregar';
+
+    if (error) {
+        mensaje.textContent = 'No pudimos completar la operación. Intentá de nuevo.';
+        mensaje.className = 'mensaje-estado error';
+        return;
+    }
+
+    const mensajesPorResultado = {
+        agregado: ['Repartidor agregado a tu flota.', 'exito'],
+        reactivado: ['Repartidor reactivado en tu flota.', 'exito'],
+        no_encontrado: ['No encontramos ninguna cuenta con ese email.', 'error'],
+        no_es_repartidor: ['Ese email no corresponde a una cuenta de Repartidor.', 'error']
+    };
+
+    const [texto, tipo] = mensajesPorResultado[data] || ['Ocurrió un error inesperado.', 'error'];
+    mensaje.textContent = texto;
+    mensaje.className = `mensaje-estado ${tipo}`;
+
+    if (tipo === 'exito') {
+        document.getElementById('formulario-invitar-repartidor').reset();
+        await cargarRepartidores();
+    }
 });

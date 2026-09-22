@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <script>
+        (function () {
+            if (localStorage.getItem('aquatrack_tema') === 'oscuro') {
+                document.documentElement.setAttribute('data-tema', 'oscuro');
+            }
+        })();
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Repartidor — AquaTrack</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/comunes.css">
+    <link rel="stylesheet" href="css/panel-vendedor.css">
+</head>
+
+<body>
+
+    <div class="panel-cargando" id="panel-cargando">
+        <p>Cargando tu panel...</p>
+    </div>
+
+    <header class="encabezado panel-encabezado oculto" id="panel-header">
+        <div class="contenedor encabezado-interno">
+            <div class="panel-marca">
+                <span class="logo">AquaTrack</span>
+                <span class="panel-etiqueta">Panel Repartidor</span>
+            </div>
+
+            <nav class="panel-nav">
+                <button type="button" class="btn-tema" id="btn-tema" aria-label="Cambiar tema"></button>
+                <button type="button" class="btn btn-secundario btn-peligro" id="boton-cerrar-sesion">Salir</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="panel-contenido oculto" id="panel-main">
+        <div class="contenedor">
+
+            <div class="panel-encabezado-negocio">
+                <p class="etiqueta-seccion">Tu cuenta</p>
+                <h1>Repartidor</h1>
+            </div>
+
+            <div class="panel-pestanas" role="tablist">
+                <button type="button" class="panel-pestana activa" data-pestana="buscar" role="tab"
+                    aria-selected="true">Buscar empresas</button>
+                <button type="button" class="panel-pestana" data-pestana="solicitudes" role="tab"
+                    aria-selected="false">Mis solicitudes</button>
+                <button type="button" class="panel-pestana" data-pestana="perfil" role="tab"
+                    aria-selected="false">Mi perfil</button>
+            </div>
+
+            <section class="panel-seccion" id="seccion-buscar" role="tabpanel">
+                <div class="campo-busqueda-panel">
+                    <label for="buscador-distribuidoras">Buscar</label>
+                    <div class="entrada-busqueda-panel">
+                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8" />
+                            <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="1.8"
+                                stroke-linecap="round" />
+                        </svg>
+                        <input type="text" id="buscador-distribuidoras" placeholder="Nombre o ciudad...">
+                    </div>
+                </div>
+
+                <p class="estado-productos-panel oculto" id="estado-buscar"></p>
+                <div class="grilla-productos-panel" id="lista-distribuidoras"></div>
+            </section>
+
+            <section class="panel-seccion oculto" id="seccion-solicitudes" role="tabpanel">
+                <p class="estado-productos-panel oculto" id="estado-solicitudes"></p>
+                <div class="grilla-productos-panel" id="lista-solicitudes"></div>
+            </section>
+
+            <section class="panel-seccion oculto" id="seccion-perfil" role="tabpanel">
+                <h2>Mi perfil</h2>
+
+                <form id="formulario-perfil-repartidor" novalidate>
+                    <div class="panel-perfil-grilla">
+
+                        <div class="panel-foto-negocio">
+                            <label class="panel-foto-vista" id="panel-foto-vista" for="foto-repartidor">
+                                <svg class="panel-foto-icono" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path
+                                        d="M4 7h3l2-2.5h6L17 7h3a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V8a1 1 0 0 1 1-1Z"
+                                        stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+                                    <circle cx="12" cy="13" r="3.4" stroke="currentColor" stroke-width="1.6" />
+                                </svg>
+                                <span>Subir foto</span>
+                            </label>
+                            <input type="file" id="foto-repartidor" accept="image/*" hidden>
+                        </div>
+
+                        <div class="panel-perfil-campos">
+                            <div class="campo">
+                                <label for="dni-repartidor-perfil">DNI</label>
+                                <input type="text" id="dni-repartidor-perfil" inputmode="numeric">
+                            </div>
+
+                            <div class="fila-doble">
+                                <div class="campo">
+                                    <label for="marca-vehiculo">Marca del vehículo</label>
+                                    <input type="text" id="marca-vehiculo" placeholder="Honda">
+                                </div>
+                                <div class="campo">
+                                    <label for="modelo-vehiculo">Modelo</label>
+                                    <input type="text" id="modelo-vehiculo" placeholder="Wave 110">
+                                </div>
+                            </div>
+
+                            <div class="campo">
+                                <label for="patente-vehiculo">Patente</label>
+                                <input type="text" id="patente-vehiculo" placeholder="AB123CD">
+                            </div>
+
+                            <div class="campo">
+                                <label for="numero-licencia">Número de licencia de conducir</label>
+                                <input type="text" id="numero-licencia">
+                            </div>
+
+                            <p class="mensaje-estado oculto" id="mensaje-perfil-repartidor"></p>
+
+                            <button type="submit" class="btn btn-principal" id="btn-guardar-perfil-repartidor">Guardar
+                                cambios</button>
+                        </div>
+
+                    </div>
+                </form>
+            </section>
+
+        </div>
+    </main>
+
+    <div class="modal-fondo oculto" id="modal-solicitud" role="dialog" aria-modal="true"
+        aria-labelledby="titulo-modal-solicitud">
+        <div class="modal-producto">
+            <button type="button" class="boton-cerrar-modal" id="boton-cerrar-modal-solicitud"
+                aria-label="Cerrar ventana">×</button>
+
+            <h2 id="titulo-modal-solicitud">Solicitar unirme</h2>
+            <p id="texto-modal-solicitud" class="tarjeta-producto-panel-descripcion"
+                style="margin-bottom: 16px;"></p>
+
+            <form id="formulario-solicitud" novalidate>
+                <div class="campo">
+                    <label for="mensaje-solicitud">Contale tu disponibilidad y vehículo (opcional)</label>
+                    <textarea id="mensaje-solicitud" rows="3"
+                        placeholder="Ej: Tengo moto, disponible de lunes a viernes por la tarde..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-principal btn-ancho" id="btn-enviar-solicitud">Enviar
+                    solicitud</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/panel-repartidor.js"></script>
+    <script src="js/tema.js"></script>
+</body>
+
+</html>
