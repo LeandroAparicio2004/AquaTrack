@@ -20,3 +20,7 @@ admin{
     admin@gmail.com
     12345678
 }
+
+billetera central (admin) de ahi se despliega el pago para cada Vendedor (1 cliente paga 1 bidon para Aqua y otro para del valle, le da el total al admin, una vez q se entregue el producto el admin le da la plata a los vendedores correspondientes) 
+
+Obviar el repartidor, el vendedor lo asignara una vez finalice el armado de la ruta (ORSM - predic ruta optimizada), una vez eso se le asigna un repartidor a esa ruta (Backlog) sacamos "panel-repartidor"
