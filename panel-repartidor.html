@@ -43,42 +43,16 @@
         <div class="contenedor">
 
             <div class="panel-encabezado-negocio">
-                <p class="etiqueta-seccion">Tu cuenta</p>
-                <h1>Repartidor</h1>
+                <p class="etiqueta-seccion">Repartís para</p>
+                <h1 id="nombre-distribuidora-repartidor">Cargando...</h1>
             </div>
 
             <div class="panel-pestanas" role="tablist">
-                <button type="button" class="panel-pestana activa" data-pestana="buscar" role="tab"
-                    aria-selected="true">Buscar empresas</button>
-                <button type="button" class="panel-pestana" data-pestana="solicitudes" role="tab"
-                    aria-selected="false">Mis solicitudes</button>
-                <button type="button" class="panel-pestana" data-pestana="perfil" role="tab"
-                    aria-selected="false">Mi perfil</button>
+                <button type="button" class="panel-pestana activa" data-pestana="perfil" role="tab"
+                    aria-selected="true">Mi perfil</button>
             </div>
 
-            <section class="panel-seccion" id="seccion-buscar" role="tabpanel">
-                <div class="campo-busqueda-panel">
-                    <label for="buscador-distribuidoras">Buscar</label>
-                    <div class="entrada-busqueda-panel">
-                        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                            <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8" />
-                            <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="1.8"
-                                stroke-linecap="round" />
-                        </svg>
-                        <input type="text" id="buscador-distribuidoras" placeholder="Nombre o ciudad...">
-                    </div>
-                </div>
-
-                <p class="estado-productos-panel oculto" id="estado-buscar"></p>
-                <div class="grilla-productos-panel" id="lista-distribuidoras"></div>
-            </section>
-
-            <section class="panel-seccion oculto" id="seccion-solicitudes" role="tabpanel">
-                <p class="estado-productos-panel oculto" id="estado-solicitudes"></p>
-                <div class="grilla-productos-panel" id="lista-solicitudes"></div>
-            </section>
-
-            <section class="panel-seccion oculto" id="seccion-perfil" role="tabpanel">
+            <section class="panel-seccion" id="seccion-perfil" role="tabpanel">
                 <h2>Mi perfil</h2>
 
                 <form id="formulario-perfil-repartidor" novalidate>
@@ -136,29 +110,6 @@
 
         </div>
     </main>
-
-    <div class="modal-fondo oculto" id="modal-solicitud" role="dialog" aria-modal="true"
-        aria-labelledby="titulo-modal-solicitud">
-        <div class="modal-producto">
-            <button type="button" class="boton-cerrar-modal" id="boton-cerrar-modal-solicitud"
-                aria-label="Cerrar ventana">×</button>
-
-            <h2 id="titulo-modal-solicitud">Solicitar unirme</h2>
-            <p id="texto-modal-solicitud" class="tarjeta-producto-panel-descripcion"
-                style="margin-bottom: 16px;"></p>
-
-            <form id="formulario-solicitud" novalidate>
-                <div class="campo">
-                    <label for="mensaje-solicitud">Contale tu disponibilidad y vehículo (opcional)</label>
-                    <textarea id="mensaje-solicitud" rows="3"
-                        placeholder="Ej: Tengo moto, disponible de lunes a viernes por la tarde..."></textarea>
-                </div>
-
-                <button type="submit" class="btn btn-principal btn-ancho" id="btn-enviar-solicitud">Enviar
-                    solicitud</button>
-            </form>
-        </div>
-    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="js/supabase-config.js"></script>

@@ -24,3 +24,13 @@ admin{
 billetera central (admin) de ahi se despliega el pago para cada Vendedor (1 cliente paga 1 bidon para Aqua y otro para del valle, le da el total al admin, una vez q se entregue el producto el admin le da la plata a los vendedores correspondientes) 
 
 Obviar el repartidor, el vendedor lo asignara una vez finalice el armado de la ruta (ORSM - predic ruta optimizada), una vez eso se le asigna un repartidor a esa ruta (Backlog) sacamos "panel-repartidor"
+
+HACIENDO AHORA:
+Vendedor crea un Repartidor → carga Nombre, Apellido, DNI, Teléfono, Vehículo (marca/modelo/patente), N° de Licencia de Conducir, Foto
+→ Repartidor queda directo en la flota del Vendedor (sin pedir nada, sin elegir)
+
+SPRINT 4 (Prox tarea):
+Vendedor arma una ruta optimizada (OSRM) agrupando varios pedidos
+→ le asigna esa ruta/grupo a uno de sus Repartidores
+→ el Repartidor sale a repartir y al llegar a cada domicilio 
+  valida la entrega (QR o manual).

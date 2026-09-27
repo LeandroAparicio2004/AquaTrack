@@ -639,16 +639,72 @@ body {
     margin-top: 36px;
 }
 
-.formulario-invitar {
-    display: flex;
-    gap: 10px;
-    align-items: flex-end;
+.formulario-invitar-repartidor {
     max-width: 480px;
 }
 
-.formulario-invitar .campo {
+.formulario-invitar-repartidor .campo {
+    margin-bottom: 14px;
+}
+
+.formulario-invitar-repartidor .campo label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--color-texto-panel);
+    font-size: 0.87rem;
+    font-weight: 700;
+}
+
+.formulario-invitar-repartidor input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid var(--color-borde-panel);
+    border-radius: 11px;
+    outline: none;
+    color: var(--color-texto-panel);
+    background: var(--color-campo-panel);
+    font-family: var(--fuente-base);
+    font-size: 0.92rem;
+}
+
+.formulario-invitar-repartidor .fila-doble {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.tarjeta-link-invitacion {
+    max-width: 480px;
+    margin-top: 18px;
+    padding: 16px;
+    border: 1px solid var(--color-borde-panel);
+    border-radius: 12px;
+    background: var(--color-acento-suave-panel);
+}
+
+.tarjeta-link-invitacion.oculto {
+    display: none;
+}
+
+.tarjeta-link-invitacion p {
+    margin-bottom: 10px;
+    color: var(--color-texto-panel);
+    font-size: 0.88rem;
+}
+
+.fila-link-invitacion {
+    display: flex;
+    gap: 8px;
+}
+
+.fila-link-invitacion input {
     flex: 1;
-    margin-bottom: 0;
+    padding: 9px 12px;
+    border: 1px solid var(--color-borde-panel);
+    border-radius: 9px;
+    color: var(--color-texto-panel);
+    background: var(--color-campo-panel);
+    font-size: 0.86rem;
 }
 
 .panel-perfil-campos .mensaje-estado,

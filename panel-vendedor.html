@@ -81,27 +81,70 @@
 
             <section class="panel-seccion oculto" id="seccion-repartidores" role="tabpanel">
                 <div class="panel-seccion-encabezado">
-                    <h2>Solicitudes pendientes</h2>
-                </div>
-                <p class="estado-productos-panel oculto" id="estado-solicitudes-repartidor"></p>
-                <div class="grilla-productos-panel" id="lista-solicitudes-repartidor"></div>
-
-                <div class="panel-seccion-encabezado panel-subseccion">
                     <h2>Mi flota</h2>
                 </div>
                 <p class="estado-productos-panel oculto" id="estado-flota"></p>
                 <div class="grilla-productos-panel" id="lista-flota"></div>
 
                 <div class="panel-seccion-encabezado panel-subseccion">
-                    <h2>Agregar repartidor por email</h2>
+                    <h2>Invitaciones pendientes</h2>
                 </div>
-                <form id="formulario-invitar-repartidor" class="formulario-invitar">
+                <p class="estado-productos-panel oculto" id="estado-invitaciones"></p>
+                <div class="grilla-productos-panel" id="lista-invitaciones"></div>
+
+                <div class="panel-seccion-encabezado panel-subseccion">
+                    <h2>Invitar un repartidor nuevo</h2>
+                </div>
+                <form id="formulario-invitar-repartidor" class="formulario-invitar-repartidor">
                     <div class="campo">
-                        <label for="email-repartidor">Email del repartidor</label>
+                        <label for="nombre-repartidor">Nombre y apellido</label>
+                        <input type="text" id="nombre-repartidor" required>
+                    </div>
+                    <div class="campo">
+                        <label for="email-repartidor">Email</label>
                         <input type="email" id="email-repartidor" required placeholder="repartidor@ejemplo.com">
                     </div>
-                    <button type="submit" class="btn btn-principal" id="btn-invitar-repartidor">Agregar</button>
+                    <div class="fila-doble">
+                        <div class="campo">
+                            <label for="dni-repartidor-invitar">DNI</label>
+                            <input type="text" id="dni-repartidor-invitar" inputmode="numeric">
+                        </div>
+                        <div class="campo">
+                            <label for="telefono-repartidor-invitar">Teléfono</label>
+                            <input type="tel" id="telefono-repartidor-invitar">
+                        </div>
+                    </div>
+                    <div class="fila-doble">
+                        <div class="campo">
+                            <label for="marca-repartidor-invitar">Marca del vehículo</label>
+                            <input type="text" id="marca-repartidor-invitar" placeholder="Honda">
+                        </div>
+                        <div class="campo">
+                            <label for="modelo-repartidor-invitar">Modelo</label>
+                            <input type="text" id="modelo-repartidor-invitar" placeholder="Wave 110">
+                        </div>
+                    </div>
+                    <div class="fila-doble">
+                        <div class="campo">
+                            <label for="patente-repartidor-invitar">Patente</label>
+                            <input type="text" id="patente-repartidor-invitar">
+                        </div>
+                        <div class="campo">
+                            <label for="licencia-repartidor-invitar">N° de licencia</label>
+                            <input type="text" id="licencia-repartidor-invitar">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-principal" id="btn-invitar-repartidor">Generar
+                        invitación</button>
                 </form>
+
+                <div class="tarjeta-link-invitacion oculto" id="tarjeta-link-invitacion">
+                    <p>Pasale este link a la persona (por WhatsApp, email, como prefieras):</p>
+                    <div class="fila-link-invitacion">
+                        <input type="text" id="link-invitacion" readonly>
+                        <button type="button" class="btn btn-secundario btn-chico" id="btn-copiar-link">Copiar</button>
+                    </div>
+                </div>
                 <p class="mensaje-estado oculto" id="mensaje-invitar-repartidor"></p>
             </section>
 

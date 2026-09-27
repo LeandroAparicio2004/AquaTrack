@@ -471,14 +471,7 @@ function renderizarListaRepartidores(lista, contenedorId, estadoVacioId, conAcci
     lista.forEach((miembro) => {
         const repartidor = miembro.usuarios || {};
 
-        const acciones = conAcciones
-            ? `
-              <div class="tarjeta-producto-panel-acciones">
-                <button type="button" class="btn btn-principal btn-chico" data-aceptar-repartidor="${miembro.id}">Aceptar</button>
-                <button type="button" class="btn btn-secundario btn-peligro btn-chico" data-rechazar-repartidor="${miembro.id}">Rechazar</button>
-              </div>
-            `
-            : '';
+        const acciones = '';
 
         const tarjeta = document.createElement('article');
         tarjeta.className = 'tarjeta-producto-panel';
@@ -486,8 +479,8 @@ function renderizarListaRepartidores(lista, contenedorId, estadoVacioId, conAcci
             <div class="tarjeta-repartidor-cabecera" data-detalle-repartidor="${miembro.id}">
                 <div class="tarjeta-repartidor-foto">
                     ${repartidor.foto_url
-                        ? `<img src="${escaparHtml(repartidor.foto_url)}" alt="${escaparHtml(repartidor.nombre)}">`
-                        : '<span>Sin foto</span>'}
+                ? `<img src="${escaparHtml(repartidor.foto_url)}" alt="${escaparHtml(repartidor.nombre)}">`
+                : '<span>Sin foto</span>'}
                 </div>
                 <div>
                     <h3>${escaparHtml(repartidor.nombre || 'Repartidor')}</h3>
@@ -508,10 +501,10 @@ function renderizarListaRepartidores(lista, contenedorId, estadoVacioId, conAcci
 }
 
 async function cargarRepartidores() {
-    const { data, error } = await supabaseCliente
+    const { data: flota, error: errorFlota } = await supabaseCliente
         .from('miembros_distribuidoras')
         .select(`
-            id, estado, mensaje_solicitud, usuario_id,
+            id, usuario_id,
             usuarios!usuario_id (
                 nombre, telefono, dni, foto_url,
                 marca_vehiculo, modelo_vehiculo, patente_vehiculo, numero_licencia
@@ -519,21 +512,58 @@ async function cargarRepartidores() {
         `)
         .eq('distribuidora_id', distribuidoraActual.id)
         .eq('rol', 'repartidor')
+        .eq('estado', 'activo')
         .order('creado_en', { ascending: false });
 
-    if (error) {
-        document.getElementById('estado-solicitudes-repartidor').textContent =
-            'No pudimos cargar las solicitudes. Recargá la página.';
-        document.getElementById('estado-solicitudes-repartidor').classList.remove('oculto');
+    if (errorFlota) {
+        document.getElementById('estado-flota').textContent =
+            'No pudimos cargar tu flota. Recargá la página.';
+        document.getElementById('estado-flota').classList.remove('oculto');
+    } else {
+        renderizarListaRepartidores(flota || [], 'lista-flota', 'estado-flota', false);
+    }
+
+    const { data: invitaciones, error: errorInvitaciones } = await supabaseCliente
+        .from('invitaciones_repartidor')
+        .select('id, nombre, email, dni, telefono, marca_vehiculo, modelo_vehiculo, creado_en')
+        .eq('distribuidora_id', distribuidoraActual.id)
+        .eq('estado', 'pendiente')
+        .order('creado_en', { ascending: false });
+
+    if (errorInvitaciones) {
+        document.getElementById('estado-invitaciones').textContent =
+            'No pudimos cargar las invitaciones. Recargá la página.';
+        document.getElementById('estado-invitaciones').classList.remove('oculto');
         return;
     }
 
-    repartidoresCargados = data || [];
-    const pendientes = repartidoresCargados.filter((miembro) => miembro.estado === 'pendiente');
-    const flota = repartidoresCargados.filter((miembro) => miembro.estado === 'activo');
+    const listaInvitaciones = document.getElementById('lista-invitaciones');
+    const estadoInvitaciones = document.getElementById('estado-invitaciones');
+    listaInvitaciones.innerHTML = '';
 
-    renderizarListaRepartidores(pendientes, 'lista-solicitudes-repartidor', 'estado-solicitudes-repartidor', true);
-    renderizarListaRepartidores(flota, 'lista-flota', 'estado-flota', false);
+    if (!invitaciones || invitaciones.length === 0) {
+        estadoInvitaciones.textContent = 'No tenés invitaciones esperando respuesta.';
+        estadoInvitaciones.classList.remove('oculto');
+        return;
+    }
+
+    estadoInvitaciones.classList.add('oculto');
+
+    invitaciones.forEach((invitacion) => {
+        const tarjeta = document.createElement('article');
+        tarjeta.className = 'tarjeta-producto-panel';
+        tarjeta.innerHTML = `
+            <div class="tarjeta-producto-panel-superior">
+                <h3>${escaparHtml(invitacion.nombre)}</h3>
+                <span class="etiqueta-estado-producto pendiente">Esperando registro</span>
+            </div>
+            <p class="tarjeta-producto-panel-descripcion">${escaparHtml(invitacion.email)}</p>
+            <p class="tarjeta-producto-panel-descripcion">
+                ${escaparHtml([invitacion.marca_vehiculo, invitacion.modelo_vehiculo].filter(Boolean).join(' ') || 'Sin vehículo cargado')}
+            </p>
+        `;
+        listaInvitaciones.appendChild(tarjeta);
+    });
 }
 
 function abrirDetalleRepartidor(miembro) {
@@ -567,94 +597,57 @@ function abrirDetalleRepartidor(miembro) {
     document.getElementById('modal-detalle-repartidor').classList.remove('oculto');
 }
 
-document.getElementById('seccion-repartidores').addEventListener('click', async (evento) => {
-    const botonAceptar = evento.target.closest('[data-aceptar-repartidor]');
-    const botonRechazar = evento.target.closest('[data-rechazar-repartidor]');
 
-    if (botonAceptar) {
-        botonAceptar.disabled = true;
-
-        const { error } = await supabaseCliente
-            .from('miembros_distribuidoras')
-            .update({
-                estado: 'activo',
-                aprobado_por: usuarioActualId,
-                aprobado_en: new Date().toISOString()
-            })
-            .eq('id', botonAceptar.dataset.aceptarRepartidor);
-
-        if (error) {
-            alert('No pudimos aceptar la solicitud. Intentá de nuevo.');
-            botonAceptar.disabled = false;
-            return;
-        }
-
-        await cargarRepartidores();
-    }
-
-    if (botonRechazar) {
-        const confirmado = confirm('¿Seguro que querés rechazar a este repartidor?');
-
-        if (!confirmado) {
-            return;
-        }
-
-        botonRechazar.disabled = true;
-
-        const { error } = await supabaseCliente
-            .from('miembros_distribuidoras')
-            .update({ estado: 'rechazado' })
-            .eq('id', botonRechazar.dataset.rechazarRepartidor);
-
-        if (error) {
-            alert('No pudimos rechazar la solicitud. Intentá de nuevo.');
-            botonRechazar.disabled = false;
-            return;
-        }
-
-        await cargarRepartidores();
-    }
-});
 
 document.getElementById('formulario-invitar-repartidor').addEventListener('submit', async (evento) => {
     evento.preventDefault();
 
     const btnInvitar = document.getElementById('btn-invitar-repartidor');
-    const mensaje = document.getElementById('mensaje-invitar-repartidor');
-    const email = document.getElementById('email-repartidor').value.trim();
+
+    const datosInvitacion = {
+        distribuidora_id: distribuidoraActual.id,
+        invitado_por: usuarioActualId,
+        nombre: document.getElementById('nombre-repartidor').value.trim(),
+        email: document.getElementById('email-repartidor').value.trim(),
+        dni: document.getElementById('dni-repartidor-invitar').value.trim() || null,
+        telefono: document.getElementById('telefono-repartidor-invitar').value.trim() || null,
+        marca_vehiculo: document.getElementById('marca-repartidor-invitar').value.trim() || null,
+        modelo_vehiculo: document.getElementById('modelo-repartidor-invitar').value.trim() || null,
+        patente_vehiculo: document.getElementById('patente-repartidor-invitar').value.trim() || null,
+        numero_licencia: document.getElementById('licencia-repartidor-invitar').value.trim() || null
+    };
 
     btnInvitar.disabled = true;
-    btnInvitar.textContent = 'Agregando...';
+    btnInvitar.textContent = 'Generando...';
 
-    const { data, error } = await supabaseCliente.rpc('invitar_repartidor_por_email', {
-        p_distribuidora_id: distribuidoraActual.id,
-        p_email: email
-    });
+    const { error } = await supabaseCliente
+        .from('invitaciones_repartidor')
+        .insert(datosInvitacion);
 
     btnInvitar.disabled = false;
-    btnInvitar.textContent = 'Agregar';
+    btnInvitar.textContent = 'Generar invitación';
 
     if (error) {
-        mensaje.textContent = 'No pudimos completar la operación. Intentá de nuevo.';
-        mensaje.className = 'mensaje-estado error';
+        alert('No pudimos generar la invitación. Revisá los datos e intentá de nuevo.');
         return;
     }
 
-    const mensajesPorResultado = {
-        agregado: ['Repartidor agregado a tu flota.', 'exito'],
-        reactivado: ['Repartidor reactivado en tu flota.', 'exito'],
-        no_encontrado: ['No encontramos ninguna cuenta con ese email.', 'error'],
-        no_es_repartidor: ['Ese email no corresponde a una cuenta de Repartidor.', 'error']
-    };
+    const link = `${window.location.origin}/registro-repartidor.html?email=${encodeURIComponent(datosInvitacion.email)}`;
+    document.getElementById('link-invitacion').value = link;
+    document.getElementById('tarjeta-link-invitacion').classList.remove('oculto');
 
-    const [texto, tipo] = mensajesPorResultado[data] || ['Ocurrió un error inesperado.', 'error'];
-    mensaje.textContent = texto;
-    mensaje.className = `mensaje-estado ${tipo}`;
+    document.getElementById('formulario-invitar-repartidor').reset();
+    await cargarRepartidores();
+});
 
-    if (tipo === 'exito') {
-        document.getElementById('formulario-invitar-repartidor').reset();
-        await cargarRepartidores();
-    }
+document.getElementById('btn-copiar-link').addEventListener('click', () => {
+    const campoLink = document.getElementById('link-invitacion');
+    campoLink.select();
+    navigator.clipboard.writeText(campoLink.value);
+
+    const boton = document.getElementById('btn-copiar-link');
+    boton.textContent = '¡Copiado!';
+    setTimeout(() => { boton.textContent = 'Copiar'; }, 1500);
 });
 
 document.getElementById('boton-cerrar-modal-repartidor').addEventListener('click', () => {

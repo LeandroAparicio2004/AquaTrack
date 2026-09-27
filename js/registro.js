@@ -3,8 +3,7 @@ let rolSeleccionado = null;
 
 const nombresRol = {
     cliente: 'Cliente',
-    vendedor: 'Vendedor',
-    repartidor: 'Repartidor'
+    vendedor: 'Vendedor'
 };
 
 const textosPaso = {
@@ -28,10 +27,6 @@ const textosPaso = {
         vendedor: {
             titulo: 'Tu distribuidora',
             descripcion: 'Contanos sobre el negocio que querés administrar.'
-        },
-        repartidor: {
-            titulo: 'Tu perfil de repartidor',
-            descripcion: 'Completá tus datos para ofrecerte como repartidor.'
         }
     }
 };
@@ -198,20 +193,12 @@ function validarPasoTres() {
 
 function prepararCamposRol() {
     const camposVendedor = document.getElementById('campos-vendedor');
-    const camposRepartidor = document.getElementById('campos-repartidor');
-
     const esVendedor = rolSeleccionado === 'vendedor';
-    const esRepartidor = rolSeleccionado === 'repartidor';
 
     camposVendedor.classList.toggle('oculto', !esVendedor);
-    camposRepartidor.classList.toggle('oculto', !esRepartidor);
 
     camposVendedor.querySelectorAll('input').forEach((campo) => {
         campo.required = esVendedor;
-    });
-
-    camposRepartidor.querySelectorAll('input, select').forEach((campo) => {
-        campo.required = esRepartidor;
     });
 }
 
@@ -227,9 +214,7 @@ function validarPasoCuatro() {
             'ciudad-negocio',
             'provincia-negocio'
         ]
-        : rolSeleccionado === 'repartidor'
-            ? ['dni-repartidor']
-            : [];
+        : [];
 
     for (const idCampo of camposObligatorios) {
         const campo = document.getElementById(idCampo);
@@ -305,7 +290,7 @@ document.querySelectorAll('#nombre, #apellido').forEach((entrada) => {
     });
 });
 
-document.querySelectorAll('#dni-vendedor, #dni-repartidor').forEach((entrada) => {
+document.querySelectorAll('#dni-vendedor').forEach((entrada) => {
     entrada.addEventListener('input', () => {
         entrada.value = entrada.value.replace(/\D/g, '');
     });
@@ -355,11 +340,6 @@ formulario.addEventListener('submit', async (evento) => {
         datosUsuario.provincia = document.getElementById('provincia-negocio').value.trim();
     }
 
-    if (rolSeleccionado === 'repartidor') {
-        datosUsuario.dni = document.getElementById('dni-repartidor').value.trim();
-        datosUsuario.tipo_vehiculo = document.getElementById('tipo-vehiculo').value;
-    }
-
     try {
         const { error } = await supabaseCliente.auth.signUp({
             email: document.getElementById('correo').value.trim(),
@@ -379,12 +359,9 @@ formulario.addEventListener('submit', async (evento) => {
         mostrarMensaje('¡Cuenta creada! Redirigiendo...', 'exito');
         botonEnviar.textContent = 'Cuenta creada';
 
-        const destinosPorRol = {
-            vendedor: 'panel-vendedor.html',
-            repartidor: 'panel-repartidor.html'
-        };
-
-        const paginaDestino = destinosPorRol[rolSeleccionado] || 'productos.html';
+        const paginaDestino = rolSeleccionado === 'vendedor'
+            ? 'panel-vendedor.html'
+            : 'productos.html';
 
         setTimeout(() => { window.location.href = paginaDestino; }, 1200);
     } catch (error) {
