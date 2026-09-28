@@ -506,7 +506,7 @@ async function cargarRepartidores() {
         .select(`
             id, usuario_id,
             usuarios!usuario_id (
-                nombre, telefono, dni, foto_url,
+                nombre, telefono, dni, foto_url, tipo_vehiculo,
                 marca_vehiculo, modelo_vehiculo, patente_vehiculo, numero_licencia
             )
         `)
@@ -581,6 +581,10 @@ function abrirDetalleRepartidor(miembro) {
             <span>${escaparHtml(repartidor.telefono || 'Sin cargar')}</span>
         </div>
         <div class="detalle-repartidor-fila">
+            <span>Tipo de vehículo</span>
+            <span>${escaparHtml({ a_pie: 'A pie', bicicleta: 'Bicicleta', moto: 'Moto', auto: 'Auto' }[repartidor.tipo_vehiculo] || 'Sin cargar')}</span>
+        </div>
+        <div class="detalle-repartidor-fila">
             <span>Vehículo</span>
             <span>${escaparHtml([repartidor.marca_vehiculo, repartidor.modelo_vehiculo].filter(Boolean).join(' ') || 'Sin cargar')}</span>
         </div>
@@ -611,6 +615,7 @@ document.getElementById('formulario-invitar-repartidor').addEventListener('submi
         email: document.getElementById('email-repartidor').value.trim(),
         dni: document.getElementById('dni-repartidor-invitar').value.trim() || null,
         telefono: document.getElementById('telefono-repartidor-invitar').value.trim() || null,
+        tipo_vehiculo: document.getElementById('tipo-vehiculo-repartidor-invitar').value,
         marca_vehiculo: document.getElementById('marca-repartidor-invitar').value.trim() || null,
         modelo_vehiculo: document.getElementById('modelo-repartidor-invitar').value.trim() || null,
         patente_vehiculo: document.getElementById('patente-repartidor-invitar').value.trim() || null,

@@ -14,7 +14,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Vendedor — AquaTrack</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="css/comunes.css">
     <link rel="stylesheet" href="css/panel-vendedor.css">
 </head>
@@ -107,12 +108,21 @@
                     <div class="fila-doble">
                         <div class="campo">
                             <label for="dni-repartidor-invitar">DNI</label>
-                            <input type="text" id="dni-repartidor-invitar" inputmode="numeric">
+                            <input type="text" id="dni-repartidor-invitar" inputmode="numeric" required>
                         </div>
                         <div class="campo">
                             <label for="telefono-repartidor-invitar">Teléfono</label>
                             <input type="tel" id="telefono-repartidor-invitar">
                         </div>
+                    </div>
+                    <div class="campo">
+                        <label for="tipo-vehiculo-repartidor-invitar">Tipo de vehículo</label>
+                        <select id="tipo-vehiculo-repartidor-invitar" required>
+                            <option value="a_pie">A pie</option>
+                            <option value="bicicleta">Bicicleta</option>
+                            <option value="moto" selected>Moto</option>
+                            <option value="auto">Auto</option>
+                        </select>
                     </div>
                     <div class="fila-doble">
                         <div class="campo">

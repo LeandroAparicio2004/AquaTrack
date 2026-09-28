@@ -342,6 +342,7 @@ body {
     color: var(--color-texto-secundario-panel);
     background: var(--color-acento-suave-panel);
 }
+
 .etiqueta-estado-producto.pendiente {
     color: var(--color-advertencia-panel);
     background: var(--color-advertencia-fondo-panel);
@@ -655,7 +656,8 @@ body {
     font-weight: 700;
 }
 
-.formulario-invitar-repartidor input {
+.formulario-invitar-repartidor input,
+.formulario-invitar-repartidor select {
     width: 100%;
     padding: 11px 14px;
     border: 1px solid var(--color-borde-panel);
@@ -708,7 +710,7 @@ body {
 }
 
 .panel-perfil-campos .mensaje-estado,
-.formulario-invitar + .mensaje-estado {
+.formulario-invitar+.mensaje-estado {
     padding: 12px 14px;
     border: 1px solid transparent;
     border-radius: 10px;
