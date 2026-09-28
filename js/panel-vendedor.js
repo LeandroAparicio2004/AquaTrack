@@ -60,7 +60,14 @@ function renderizarProductosPanel() {
             </p>
             <div class="tarjeta-producto-panel-detalle">
                 <span>${escaparHtml(producto.capacidad_litros)} litros</span>
-                <strong>${formatearPrecio(producto.precio)}</strong>
+
+                <div>
+                    <strong>${formatearPrecio(producto.precio)}</strong>
+
+                    ${Number(producto.descuento_por_envase) > 0
+                        ? `<span>Con envase: ${formatearPrecio(producto.precio - producto.descuento_por_envase)}</span>`
+                        : ''}
+                </div>
             </div>
             <div class="tarjeta-producto-panel-acciones">
                 <button type="button" class="btn btn-secundario btn-chico" data-editar="${producto.id}">Editar</button>
@@ -77,7 +84,7 @@ function renderizarProductosPanel() {
 async function cargarProductosPanel() {
     const { data, error } = await supabaseCliente
         .from('productos')
-        .select('id, nombre, descripcion, capacidad_litros, precio, activo, foto_url')
+        .select('id, nombre, descripcion, capacidad_litros, precio, descuento_por_envase, activo, foto_url')
         .eq('distribuidora_id', distribuidoraActual.id)
         .order('creado_en', { ascending: false });
 
@@ -267,6 +274,8 @@ function abrirModalProducto(producto) {
         document.getElementById('descripcion-producto').value = producto.descripcion || '';
         document.getElementById('litros-producto').value = producto.capacidad_litros;
         document.getElementById('precio-producto').value = producto.precio;
+        document.getElementById('descuento-envase-producto').value =
+            producto.descuento_por_envase || 0;
     }
 
     modalProducto.classList.remove('oculto');
@@ -327,7 +336,10 @@ formularioProducto.addEventListener('submit', async (evento) => {
             nombre: document.getElementById('nombre-producto').value.trim(),
             descripcion: document.getElementById('descripcion-producto').value.trim(),
             capacidad_litros: Number(document.getElementById('litros-producto').value),
-            precio: Number(document.getElementById('precio-producto').value)
+            precio: Number(document.getElementById('precio-producto').value),
+            descuento_por_envase: Number(
+                document.getElementById('descuento-envase-producto').value
+            )
         };
 
         if (archivoFotoProducto) {

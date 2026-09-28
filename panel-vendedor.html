@@ -275,10 +275,30 @@
                         <label for="litros-producto">Capacidad (litros)</label>
                         <input type="number" id="litros-producto" min="1" step="0.5" required>
                     </div>
+
                     <div class="campo">
-                        <label for="precio-producto">Precio</label>
+                        <label for="precio-producto">Precio normal</label>
                         <input type="number" id="precio-producto" min="0" step="1" required>
                     </div>
+                </div>
+
+                <div class="campo">
+                    <label for="descuento-envase-producto">
+                        Descuento por envase devuelto
+                    </label>
+
+                    <input
+                        type="number"
+                        id="descuento-envase-producto"
+                        min="0"
+                        step="1"
+                        value="0"
+                        required
+                    >
+
+                    <small>
+                        Monto que se descuenta por cada envase vacío devuelto.
+                    </small>
                 </div>
 
                 <button type="submit" class="btn btn-principal btn-ancho" id="btn-guardar-producto">Guardar

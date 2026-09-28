@@ -166,9 +166,17 @@ function renderizarDestacados() {
           ${escaparHtml(producto.capacidad_litros)} litros
         </span>
 
-        <strong class="precio-producto">
-          ${formatearPrecio(producto.precio)}
-        </strong>
+        <div class="precios-producto">
+          <strong class="precio-producto">
+            ${formatearPrecio(producto.precio)}
+          </strong>
+
+          ${Number(producto.descuento_por_envase) > 0
+                ? `<span class="precio-con-envase">
+                   Con envase: ${formatearPrecio(producto.precio - producto.descuento_por_envase)}
+                 </span>`
+                : ''}
+        </div>
       </div>
 
       <button
@@ -196,6 +204,7 @@ async function cargarDestacados() {
       descripcion,
       capacidad_litros,
       precio,
+      descuento_por_envase,
       activo,
       foto_url,
       distribuidoras!inner (
@@ -240,23 +249,8 @@ async function agregarProducto(idProducto) {
         return;
     }
 
-    let carrito = obtenerCarrito();
     const distribuidora = obtenerDistribuidora(producto);
-
-    const distribuidoraDelCarrito = carrito[0]?.distribuidora_id;
-
-    if (distribuidoraDelCarrito && distribuidoraDelCarrito !== distribuidora.id) {
-        const nombreAnterior = carrito[0].distribuidora_nombre;
-        const confirmado = confirm(
-            `Tu pedido ya tiene productos de "${nombreAnterior}". Solo podés pedirle a una distribuidora por vez. ¿Vaciamos el carrito para agregar este producto de "${distribuidora.nombre}"?`
-        );
-
-        if (!confirmado) {
-            return;
-        }
-
-        carrito = [];
-    }
+    const carrito = obtenerCarrito();
 
     const productoExistente = carrito.find(
         (elemento) => elemento.id === idProducto

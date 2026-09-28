@@ -904,3 +904,16 @@ body.sin-desplazamiento {
     transition-duration: 0.01ms !important;
   }
 }
+
+.precios-producto {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.precio-con-envase {
+  color: var(--color-acento-inicio);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
