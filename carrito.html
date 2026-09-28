@@ -50,7 +50,7 @@
     <div class="contenedor">
       <div class="encabezado-carrito">
         <p class="etiqueta-seccion">Tu pedido</p>
-        <h1 id="nombre-distribuidora-carrito">Cargando...</h1>
+        <h1 id="nombre-distribuidora-carrito">Tu pedido</h1>
       </div>
 
       <div class="estado-carrito oculto" id="estado-carrito-vacio">
@@ -58,73 +58,187 @@
         <a href="productos.html" class="btn btn-principal">Ver catálogo</a>
       </div>
 
-      <form id="formulario-checkout" class="grilla-checkout oculto" novalidate>
-        <div class="columna-carrito">
-          <div class="lista-items-carrito" id="lista-items-carrito"></div>
+      <form id="formulario-checkout" class="grilla-checkout" novalidate>
 
-          <div class="bloque-carrito">
-            <h2>Dirección de entrega</h2>
-            <div class="campo">
-              <label for="calle-entrega">Calle</label>
-              <input type="text" id="calle-entrega" required>
-            </div>
-            <div class="fila-doble">
-              <div class="campo">
-                <label for="numero-entrega">Número</label>
-                <input type="text" id="numero-entrega">
-              </div>
-              <div class="campo">
-                <label for="ciudad-entrega">Ciudad</label>
-                <input type="text" id="ciudad-entrega" required>
-              </div>
-            </div>
-            <div class="fila-doble">
-              <div class="campo">
-                <label for="provincia-entrega">Provincia</label>
-                <input type="text" id="provincia-entrega" required value="Catamarca">
-              </div>
-              <div class="campo">
-                <label for="referencia-entrega">Referencia (opcional)</label>
-                <input type="text" id="referencia-entrega" placeholder="Entre calles, color de casa...">
-              </div>
-            </div>
+        <div class="indicador-pasos" aria-label="Pasos del pedido">
+          <div class="indicador-paso paso-activo" data-indicador-paso="1">
+            <span>1</span>
+            <strong>Pedido</strong>
           </div>
 
-          <div class="bloque-carrito">
-            <h2>Método de pago</h2>
-            <div id="opciones-pago"></div>
+          <div class="linea-paso"></div>
+
+          <div class="indicador-paso" data-indicador-paso="2">
+            <span>2</span>
+            <strong>Entrega y pago</strong>
           </div>
 
-          <div class="bloque-carrito">
-            <h2>Envases vacíos a devolver</h2>
-            <p class="texto-ayuda-carrito">Cada envase devuelto te descuenta $300 del total.</p>
-            <input type="number" id="envases-devueltos" min="0" step="1" value="0">
+          <div class="linea-paso"></div>
+
+          <div class="indicador-paso" data-indicador-paso="3">
+            <span>3</span>
+            <strong>Confirmación</strong>
           </div>
         </div>
 
-        <div class="columna-resumen">
-          <div class="tarjeta-resumen">
-            <h2>Resumen</h2>
+        <!-- PASO 1 -->
+        <section id="paso-1" class="paso-checkout" data-paso-vista="1">
+          <div class="encabezado-paso">
+            <p class="etiqueta-seccion">Paso 1 de 3</p>
+            <h2>Gestioná tu pedido</h2>
+            <p>
+              Revisá las cantidades y elegí cuántos envases vacíos devolvés.
+            </p>
+          </div>
+
+          <div class="lista-items-carrito" id="lista-items-carrito"></div>
+          <div class="resumen-paso-1">
+            <h3>Resumen actual</h3>
+
             <div class="fila-resumen">
               <span>Subtotal</span>
-              <span id="resumen-subtotal">$0</span>
+              <span id="paso1-subtotal">$0</span>
             </div>
+
             <div class="fila-resumen">
               <span>Descuento por envases</span>
-              <span id="resumen-descuento">-$0</span>
+              <span id="paso1-descuento">-$0</span>
             </div>
+
             <div class="fila-resumen fila-resumen-total">
-              <span>Total</span>
-              <span id="resumen-total">$0</span>
+              <span>Total actual</span>
+              <span id="paso1-total">$0</span>
             </div>
+          </div>
+    </div>
 
-            <p class="mensaje-estado oculto" id="mensaje-checkout"></p>
+    <div class="acciones-paso">
+      <button type="button" class="btn btn-principal" id="btn-continuar-datos">
+        Continuar
+      </button>
+    </div>
+    </section>
 
-            <button type="submit" class="btn btn-principal btn-ancho" id="btn-confirmar-pedido">Confirmar
-              pedido</button>
+    <!-- PASO 2 -->
+    <section id="paso-2" class="paso-checkout oculto" data-paso-vista="2">
+      <div class="encabezado-paso">
+        <p class="etiqueta-seccion">Paso 2 de 3</p>
+        <h2>Entrega y pago</h2>
+        <p>
+          Completá los datos necesarios para recibir tu pedido.
+        </p>
+      </div>
+
+      <div class="bloque-carrito">
+        <h2>Dirección de entrega</h2>
+
+        <div class="campo">
+          <label for="calle-entrega">Calle</label>
+          <input type="text" id="calle-entrega" required>
+        </div>
+
+        <div class="fila-doble">
+          <div class="campo">
+            <label for="numero-entrega">Número</label>
+            <input type="text" id="numero-entrega">
+          </div>
+
+          <div class="campo">
+            <label for="ciudad-entrega">Ciudad</label>
+            <input type="text" id="ciudad-entrega" required>
           </div>
         </div>
-      </form>
+
+        <div class="fila-doble">
+          <div class="campo">
+            <label for="provincia-entrega">Provincia</label>
+            <input type="text" id="provincia-entrega" required value="Catamarca">
+          </div>
+
+          <div class="campo">
+            <label for="referencia-entrega">
+              Referencia (opcional)
+            </label>
+
+            <input type="text" id="referencia-entrega" placeholder="Entre calles, color de casa...">
+          </div>
+        </div>
+      </div>
+
+      <div class="bloque-carrito">
+        <h2>Método de pago</h2>
+        <div id="opciones-pago"></div>
+      </div>
+
+      <div class="acciones-paso">
+        <button type="button" class="btn btn-secundario" id="btn-volver-pedido">
+          Volver al pedido
+        </button>
+
+        <button type="button" class="btn btn-principal" id="btn-continuar-resumen">
+          Continuar al resumen
+        </button>
+      </div>
+    </section>
+
+    <!-- PASO 3 -->
+    <section id="paso-3" class="paso-checkout oculto" data-paso-vista="3">
+      <div class="encabezado-paso">
+        <p class="etiqueta-seccion">Paso 3 de 3</p>
+        <h2>Revisá tu pedido</h2>
+        <p>
+          Confirmá que todos los datos sean correctos antes de continuar.
+        </p>
+      </div>
+
+      <div class="resumen-final">
+        <div class="bloque-resumen-final">
+          <h3>Productos</h3>
+          <div id="resumen-final-productos"></div>
+        </div>
+
+        <div class="bloque-resumen-final">
+          <h3>Dirección de entrega</h3>
+          <p id="resumen-final-direccion"></p>
+        </div>
+
+        <div class="bloque-resumen-final">
+          <h3>Método de pago</h3>
+          <p id="resumen-final-metodo"></p>
+        </div>
+
+        <div class="bloque-resumen-final resumen-final-totales">
+          <div class="fila-resumen">
+            <span>Subtotal</span>
+            <span id="resumen-final-subtotal">$0</span>
+          </div>
+
+          <div class="fila-resumen">
+            <span>Descuento por envases</span>
+            <span id="resumen-final-descuento">-$0</span>
+          </div>
+
+          <div class="fila-resumen fila-resumen-total">
+            <span>Total</span>
+            <span id="resumen-final-total">$0</span>
+          </div>
+        </div>
+      </div>
+
+      <p class="mensaje-estado oculto" id="mensaje-checkout"></p>
+
+      <div class="acciones-paso">
+        <button type="button" class="btn btn-secundario" id="btn-volver-datos">
+          Volver a entrega y pago
+        </button>
+
+        <button type="submit" class="btn btn-principal" id="btn-confirmar-pedido">
+          Confirmar pedido
+        </button>
+      </div>
+    </section>
+
+    </form>
     </div>
   </main>
 

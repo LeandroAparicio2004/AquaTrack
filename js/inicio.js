@@ -262,11 +262,13 @@ async function agregarProducto(idProducto) {
         carrito.push({
             id: producto.id,
             nombre: producto.nombre,
-            precio: producto.precio,
+            precio: Number(producto.precio),
+            descuento_por_envase: Number(producto.descuento_por_envase) || 0,
             capacidad_litros: producto.capacidad_litros,
             distribuidora_id: distribuidora.id,
             distribuidora_nombre: distribuidora.nombre,
-            cantidad: 1
+            cantidad: 1,
+            envases_devueltos: 0
         });
     }
 
