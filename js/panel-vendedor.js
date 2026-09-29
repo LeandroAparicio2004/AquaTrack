@@ -1,6 +1,9 @@
 let distribuidoraActual = null;
 let productosDelPanel = [];
 let usuarioActualId = null;
+let pedidosDelPanel = [];
+let repartidoresTablero = [];
+let entregasTablero = [];
 
 function escaparHtml(valor) {
     return String(valor ?? '').replace(/[&<>"']/g, (caracter) => {
@@ -65,8 +68,8 @@ function renderizarProductosPanel() {
                     <strong>${formatearPrecio(producto.precio)}</strong>
 
                     ${Number(producto.descuento_por_envase) > 0
-                        ? `<span>Con envase: ${formatearPrecio(producto.precio - producto.descuento_por_envase)}</span>`
-                        : ''}
+                ? `<span>Con envase: ${formatearPrecio(producto.precio - producto.descuento_por_envase)}</span>`
+                : ''}
                 </div>
             </div>
             <div class="tarjeta-producto-panel-acciones">
@@ -97,6 +100,290 @@ async function cargarProductosPanel() {
 
     productosDelPanel = data || [];
     renderizarProductosPanel();
+}
+
+const etiquetasEstadoPedido = {
+    pendiente: 'Pendiente',
+    asignado: 'Asignado',
+    en_camino: 'En camino',
+    entregado: 'Entregado',
+    cancelado: 'Cancelado'
+};
+
+function claseEstadoPedido(estado) {
+    if (estado === 'entregado') return 'activo';
+    if (estado === 'pendiente') return 'pendiente';
+    if (estado === 'cancelado') return 'rechazada';
+    return 'inactivo';
+}
+
+function renderizarPedidosPanel() {
+    const lista = document.getElementById('lista-pedidos-panel');
+    const estadoVacio = document.getElementById('estado-pedidos-panel');
+    const filtro = document.getElementById('filtro-estado-pedidos').value;
+
+    const pedidosFiltrados = filtro === 'todos'
+        ? pedidosDelPanel
+        : pedidosDelPanel.filter((pedido) => pedido.estado === filtro);
+
+    lista.innerHTML = '';
+
+    if (pedidosFiltrados.length === 0) {
+        estadoVacio.textContent = 'No hay pedidos para este filtro.';
+        estadoVacio.classList.remove('oculto');
+        return;
+    }
+
+    estadoVacio.classList.add('oculto');
+
+    pedidosFiltrados.forEach((pedido) => {
+        const tarjeta = document.createElement('article');
+        tarjeta.className = 'tarjeta-producto-panel';
+
+        const nombreCliente = `${pedido.usuarios?.nombre || ''} ${pedido.usuarios?.apellido || ''}`.trim() || 'Cliente';
+
+        const itemsHtml = (pedido.detalles_pedidos || []).map((item) => `
+            <p class="tarjeta-producto-panel-descripcion">
+                ${item.cantidad}x ${escaparHtml(item.productos?.nombre || 'Producto')}
+            </p>
+        `).join('');
+
+        tarjeta.innerHTML = `
+            <div class="tarjeta-producto-panel-superior">
+                <h3>${escaparHtml(nombreCliente)}</h3>
+                <span class="etiqueta-estado-producto ${claseEstadoPedido(pedido.estado)}">
+                    ${etiquetasEstadoPedido[pedido.estado] || pedido.estado}
+                </span>
+            </div>
+            <p class="tarjeta-producto-panel-descripcion">
+                ${escaparHtml(pedido.direccion_calle)} ${escaparHtml(pedido.direccion_numero || '')},
+                ${escaparHtml(pedido.direccion_ciudad)}
+            </p>
+            ${itemsHtml}
+            <div class="tarjeta-producto-panel-detalle">
+                <span>${pedido.metodo_pago === 'transferencia' ? 'Transferencia' : 'Efectivo'}</span>
+                <strong>${formatearPrecio(pedido.total)}</strong>
+            </div>
+            <div class="tarjeta-producto-panel-acciones">
+                ${pedido.estado === 'pendiente'
+                ? `<button type="button" class="btn btn-secundario btn-chico btn-peligro" data-cancelar-pedido="${pedido.id}">Cancelar pedido</button>`
+                : ''}
+            </div>
+        `;
+
+        lista.appendChild(tarjeta);
+    });
+}
+
+async function cargarPedidosPanel() {
+    const estadoVacio = document.getElementById('estado-pedidos-panel');
+
+    const { data, error } = await supabaseCliente
+        .from('pedidos')
+        .select(`
+            id, estado, direccion_calle, direccion_numero, direccion_ciudad, total, metodo_pago,
+            usuarios!pedidos_cliente_id_fkey ( nombre, apellido ),
+            detalles_pedidos ( cantidad, productos ( nombre ) )
+        `)
+        .eq('distribuidora_id', distribuidoraActual.id)
+        .order('creado_en', { ascending: false });
+
+    if (error) {
+        estadoVacio.textContent = 'No pudimos cargar tus pedidos. Recargá la página.';
+        estadoVacio.classList.remove('oculto');
+        return;
+    }
+
+    pedidosDelPanel = data || [];
+    renderizarPedidosPanel();
+}
+
+document.getElementById('filtro-estado-pedidos').addEventListener('change', renderizarPedidosPanel);
+
+document.getElementById('lista-pedidos-panel').addEventListener('click', async (evento) => {
+    const botonCancelar = evento.target.closest('[data-cancelar-pedido]');
+    if (!botonCancelar) return;
+
+    if (!confirm('¿Seguro que querés cancelar este pedido?')) return;
+
+    const idPedido = botonCancelar.dataset.cancelarPedido;
+    botonCancelar.disabled = true;
+
+    const { error } = await supabaseCliente
+        .from('pedidos')
+        .update({ estado: 'cancelado' })
+        .eq('id', idPedido);
+
+    if (error) {
+        alert('No pudimos cancelar el pedido. Intentá de nuevo.');
+        botonCancelar.disabled = false;
+        return;
+    }
+
+    await supabaseCliente.from('historial_pedidos').insert({
+        pedido_id: idPedido,
+        estado: 'cancelado',
+        cambiado_por: usuarioActualId,
+        comentario: 'Cancelado por el vendedor'
+    });
+
+    await cargarPedidosPanel();
+});
+
+async function cargarTableroEntregas() {
+    const estadoVacio = document.getElementById('estado-tablero');
+
+    const { data: miembros, error: errorMiembros } = await supabaseCliente
+        .from('miembros_distribuidoras')
+        .select('id, usuario_id, usuarios!usuario_id ( nombre, apellido )')
+        .eq('distribuidora_id', distribuidoraActual.id)
+        .eq('rol', 'repartidor')
+        .eq('estado', 'activo')
+        .eq('disponible', true)
+        .order('creado_en', { ascending: true });
+
+    const { data: pendientes, error: errorPendientes } = await supabaseCliente
+        .from('pedidos')
+        .select('id, direccion_calle, direccion_numero, direccion_ciudad, usuarios!pedidos_cliente_id_fkey ( nombre, apellido )')
+        .eq('distribuidora_id', distribuidoraActual.id)
+        .eq('estado', 'pendiente')
+        .order('creado_en', { ascending: true });
+
+    const { data: entregas, error: errorEntregas } = await supabaseCliente
+        .from('entregas')
+        .select(`
+            id, estado, repartidor_id,
+            pedidos!inner ( id, direccion_calle, direccion_numero, direccion_ciudad, distribuidora_id,
+                usuarios!pedidos_cliente_id_fkey ( nombre, apellido ) )
+        `)
+        .eq('pedidos.distribuidora_id', distribuidoraActual.id)
+        .in('estado', ['asignada', 'en_camino']);
+
+    if (errorMiembros || errorPendientes || errorEntregas) {
+        estadoVacio.textContent = 'No pudimos cargar el tablero. Recargá la página.';
+        estadoVacio.classList.remove('oculto');
+        return;
+    }
+
+    estadoVacio.classList.add('oculto');
+    repartidoresTablero = miembros || [];
+    pedidosSinAsignar = pendientes || [];
+    entregasTablero = entregas || [];
+    renderizarTablero();
+}
+
+function tarjetaPedidoTablero(nombre, direccion) {
+    return `
+        <div class="tarjeta-pedido-tablero" draggable="true" data-pedido-id-drag="${arguments[2] || ''}">
+            <strong>${escaparHtml(nombre)}</strong>
+            <span>${escaparHtml(direccion)}</span>
+        </div>
+    `;
+}
+
+function renderizarTablero() {
+    const tablero = document.getElementById('tablero-entregas');
+    tablero.innerHTML = '';
+
+    const columnaSinAsignar = document.createElement('div');
+    columnaSinAsignar.className = 'columna-tablero';
+    columnaSinAsignar.dataset.columnaSinAsignar = 'true';
+    columnaSinAsignar.innerHTML = `
+        <div class="columna-tablero-titulo">
+            <span>Sin asignar</span>
+            <span class="etiqueta-estado-producto inactivo">${pedidosSinAsignar.length}</span>
+        </div>
+        <div class="zona-drop" data-zona-sin-asignar="true">
+            ${pedidosSinAsignar.map((pedido) => `
+                <div class="tarjeta-pedido-tablero" draggable="true" data-pedido-id-drag="${pedido.id}">
+                    <strong>${escaparHtml(pedido.usuarios?.nombre || '')} ${escaparHtml(pedido.usuarios?.apellido || '')}</strong>
+                    <span>${escaparHtml(pedido.direccion_calle)} ${escaparHtml(pedido.direccion_numero || '')}, ${escaparHtml(pedido.direccion_ciudad)}</span>
+                </div>
+            `).join('')}
+        </div>
+    `;
+    tablero.appendChild(columnaSinAsignar);
+
+    repartidoresTablero.forEach((miembro) => {
+        const entregasDelRepartidor = entregasTablero.filter(
+            (entrega) => entrega.repartidor_id === miembro.usuario_id
+        );
+
+        const columna = document.createElement('div');
+        columna.className = 'columna-tablero';
+        columna.dataset.repartidorId = miembro.usuario_id;
+
+        columna.innerHTML = `
+            <div class="columna-tablero-titulo">
+                <span>${escaparHtml(miembro.usuarios?.nombre || '')} ${escaparHtml(miembro.usuarios?.apellido || '')}</span>
+                <span class="etiqueta-estado-producto inactivo">${entregasDelRepartidor.length}</span>
+            </div>
+            <div class="zona-drop" data-zona-repartidor="${miembro.usuario_id}">
+                ${entregasDelRepartidor.map((entrega) => `
+                    <div class="tarjeta-pedido-tablero">
+                        <strong>${escaparHtml(entrega.pedidos.usuarios?.nombre || '')} ${escaparHtml(entrega.pedidos.usuarios?.apellido || '')}</strong>
+                        <span>${escaparHtml(entrega.pedidos.direccion_calle)} ${escaparHtml(entrega.pedidos.direccion_numero || '')}, ${escaparHtml(entrega.pedidos.direccion_ciudad)}</span>
+                        <span class="etiqueta-estado-producto ${entrega.estado === 'en_camino' ? 'en_camino' : 'asignada'}">
+                            ${entrega.estado === 'en_camino' ? 'Enviado' : 'Asignada'}
+                        </span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        tablero.appendChild(columna);
+    });
+
+    if (repartidoresTablero.length === 0) {
+        const aviso = document.createElement('p');
+        aviso.className = 'estado-productos-panel';
+        aviso.textContent = 'No tenés repartidores disponibles. Activalos desde la pestaña Repartidores.';
+        tablero.appendChild(aviso);
+    }
+
+    habilitarDragAndDrop();
+}
+
+function habilitarDragAndDrop() {
+    document.querySelectorAll('[data-pedido-id-drag]').forEach((tarjeta) => {
+        tarjeta.addEventListener('dragstart', (evento) => {
+            evento.dataTransfer.setData('text/plain', tarjeta.dataset.pedidoIdDrag);
+        });
+    });
+
+    document.querySelectorAll('.columna-tablero[data-repartidor-id]').forEach((columna) => {
+        columna.addEventListener('dragover', (evento) => {
+            evento.preventDefault();
+            columna.classList.add('zona-sobre-drop');
+        });
+
+        columna.addEventListener('dragleave', () => {
+            columna.classList.remove('zona-sobre-drop');
+        });
+
+        columna.addEventListener('drop', async (evento) => {
+            evento.preventDefault();
+            columna.classList.remove('zona-sobre-drop');
+
+            const idPedido = evento.dataTransfer.getData('text/plain');
+            if (!idPedido) return;
+
+            const { error } = await supabaseCliente
+                .from('entregas')
+                .insert({
+                    pedido_id: idPedido,
+                    repartidor_id: columna.dataset.repartidorId
+                });
+
+            if (error) {
+                alert('No pudimos asignar el pedido. Puede que ya tenga un repartidor asignado.');
+                return;
+            }
+
+            await cargarTableroEntregas();
+            if (seccionPedidosCargada) cargarPedidosPanel();
+        });
+    });
 }
 
 const configuracionEstados = {
@@ -215,10 +502,15 @@ inicializarPanel();
 const pestanas = document.querySelectorAll('.panel-pestana');
 const secciones = {
     productos: document.getElementById('seccion-productos'),
+    pedidos: document.getElementById('seccion-pedidos'),
+    asignar: document.getElementById('seccion-asignar'),
     repartidores: document.getElementById('seccion-repartidores'),
     perfil: document.getElementById('seccion-perfil')
 };
 let seccionRepartidoresCargada = false;
+let seccionPedidosCargada = false;
+let seccionTableroCargada = false;
+let pedidosSinAsignar = [];
 
 pestanas.forEach((pestana) => {
     pestana.addEventListener('click', () => {
@@ -237,6 +529,16 @@ pestanas.forEach((pestana) => {
         if (pestana.dataset.pestana === 'repartidores' && !seccionRepartidoresCargada) {
             seccionRepartidoresCargada = true;
             cargarRepartidores();
+        }
+
+        if (pestana.dataset.pestana === 'pedidos' && !seccionPedidosCargada) {
+            seccionPedidosCargada = true;
+            cargarPedidosPanel();
+        }
+
+        if (pestana.dataset.pestana === 'asignar') {
+            seccionTableroCargada = true;
+            cargarTableroEntregas();
         }
     });
 });
@@ -479,11 +781,18 @@ function renderizarListaRepartidores(lista, contenedorId, estadoVacioId, conAcci
     }
 
     estadoVacio.classList.add('oculto');
+    repartidoresCargados = lista;
 
     lista.forEach((miembro) => {
         const repartidor = miembro.usuarios || {};
 
-        const acciones = '';
+        const acciones = conAcciones
+            ? `<div class="tarjeta-producto-panel-acciones">
+                   <button type="button" class="btn btn-secundario btn-chico" data-pausar-repartidor="${miembro.id}">
+                       ${miembro.disponible === false ? 'Reactivar' : 'Pausar'}
+                   </button>
+               </div>`
+            : '';
 
         const tarjeta = document.createElement('article');
         tarjeta.className = 'tarjeta-producto-panel';
@@ -512,11 +821,35 @@ function renderizarListaRepartidores(lista, contenedorId, estadoVacioId, conAcci
     });
 }
 
+document.getElementById('lista-flota').addEventListener('click', async (evento) => {
+    const boton = evento.target.closest('[data-pausar-repartidor]');
+    if (!boton) return;
+
+    const miembroId = boton.dataset.pausarRepartidor;
+    const miembro = repartidoresCargados.find((item) => item.id === miembroId);
+    if (!miembro) return;
+
+    boton.disabled = true;
+
+    const { error } = await supabaseCliente
+        .from('miembros_distribuidoras')
+        .update({ disponible: !(miembro.disponible === true) })
+        .eq('id', miembroId);
+
+    if (error) {
+        alert('No pudimos actualizar al repartidor. Intentá de nuevo.');
+        boton.disabled = false;
+        return;
+    }
+
+    await cargarRepartidores();
+});
+
 async function cargarRepartidores() {
     const { data: flota, error: errorFlota } = await supabaseCliente
         .from('miembros_distribuidoras')
         .select(`
-            id, usuario_id,
+            id, usuario_id, disponible,
             usuarios!usuario_id (
                 nombre, telefono, dni, foto_url, tipo_vehiculo,
                 marca_vehiculo, modelo_vehiculo, patente_vehiculo, numero_licencia
@@ -532,7 +865,7 @@ async function cargarRepartidores() {
             'No pudimos cargar tu flota. Recargá la página.';
         document.getElementById('estado-flota').classList.remove('oculto');
     } else {
-        renderizarListaRepartidores(flota || [], 'lista-flota', 'estado-flota', false);
+        renderizarListaRepartidores(flota || [], 'lista-flota', 'estado-flota', true);
     }
 
     const { data: invitaciones, error: errorInvitaciones } = await supabaseCliente

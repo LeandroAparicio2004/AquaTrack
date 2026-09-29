@@ -62,6 +62,10 @@
             <div class="panel-pestanas" role="tablist">
                 <button type="button" class="panel-pestana activa" data-pestana="productos" role="tab"
                     aria-selected="true">Mis Productos</button>
+                <button type="button" class="panel-pestana" data-pestana="pedidos" role="tab"
+                    aria-selected="false">Pedidos</button>
+                <button type="button" class="panel-pestana" data-pestana="asignar" role="tab"
+                    aria-selected="false">Asignar Entregas</button>
                 <button type="button" class="panel-pestana" data-pestana="repartidores" role="tab"
                     aria-selected="false">Repartidores</button>
                 <button type="button" class="panel-pestana" data-pestana="perfil" role="tab"
@@ -78,6 +82,35 @@
                 <p class="estado-productos-panel oculto" id="estado-productos-panel"></p>
 
                 <div class="grilla-productos-panel" id="lista-productos-panel"></div>
+            </section>
+
+            <section class="panel-seccion oculto" id="seccion-pedidos" role="tabpanel">
+                <div class="panel-seccion-encabezado">
+                    <h2>Pedidos</h2>
+
+                    <select id="filtro-estado-pedidos" class="filtro-pedidos">
+                        <option value="todos">Todos los estados</option>
+                        <option value="pendiente">Pendientes</option>
+                        <option value="asignado">Asignados</option>
+                        <option value="en_camino">En camino</option>
+                        <option value="entregado">Entregados</option>
+                        <option value="cancelado">Cancelados</option>
+                    </select>
+                </div>
+
+                <p class="estado-productos-panel oculto" id="estado-pedidos-panel"></p>
+
+                <div class="grilla-productos-panel" id="lista-pedidos-panel"></div>
+            </section>
+
+            <section class="panel-seccion oculto" id="seccion-asignar" role="tabpanel">
+                <div class="panel-seccion-encabezado">
+                    <h2>Asignar Entregas</h2>
+                </div>
+
+                <p class="estado-productos-panel oculto" id="estado-tablero"></p>
+
+                <div class="tablero-entregas" id="tablero-entregas"></div>
             </section>
 
             <section class="panel-seccion oculto" id="seccion-repartidores" role="tabpanel">
