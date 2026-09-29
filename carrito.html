@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="css/comunes.css">
   <link rel="stylesheet" href="css/inicio.css">
   <link rel="stylesheet" href="css/carrito.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 
 <body>
@@ -131,37 +132,56 @@
           <div class="bloque-carrito">
             <h2>Dirección de entrega</h2>
 
-            <div class="campo">
-              <label for="calle-entrega">Calle</label>
-              <input type="text" id="calle-entrega" required>
+            <div class="campo campo-direccion-mapa">
+              <label for="buscador-direccion">
+                Buscá tu dirección
+              </label>
+
+              <input type="text" id="buscador-direccion" placeholder="Ej: Piedra Blanca" autocomplete="off">
+
+              <div id="sugerencias-direccion" class="sugerencias-direccion oculto" role="listbox">
+              </div>
+
+              <p id="estado-direccion-mapa" class="estado-direccion-mapa" aria-live="polite">
+              </p>
             </div>
 
+            <div id="mapa-direccion" class="mapa-direccion"></div>
+
             <div class="fila-doble">
+              <div class="campo">
+                <label for="calle-entrega">Calle</label>
+                <input type="text" id="calle-entrega" required>
+              </div>
+
               <div class="campo">
                 <label for="numero-entrega">Número</label>
                 <input type="text" id="numero-entrega">
               </div>
-
-              <div class="campo">
-                <label for="ciudad-entrega">Ciudad</label>
-                <input type="text" id="ciudad-entrega" required>
-              </div>
             </div>
 
             <div class="fila-doble">
               <div class="campo">
-                <label for="provincia-entrega">Provincia</label>
-                <input type="text" id="provincia-entrega" required value="Catamarca">
+                <label for="ciudad-entrega">Ciudad</label>
+                <input type="text" id="ciudad-entrega" required>
               </div>
 
               <div class="campo">
-                <label for="referencia-entrega">
-                  Referencia (opcional)
-                </label>
-
-                <input type="text" id="referencia-entrega" placeholder="Entre calles, color de casa...">
+                <label for="provincia-entrega">Provincia</label>
+                <input type="text" id="provincia-entrega" required value="Catamarca">
               </div>
             </div>
+
+            <div class="campo">
+              <label for="referencia-entrega">
+                Referencia (opcional)
+              </label>
+
+              <input type="text" id="referencia-entrega" placeholder="Entre calles, color de casa...">
+            </div>
+
+            <input type="hidden" id="latitud-entrega">
+            <input type="hidden" id="longitud-entrega">
           </div>
 
           <div class="bloque-carrito">
@@ -277,6 +297,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="js/supabase-config.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="js/carrito.js"></script>
   <script src="js/tema.js"></script>
 </body>

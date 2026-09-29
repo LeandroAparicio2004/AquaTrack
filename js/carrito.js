@@ -1,6 +1,11 @@
 let carritoActual = [];
 let pasoActual = 1;
 
+let mapaDireccion = null;
+let marcadorDireccion = null;
+let temporizadorBusquedaDireccion = null;
+let resultadosDirecciones = [];
+
 function escaparHtml(valor) {
     return String(valor ?? '').replace(/[&<>"']/g, (caracter) => {
         const caracteresEspeciales = {
@@ -44,6 +49,285 @@ function iconoGota() {
             </path>
         </svg>
     `;
+}
+
+function obtenerTextoDireccion(resultado) {
+    const propiedades = resultado.properties || {};
+
+    const calle = [
+        propiedades.street,
+        propiedades.housenumber
+    ].filter(Boolean).join(' ');
+
+    const localidad =
+        propiedades.city ||
+        propiedades.town ||
+        propiedades.village ||
+        propiedades.county ||
+        '';
+
+    const provincia = propiedades.state || '';
+
+    return [
+        calle || propiedades.name,
+        localidad,
+        provincia
+    ]
+        .filter(Boolean)
+        .filter((valor, indice, lista) => {
+            return lista.indexOf(valor) === indice;
+        })
+        .join(', ');
+}
+
+function inicializarMapaDireccion() {
+    const elementoMapa =
+        document.getElementById('mapa-direccion');
+
+    if (!elementoMapa || mapaDireccion || !window.L) {
+        return;
+    }
+
+    mapaDireccion = L.map('mapa-direccion').setView(
+        [-28.4696, -65.7795],
+        11
+    );
+
+    L.tileLayer(
+        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap'
+        }
+    ).addTo(mapaDireccion);
+
+    mapaDireccion.on('click', (evento) => {
+        colocarMarcadorDireccion(
+            evento.latlng.lat,
+            evento.latlng.lng,
+            'Ubicación seleccionada'
+        );
+    });
+}
+
+function colocarMarcadorDireccion(
+    latitud,
+    longitud,
+    texto = 'Ubicación seleccionada'
+) {
+    if (!mapaDireccion) {
+        return;
+    }
+
+    if (marcadorDireccion) {
+        marcadorDireccion.setLatLng([
+            latitud,
+            longitud
+        ]);
+    } else {
+        marcadorDireccion = L.marker([
+            latitud,
+            longitud
+        ]).addTo(mapaDireccion);
+    }
+
+    marcadorDireccion
+        .bindPopup(escaparHtml(texto))
+        .openPopup();
+
+    mapaDireccion.setView(
+        [latitud, longitud],
+        15
+    );
+
+    document.getElementById('latitud-entrega').value =
+        latitud;
+
+    document.getElementById('longitud-entrega').value =
+        longitud;
+}
+
+function renderizarSugerenciasDireccion() {
+    const contenedor =
+        document.getElementById('sugerencias-direccion');
+
+    if (resultadosDirecciones.length === 0) {
+        contenedor.innerHTML = `
+            <p class="sin-sugerencias-direccion">
+                No encontramos esa ubicación.
+            </p>
+        `;
+
+        contenedor.classList.remove('oculto');
+        return;
+    }
+
+    contenedor.innerHTML = resultadosDirecciones
+        .map((resultado, indice) => {
+            const texto =
+                obtenerTextoDireccion(resultado);
+
+            return `
+                <button
+                    type="button"
+                    class="opcion-direccion"
+                    data-indice-direccion="${indice}">
+                    ${escaparHtml(texto)}
+                </button>
+            `;
+        })
+        .join('');
+
+    contenedor.classList.remove('oculto');
+}
+
+async function buscarDirecciones(texto) {
+    const busqueda = texto.trim();
+
+    if (busqueda.length < 3) {
+        resultadosDirecciones = [];
+
+        document
+            .getElementById('sugerencias-direccion')
+            .classList.add('oculto');
+
+        return;
+    }
+
+    try {
+        const parametros = new URLSearchParams({
+            q: `${busqueda}, Catamarca, Argentina`,
+            limit: '5',
+            lat: '-28.4696',
+            lon: '-65.7795'
+        });
+
+        const respuesta = await fetch(
+            `https://photon.komoot.io/api/?${parametros}`
+        );
+
+        if (!respuesta.ok) {
+            throw new Error('No se pudo buscar la dirección.');
+        }
+
+        const datos = await respuesta.json();
+
+        resultadosDirecciones = datos.features || [];
+        renderizarSugerenciasDireccion();
+    } catch (error) {
+        resultadosDirecciones = [];
+
+        document
+            .getElementById('sugerencias-direccion')
+            .classList.add('oculto');
+    }
+}
+
+function seleccionarDireccion(resultado) {
+    const propiedades = resultado.properties || {};
+    const coordenadas = resultado.geometry?.coordinates || [];
+
+    const longitud = coordenadas[0];
+    const latitud = coordenadas[1];
+
+    const calle = [
+        propiedades.street
+    ].filter(Boolean).join(' ');
+
+    const localidad =
+        propiedades.city ||
+        propiedades.town ||
+        propiedades.village ||
+        propiedades.county ||
+        '';
+
+    const provincia =
+        propiedades.state || 'Catamarca';
+
+    const textoCompleto =
+        obtenerTextoDireccion(resultado);
+
+    document.getElementById('buscador-direccion').value =
+        textoCompleto;
+
+    document.getElementById('calle-entrega').value =
+        calle;
+
+    document.getElementById('numero-entrega').value =
+        propiedades.housenumber || '';
+
+    document.getElementById('ciudad-entrega').value =
+        localidad;
+
+    document.getElementById('provincia-entrega').value =
+        provincia;
+
+    document
+        .getElementById('sugerencias-direccion')
+        .classList.add('oculto');
+
+    document.getElementById('estado-direccion-mapa')
+        .textContent =
+        'Ubicación seleccionada. Revisá calle y número.';
+
+    colocarMarcadorDireccion(
+        latitud,
+        longitud,
+        textoCompleto
+    );
+}
+
+function configurarBuscadorDireccion() {
+    const buscador =
+        document.getElementById('buscador-direccion');
+
+    const sugerencias =
+        document.getElementById('sugerencias-direccion');
+
+    if (!buscador || !sugerencias) {
+        return;
+    }
+
+    buscador.addEventListener('input', () => {
+        clearTimeout(temporizadorBusquedaDireccion);
+
+        document.getElementById('latitud-entrega').value = '';
+        document.getElementById('longitud-entrega').value = '';
+
+        temporizadorBusquedaDireccion = setTimeout(() => {
+            buscarDirecciones(buscador.value);
+        }, 500);
+    });
+
+    sugerencias.addEventListener('click', (evento) => {
+        const opcion =
+            evento.target.closest(
+                '[data-indice-direccion]'
+            );
+
+        if (!opcion) {
+            return;
+        }
+
+        const indice =
+            Number(opcion.dataset.indiceDireccion);
+
+        const resultado =
+            resultadosDirecciones[indice];
+
+        if (resultado) {
+            seleccionarDireccion(resultado);
+        }
+    });
+
+    document.addEventListener('click', (evento) => {
+        if (
+            !buscador.contains(evento.target) &&
+            !sugerencias.contains(evento.target)
+        ) {
+            sugerencias.classList.add('oculto');
+        }
+    });
 }
 
 function obtenerGruposPorDistribuidora() {
@@ -425,6 +709,16 @@ function mostrarPaso(numero) {
         actualizarResumen();
     }
 
+    if (numero === 2) {
+        setTimeout(() => {
+            inicializarMapaDireccion();
+
+            if (mapaDireccion) {
+                mapaDireccion.invalidateSize();
+            }
+        }, 150);
+    }
+
     window.scrollTo({
         top: 0,
         behavior: 'smooth'
@@ -552,6 +846,20 @@ function validarDatosEntrega() {
 
     if (!provincia.value.trim()) {
         provincia.reportValidity();
+        return false;
+    }
+
+    const latitud =
+        document.getElementById('latitud-entrega').value;
+
+    const longitud =
+        document.getElementById('longitud-entrega').value;
+
+    if (!latitud || !longitud) {
+        document.getElementById('estado-direccion-mapa')
+            .textContent =
+            'Elegí una ubicación de las sugerencias para continuar.';
+
         return false;
     }
 
@@ -697,9 +1005,151 @@ document
         mostrarPaso(2);
     });
 
+function obtenerDatosDireccion() {
+    const calle =
+        document.getElementById('calle-entrega')
+            .value
+            .trim();
+
+    const numero =
+        document.getElementById('numero-entrega')
+            .value
+            .trim();
+
+    const ciudad =
+        document.getElementById('ciudad-entrega')
+            .value
+            .trim();
+
+    const provincia =
+        document.getElementById('provincia-entrega')
+            .value
+            .trim();
+
+    const referencia =
+        document.getElementById('referencia-entrega')
+            .value
+            .trim();
+
+    const direccionBuscada =
+        document.getElementById('buscador-direccion')
+            ?.value
+            .trim() || '';
+
+    const latitud =
+        Number(
+            document.getElementById('latitud-entrega')
+                ?.value
+        ) || null;
+
+    const longitud =
+        Number(
+            document.getElementById('longitud-entrega')
+                ?.value
+        ) || null;
+
+    const direccionFormateada = [
+        `${calle} ${numero}`.trim(),
+        ciudad,
+        provincia
+    ]
+        .filter(Boolean)
+        .join(', ');
+
+    return {
+        calle,
+        numero,
+        ciudad,
+        provincia,
+        referencia: referencia || null,
+        latitud,
+        longitud,
+        direccionFormateada:
+            direccionBuscada || direccionFormateada
+    };
+}
+
+async function crearPedidosDesdeCarrito(
+    sesion,
+    resumen,
+    metodoPago
+) {
+    const direccion = obtenerDatosDireccion();
+    const pedidosCreados = [];
+
+    for (const grupo of resumen.grupos) {
+        const { data: pedido, error: errorPedido } =
+            await supabaseCliente
+                .from('pedidos')
+                .insert({
+                    cliente_id: sesion.user.id,
+                    distribuidora_id: grupo.id,
+
+                    direccion_calle: direccion.calle,
+                    direccion_numero: direccion.numero,
+                    direccion_ciudad: direccion.ciudad,
+                    direccion_provincia: direccion.provincia,
+                    direccion_referencia:
+                        direccion.referencia,
+
+                    direccion_latitud:
+                        direccion.latitud,
+                    direccion_longitud:
+                        direccion.longitud,
+                    direccion_formateada:
+                        direccion.direccionFormateada,
+
+                    subtotal: grupo.subtotal,
+                    descuento_envases: grupo.descuento,
+                    total: grupo.total,
+                    envases_devueltos: grupo.envases,
+                    metodo_pago: metodoPago
+                })
+                .select('id')
+                .single();
+
+        if (errorPedido || !pedido) {
+            throw new Error(
+                'No pudimos crear uno de los pedidos.'
+            );
+        }
+
+        pedidosCreados.push(pedido.id);
+
+        const detalles = grupo.productos.map((producto) => {
+            const cantidad =
+                Number(producto.cantidad) || 0;
+
+            const precio =
+                Number(producto.precio) || 0;
+
+            return {
+                pedido_id: pedido.id,
+                producto_id: producto.id,
+                cantidad,
+                precio_unitario: precio,
+                subtotal: precio * cantidad
+            };
+        });
+
+        const { error: errorDetalles } =
+            await supabaseCliente
+                .from('detalles_pedidos')
+                .insert(detalles);
+
+        if (errorDetalles) {
+            throw new Error(
+                'El pedido se creó, pero no pudimos guardar sus productos.'
+            );
+        }
+    }
+
+    return pedidosCreados;
+}
+
 document
     .getElementById('formulario-checkout')
-    .addEventListener('submit', (evento) => {
+    .addEventListener('submit', async (evento) => {
         evento.preventDefault();
 
         if (!validarDatosEntrega()) {
@@ -723,12 +1173,55 @@ document
             return;
         }
 
-        actualizarResumen();
+        const botonConfirmar =
+            document.getElementById(
+                'btn-confirmar-pedido'
+            );
 
-        mostrarMensaje(
-            'El flujo de confirmación está listo. En el próximo paso conectamos esta acción con los pagos centrales y los pedidos separados por distribuidora.',
-            'aviso'
-        );
+        const textoOriginal =
+            botonConfirmar.textContent;
+
+        botonConfirmar.disabled = true;
+        botonConfirmar.textContent =
+            'Creando pedido...';
+
+        try {
+            const {
+                data: { session }
+            } = await supabaseCliente.auth.getSession();
+
+            if (!session) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const resumen = actualizarResumen();
+
+            await crearPedidosDesdeCarrito(
+                session,
+                resumen,
+                metodoSeleccionado.value
+            );
+
+            localStorage.removeItem(
+                'aquatrack_carrito'
+            );
+
+            window.location.href =
+                'productos.html?pedido=confirmado';
+        } catch (error) {
+            console.error(error);
+
+            mostrarMensaje(
+                error.message ||
+                'No pudimos confirmar el pedido.',
+                'error'
+            );
+
+            botonConfirmar.disabled = false;
+            botonConfirmar.textContent =
+                textoOriginal;
+        }
     });
 
 async function verificarSesion() {
@@ -805,5 +1298,6 @@ async function inicializarCarrito() {
     mostrarPaso(1);
 }
 
+configurarBuscadorDireccion();
 inicializarCarrito();
 verificarSesion();
