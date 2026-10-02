@@ -34,8 +34,8 @@ async function cargarMisEntregas() {
             id, estado, asignada_en,
             pedidos (
                 id, direccion_calle, direccion_numero, direccion_ciudad, direccion_referencia,
-                total, metodo_pago,
-                usuarios!pedidos_cliente_id_fkey ( nombre, apellido, telefono ),
+                latitud, longitud, total, metodo_pago,
+                usuarios!pedidos_cliente_id_fkey ( nombre, apellido, telefono, dni ),
                 detalles_pedidos ( cantidad, productos ( nombre ) )
             )
         `)
@@ -49,6 +49,13 @@ async function cargarMisEntregas() {
         return;
     }
 
+    const barraSalir = document.getElementById('barra-salir-repartir');
+    barraSalir.classList.toggle('oculto', !(data || []).some((entrega) => entrega.estado === 'asignada'));
+
+    const ordenConUbicacion = await dibujarMapaEntregas(data || []);
+    const sinUbicacion = (data || []).filter((entrega) => !entrega.pedidos?.latitud || !entrega.pedidos?.longitud);
+    const entregasOrdenadas = [...ordenConUbicacion, ...sinUbicacion];
+
     lista.innerHTML = '';
 
     if (!data || data.length === 0) {
@@ -59,9 +66,10 @@ async function cargarMisEntregas() {
 
     estadoVacio.classList.add('oculto');
 
-    data.forEach((entrega) => {
+    entregasOrdenadas.forEach((entrega, indice) => {
         const pedido = entrega.pedidos;
         const nombreCliente = `${pedido.usuarios?.nombre || ''} ${pedido.usuarios?.apellido || ''}`.trim();
+        const tieneUbicacion = pedido.latitud && pedido.longitud;
 
         const itemsHtml = (pedido.detalles_pedidos || []).map((item) => `
             <p class="tarjeta-producto-panel-descripcion">
@@ -72,31 +80,158 @@ async function cargarMisEntregas() {
         const tarjeta = document.createElement('article');
         tarjeta.className = 'tarjeta-producto-panel';
         tarjeta.innerHTML = `
-            <div class="tarjeta-producto-panel-superior">
-                <h3>${escaparHtml(nombreCliente)}</h3>
-                <span class="etiqueta-estado-producto ${claseEstadoEntrega(entrega.estado)}">
-                    ${etiquetasEstadoEntrega[entrega.estado]}
-                </span>
+            <div class="numero-parada-repartidor">${tieneUbicacion ? indice + 1 : '—'}</div>
+            <div>
+                <div class="tarjeta-producto-panel-superior">
+                    <h3>${escaparHtml(nombreCliente)}</h3>
+                    <span class="etiqueta-estado-producto ${claseEstadoEntrega(entrega.estado)}">
+                        ${etiquetasEstadoEntrega[entrega.estado]}
+                    </span>
+                </div>
+                ${pedido.usuarios?.dni ? `<p class="tarjeta-producto-panel-descripcion">DNI: ${escaparHtml(pedido.usuarios.dni)}</p>` : ''}
+                ${pedido.usuarios?.telefono ? `<p class="tarjeta-producto-panel-descripcion">Tel: ${escaparHtml(pedido.usuarios.telefono)}</p>` : ''}
+                <p class="tarjeta-producto-panel-descripcion">
+                    ${escaparHtml(pedido.direccion_calle)} ${escaparHtml(pedido.direccion_numero || '')},
+                    ${escaparHtml(pedido.direccion_ciudad)}
+                    ${pedido.direccion_referencia ? `— ${escaparHtml(pedido.direccion_referencia)}` : ''}
+                </p>
+                ${!tieneUbicacion ? '<p class="tarjeta-producto-panel-descripcion">Sin ubicación guardada (no aparece en el mapa)</p>' : ''}
+                ${itemsHtml}
             </div>
-            <p class="tarjeta-producto-panel-descripcion">
-                ${escaparHtml(pedido.direccion_calle)} ${escaparHtml(pedido.direccion_numero || '')},
-                ${escaparHtml(pedido.direccion_ciudad)}
-                ${pedido.direccion_referencia ? `— ${escaparHtml(pedido.direccion_referencia)}` : ''}
-            </p>
-            ${pedido.usuarios?.telefono ? `<p class="tarjeta-producto-panel-descripcion">Tel: ${escaparHtml(pedido.usuarios.telefono)}</p>` : ''}
-            ${itemsHtml}
-            <div class="tarjeta-producto-panel-detalle">
-                <span>${pedido.metodo_pago === 'transferencia' ? 'Transferencia' : 'Efectivo'}</span>
-                <strong>${formatearPrecio(pedido.total)}</strong>
-            </div>
-            <div class="tarjeta-producto-panel-acciones">
-                ${entrega.estado === 'asignada'
-                ? `<button type="button" class="btn btn-principal btn-chico" data-salir-entregar="${entrega.id}">Salir a entregar</button>`
-                : `<button type="button" class="btn btn-principal btn-chico" data-confirmar-entrega="${entrega.id}">Confirmar entrega</button>`}
+            <div>
+                <div class="tarjeta-producto-panel-detalle">
+                    <span>${pedido.metodo_pago === 'transferencia' ? 'Transferencia' : 'Efectivo'}</span>
+                    <strong>${formatearPrecio(pedido.total)}</strong>
+                </div>
+                ${entrega.estado === 'en_camino'
+                ? `<div class="tarjeta-producto-panel-acciones">
+                       <button type="button" class="btn btn-principal btn-chico" data-confirmar-entrega="${entrega.id}">Confirmar entrega</button>
+                   </div>`
+                : ''}
             </div>
         `;
 
         lista.appendChild(tarjeta);
+    });
+}
+            // =========== MAPAAAAAAA =========== 
+let mapaRepartidorInstancia = null;
+
+async function dibujarMapaEntregas(entregas) {
+    const contenedorMapa = document.getElementById('mapa-repartidor');
+    const estadoMapa = document.getElementById('estado-mapa-repartidor');
+
+    const conUbicacion = entregas.filter((entrega) => entrega.pedidos?.latitud && entrega.pedidos?.longitud);
+
+    if (conUbicacion.length === 0) {
+        contenedorMapa.classList.add('oculto');
+        estadoMapa.classList.add('oculto');
+        return [];
+    }
+
+    contenedorMapa.classList.remove('oculto');
+    estadoMapa.classList.remove('oculto');
+    estadoMapa.textContent = 'Calculando la ruta más corta...';
+
+    if (!mapaRepartidorInstancia) {
+        mapaRepartidorInstancia = L.map('mapa-repartidor');
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap'
+        }).addTo(mapaRepartidorInstancia);
+    }
+
+    mapaRepartidorInstancia.eachLayer((capa) => {
+        if (capa instanceof L.Marker || capa instanceof L.Polyline) {
+            mapaRepartidorInstancia.removeLayer(capa);
+        }
+    });
+
+    let origen = null;
+    try {
+        origen = await obtenerUbicacionActual();
+    } catch {
+        origen = null;
+    }
+
+    let ordenParadas = conUbicacion.map((_, indice) => indice);
+    let coordenadasRuta = null;
+
+    if (origen) {
+        try {
+            const puntos = [origen, ...conUbicacion.map((entrega) => ({
+                lat: Number(entrega.pedidos.latitud),
+                lon: Number(entrega.pedidos.longitud)
+            }))];
+
+            const coordsOsrm = puntos.map((punto) => `${punto.lon},${punto.lat}`).join(';');
+
+            const respuesta = await fetch(
+                `https://router.project-osrm.org/trip/v1/driving/${coordsOsrm}?source=first&roundtrip=false&overview=full&geometries=geojson`
+            );
+            const datosOsrm = await respuesta.json();
+
+            if (datosOsrm.code === 'Ok') {
+                ordenParadas = datosOsrm.waypoints
+                    .slice(1)
+                    .map((punto, indiceOriginal) => ({ indiceOriginal, orden: punto.waypoint_index }))
+                    .sort((a, b) => a.orden - b.orden)
+                    .map((item) => item.indiceOriginal);
+
+                coordenadasRuta = datosOsrm.trips[0].geometry.coordinates.map(([lon, lat]) => [lat, lon]);
+            }
+        } catch {
+            coordenadasRuta = null;
+        }
+    }
+
+    estadoMapa.textContent = origen
+        ? 'Ruta ordenada por cercanía desde tu ubicación.'
+        : 'No pudimos acceder a tu ubicación: mostrando las paradas sin ordenar.';
+
+    const limites = [];
+
+    if (origen) {
+        L.marker([origen.lat, origen.lon]).addTo(mapaRepartidorInstancia).bindPopup('Tu ubicación');
+        limites.push([origen.lat, origen.lon]);
+    }
+
+    ordenParadas.forEach((indiceEntrega, posicion) => {
+        const entrega = conUbicacion[indiceEntrega];
+        const lat = Number(entrega.pedidos.latitud);
+        const lon = Number(entrega.pedidos.longitud);
+        const nombreCliente = `${entrega.pedidos.usuarios?.nombre || ''} ${entrega.pedidos.usuarios?.apellido || ''}`.trim();
+
+        const icono = L.divIcon({
+            className: '',
+            html: `<div class="marcador-parada-repartidor">${posicion + 1}</div>`,
+            iconSize: [26, 26]
+        });
+
+        L.marker([lat, lon], { icon: icono }).addTo(mapaRepartidorInstancia).bindPopup(escaparHtml(nombreCliente));
+        limites.push([lat, lon]);
+    });
+
+    if (coordenadasRuta) {
+        L.polyline(coordenadasRuta, { color: '#3b82f6', weight: 4 }).addTo(mapaRepartidorInstancia);
+    }
+
+    mapaRepartidorInstancia.fitBounds(limites, { padding: [30, 30] });
+
+    return ordenParadas.map((indiceEntrega) => conUbicacion[indiceEntrega]);
+}
+
+function obtenerUbicacionActual() {
+    return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+            reject(new Error('Geolocalización no disponible'));
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (posicion) => resolve({ lat: posicion.coords.latitude, lon: posicion.coords.longitude }),
+            () => reject(new Error('Permiso denegado')),
+            { enableHighAccuracy: true, timeout: 8000 }
+        );
     });
 }
 
@@ -105,24 +240,37 @@ function formatearPrecio(valor) {
 }
 
 document.getElementById('lista-entregas-repartidor').addEventListener('click', async (evento) => {
-    const botonSalir = evento.target.closest('[data-salir-entregar]');
     const botonConfirmar = evento.target.closest('[data-confirmar-entrega]');
-    if (!botonSalir && !botonConfirmar) return;
+    if (!botonConfirmar) return;
 
-    const boton = botonSalir || botonConfirmar;
-    boton.disabled = true;
-
-    const cambios = botonSalir
-        ? { estado: 'en_camino', iniciada_en: new Date().toISOString() }
-        : { estado: 'entregada', entregada_en: new Date().toISOString() };
+    botonConfirmar.disabled = true;
 
     const { error } = await supabaseCliente
         .from('entregas')
-        .update(cambios)
-        .eq('id', boton.dataset.salirEntregar || boton.dataset.confirmarEntrega);
+        .update({ estado: 'entregada', entregada_en: new Date().toISOString() })
+        .eq('id', botonConfirmar.dataset.confirmarEntrega);
 
     if (error) {
-        alert('No pudimos actualizar la entrega. Intentá de nuevo.');
+        alert('No pudimos confirmar la entrega. Intentá de nuevo.');
+        botonConfirmar.disabled = false;
+        return;
+    }
+
+    await cargarMisEntregas(); 
+});
+
+document.getElementById('btn-salir-repartir').addEventListener('click', async () => {
+    const boton = document.getElementById('btn-salir-repartir');
+    boton.disabled = true;
+
+    const { error } = await supabaseCliente
+        .from('entregas')
+        .update({ estado: 'en_camino', iniciada_en: new Date().toISOString() })
+        .eq('repartidor_id', usuarioActual.id)
+        .eq('estado', 'asignada');
+
+    if (error) {
+        alert('No pudimos iniciar el reparto. Intentá de nuevo.');
         boton.disabled = false;
         return;
     }

@@ -17,6 +17,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/comunes.css">
     <link rel="stylesheet" href="css/panel-vendedor.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 
 <body>
@@ -57,9 +58,16 @@
             <section class="panel-seccion" id="seccion-entregas" role="tabpanel">
                 <h2>Mis Entregas</h2>
 
+                <p class="estado-mapa-repartidor oculto" id="estado-mapa-repartidor"></p>
+                <div id="mapa-repartidor" class="mapa-repartidor oculto"></div>
+
+                <div class="barra-salir-repartir oculto" id="barra-salir-repartir">
+                    <button type="button" class="btn btn-principal" id="btn-salir-repartir">Salir a repartir</button>
+                </div>
+
                 <p class="estado-productos-panel oculto" id="estado-entregas-repartidor"></p>
 
-                <div class="grilla-productos-panel" id="lista-entregas-repartidor"></div>
+                <div class="lista-entregas-repartidor" id="lista-entregas-repartidor"></div>
             </section>
 
             <section class="panel-seccion oculto" id="seccion-perfil" role="tabpanel">
@@ -123,6 +131,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="js/supabase-config.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="js/panel-repartidor.js"></script>
     <script src="js/tema.js"></script>
 </body>
