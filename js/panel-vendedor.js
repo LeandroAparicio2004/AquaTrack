@@ -244,7 +244,11 @@ async function cargarTableroEntregas() {
 
     const { data: pendientes, error: errorPendientes } = await supabaseCliente
         .from('pedidos')
-        .select('id, direccion_calle, direccion_numero, direccion_ciudad, usuarios!pedidos_cliente_id_fkey ( nombre, apellido )')
+        .select(`
+            id, direccion_calle, direccion_numero, direccion_ciudad,
+            usuarios!pedidos_cliente_id_fkey ( nombre, apellido ),
+            detalles_pedidos ( cantidad, productos ( nombre ) )
+        `)
         .eq('distribuidora_id', distribuidoraActual.id)
         .eq('estado', 'pendiente')
         .order('creado_en', { ascending: true });
@@ -254,7 +258,8 @@ async function cargarTableroEntregas() {
         .select(`
             id, estado, repartidor_id,
             pedidos!inner ( id, direccion_calle, direccion_numero, direccion_ciudad, distribuidora_id,
-                usuarios!pedidos_cliente_id_fkey ( nombre, apellido ) )
+                usuarios!pedidos_cliente_id_fkey ( nombre, apellido ),
+                detalles_pedidos ( cantidad, productos ( nombre ) ) )
         `)
         .eq('pedidos.distribuidora_id', distribuidoraActual.id)
         .in('estado', ['asignada', 'en_camino']);
@@ -270,30 +275,25 @@ async function cargarTableroEntregas() {
     pedidosSinAsignar = pendientes || [];
     entregasTablero = entregas || [];
 
-    mapaEntregaHuerfana = {};
+    mapaEntregaPorPedido = {};
     entregasTablero.forEach((entrega) => {
-        if (entrega.repartidor_id === null) {
-            mapaEntregaHuerfana[entrega.pedidos.id] = entrega.id;
-        }
+        mapaEntregaPorPedido[entrega.pedidos.id] = entrega.id;
     });
 
     renderizarTablero();
 }
 
-function tarjetaArrastrable(nombre, direccion, datosDrag, arrastrable, etiquetaExtra) {
-    const atributoDrag = arrastrable ? `draggable="true" data-drag='${JSON.stringify(datosDrag)}'` : '';
-    return `
-        <div class="tarjeta-pedido-tablero" ${atributoDrag}>
-            <strong>${escaparHtml(nombre)}</strong>
-            <span>${escaparHtml(direccion)}</span>
-            ${etiquetaExtra || ''}
-        </div>
-    `;
+function resumenItemsPedido(pedido) {
+    return (pedido.detalles_pedidos || [])
+        .map((item) => `${item.cantidad}x ${item.productos?.nombre || 'Producto'}`)
+        .join(', ');
 }
 
 function renderizarTablero() {
     const tablero = document.getElementById('tablero-entregas');
     tablero.innerHTML = '';
+
+    const seleccionadosSinAsignar = pedidosSinAsignar.filter((pedido) => pedidosSeleccionados.has(pedido.id)).length;
 
     const columnaSinAsignar = document.createElement('div');
     columnaSinAsignar.className = 'columna-tablero';
@@ -301,15 +301,19 @@ function renderizarTablero() {
     columnaSinAsignar.innerHTML = `
         <div class="columna-tablero-titulo">
             <span>Sin asignar</span>
-            <span class="etiqueta-estado-producto inactivo">${pedidosSinAsignar.length}</span>
+            <span class="etiqueta-estado-producto inactivo">
+                ${seleccionadosSinAsignar > 0 ? seleccionadosSinAsignar + ' sel.' : pedidosSinAsignar.length}
+            </span>
         </div>
         <div class="zona-drop">
-            ${pedidosSinAsignar.map((pedido) => tarjetaArrastrable(
-                `${pedido.usuarios?.nombre || ''} ${pedido.usuarios?.apellido || ''}`,
-                `${pedido.direccion_calle} ${pedido.direccion_numero || ''}, ${pedido.direccion_ciudad}`,
-                { pedidoId: pedido.id, entregaId: mapaEntregaHuerfana[pedido.id] || null },
-                true
-            )).join('')}
+            ${pedidosSinAsignar.map((pedido) => `
+                <div class="tarjeta-pedido-tablero tarjeta-seleccionable ${pedidosSeleccionados.has(pedido.id) ? 'seleccionada' : ''}"
+                    draggable="true" data-pedido-click="${pedido.id}">
+                    <strong>${escaparHtml(pedido.usuarios?.nombre || '')} ${escaparHtml(pedido.usuarios?.apellido || '')}</strong>
+                    <span>${escaparHtml(pedido.direccion_calle)} ${escaparHtml(pedido.direccion_numero || '')}, ${escaparHtml(pedido.direccion_ciudad)}</span>
+                    <span>${escaparHtml(resumenItemsPedido(pedido))}</span>
+                </div>
+            `).join('')}
         </div>
     `;
     tablero.appendChild(columnaSinAsignar);
@@ -319,6 +323,10 @@ function renderizarTablero() {
             (entrega) => entrega.repartidor_id === miembro.usuario_id
         );
 
+        const seleccionadosEnColumna = entregasDelRepartidor.filter(
+            (entrega) => pedidosSeleccionados.has(entrega.pedidos.id)
+        ).length;
+
         const columna = document.createElement('div');
         columna.className = 'columna-tablero';
         columna.dataset.zonaDrop = 'repartidor';
@@ -327,23 +335,43 @@ function renderizarTablero() {
         columna.innerHTML = `
             <div class="columna-tablero-titulo">
                 <span>${escaparHtml(miembro.usuarios?.nombre || '')} ${escaparHtml(miembro.usuarios?.apellido || '')}</span>
-                <span class="etiqueta-estado-producto inactivo">${entregasDelRepartidor.length}</span>
+                <span class="etiqueta-estado-producto inactivo">
+                    ${seleccionadosEnColumna > 0 ? seleccionadosEnColumna + ' sel.' : entregasDelRepartidor.length}
+                </span>
             </div>
             <div class="zona-drop">
                 ${entregasDelRepartidor.map((entrega) => {
                     const puedeMoverse = entrega.estado === 'asignada';
+                    const nombreCliente = `${entrega.pedidos.usuarios?.nombre || ''} ${entrega.pedidos.usuarios?.apellido || ''}`;
+                    const direccion = `${entrega.pedidos.direccion_calle} ${entrega.pedidos.direccion_numero || ''}, ${entrega.pedidos.direccion_ciudad}`;
                     const etiqueta = `
                         <span class="etiqueta-estado-producto ${entrega.estado === 'en_camino' ? 'en_camino' : 'asignada'}">
                             ${entrega.estado === 'en_camino' ? 'Enviado (no se puede mover)' : 'Asignada'}
                         </span>
                     `;
-                    return tarjetaArrastrable(
-                        `${entrega.pedidos.usuarios?.nombre || ''} ${entrega.pedidos.usuarios?.apellido || ''}`,
-                        `${entrega.pedidos.direccion_calle} ${entrega.pedidos.direccion_numero || ''}, ${entrega.pedidos.direccion_ciudad}`,
-                        { pedidoId: entrega.pedidos.id, entregaId: entrega.id },
-                        puedeMoverse,
-                        etiqueta
-                    );
+
+                    const items = `<span>${escaparHtml(resumenItemsPedido(entrega.pedidos))}</span>`;
+
+                    if (!puedeMoverse) {
+                        return `
+                            <div class="tarjeta-pedido-tablero">
+                                <strong>${escaparHtml(nombreCliente)}</strong>
+                                <span>${escaparHtml(direccion)}</span>
+                                ${items}
+                                ${etiqueta}
+                            </div>
+                        `;
+                    }
+
+                    return `
+                        <div class="tarjeta-pedido-tablero tarjeta-seleccionable ${pedidosSeleccionados.has(entrega.pedidos.id) ? 'seleccionada' : ''}"
+                            draggable="true" data-pedido-click="${entrega.pedidos.id}">
+                            <strong>${escaparHtml(nombreCliente)}</strong>
+                            <span>${escaparHtml(direccion)}</span>
+                            ${items}
+                            ${etiqueta}
+                        </div>
+                    `;
                 }).join('')}
             </div>
         `;
@@ -361,7 +389,7 @@ function renderizarTablero() {
     habilitarDragAndDrop();
 }
 
-async function moverPedidoEnTablero(datos, idRepartidorDestino) {
+async function moverPedidoEnTablero(datos, idRepartidorDestino, idRuta, orden) {
     const { pedidoId, entregaId } = datos;
     let error;
 
@@ -369,7 +397,7 @@ async function moverPedidoEnTablero(datos, idRepartidorDestino) {
         if (entregaId) {
             ({ error } = await supabaseCliente
                 .from('entregas')
-                .update({ repartidor_id: null })
+                .update({ repartidor_id: null, ruta_id: null, orden: null })
                 .eq('id', entregaId));
         }
         if (!error) {
@@ -381,7 +409,7 @@ async function moverPedidoEnTablero(datos, idRepartidorDestino) {
     } else if (entregaId) {
         ({ error } = await supabaseCliente
             .from('entregas')
-            .update({ repartidor_id: idRepartidorDestino })
+            .update({ repartidor_id: idRepartidorDestino, ruta_id: idRuta || null, orden: orden ?? null })
             .eq('id', entregaId));
 
         if (!error) {
@@ -393,22 +421,70 @@ async function moverPedidoEnTablero(datos, idRepartidorDestino) {
     } else {
         ({ error } = await supabaseCliente
             .from('entregas')
-            .insert({ pedido_id: pedidoId, repartidor_id: idRepartidorDestino }));
+            .insert({ pedido_id: pedidoId, repartidor_id: idRepartidorDestino, ruta_id: idRuta || null, orden: orden ?? null }));
     }
 
-    if (error) {
-        alert('No pudimos mover el pedido. Intentá de nuevo.');
-        return;
+    return !error;
+}
+
+async function moverGrupoEnTablero(items, idRepartidorDestino) {
+    let idRuta = null;
+
+    if (items.length > 1 && idRepartidorDestino) {
+        const { data: ruta, error: errorRuta } = await supabaseCliente
+            .from('rutas')
+            .insert({ distribuidora_id: distribuidoraActual.id, repartidor_id: idRepartidorDestino })
+            .select('id')
+            .single();
+
+        if (errorRuta) {
+            alert('No pudimos crear la ruta. Intentá de nuevo.');
+            return;
+        }
+
+        idRuta = ruta.id;
     }
 
+    let huboError = false;
+
+    for (let indice = 0; indice < items.length; indice++) {
+        const ok = await moverPedidoEnTablero(items[indice], idRepartidorDestino, idRuta, indice);
+        if (!ok) huboError = true;
+    }
+
+    if (huboError) {
+        alert('Algunos pedidos no se pudieron mover. Revisá el tablero.');
+    }
+
+    pedidosSeleccionados.clear();
     await cargarTableroEntregas();
     if (seccionPedidosCargada) cargarPedidosPanel();
 }
 
 function habilitarDragAndDrop() {
-    document.querySelectorAll('[data-drag]').forEach((tarjeta) => {
+    document.querySelectorAll('[data-pedido-click]').forEach((tarjeta) => {
+        tarjeta.addEventListener('click', () => {
+            const id = tarjeta.dataset.pedidoClick;
+            if (pedidosSeleccionados.has(id)) {
+                pedidosSeleccionados.delete(id);
+            } else {
+                pedidosSeleccionados.add(id);
+            }
+            renderizarTablero();
+        });
+
         tarjeta.addEventListener('dragstart', (evento) => {
-            evento.dataTransfer.setData('text/plain', tarjeta.dataset.drag);
+            const id = tarjeta.dataset.pedidoClick;
+            const idsAMover = pedidosSeleccionados.size > 1 && pedidosSeleccionados.has(id)
+                ? Array.from(pedidosSeleccionados)
+                : [id];
+
+            const payload = idsAMover.map((idPedido) => ({
+                pedidoId: idPedido,
+                entregaId: mapaEntregaPorPedido[idPedido] || null
+            }));
+
+            evento.dataTransfer.setData('text/plain', JSON.stringify(payload));
         });
     });
 
@@ -429,12 +505,12 @@ function habilitarDragAndDrop() {
             const textoDrag = evento.dataTransfer.getData('text/plain');
             if (!textoDrag) return;
 
-            const datos = JSON.parse(textoDrag);
+            const items = JSON.parse(textoDrag);
             const destino = columna.dataset.zonaDrop === 'repartidor'
                 ? columna.dataset.repartidorId
                 : null;
 
-            moverPedidoEnTablero(datos, destino);
+            moverGrupoEnTablero(items, destino);
         });
     });
 }
@@ -564,7 +640,8 @@ let seccionRepartidoresCargada = false;
 let seccionPedidosCargada = false;
 let seccionTableroCargada = false;
 let pedidosSinAsignar = [];
-let mapaEntregaHuerfana = {};
+let mapaEntregaPorPedido = {};
+let pedidosSeleccionados = new Set();
 
 pestanas.forEach((pestana) => {
     pestana.addEventListener('click', () => {

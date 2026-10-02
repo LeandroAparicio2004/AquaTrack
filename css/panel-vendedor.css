@@ -236,6 +236,16 @@ body {
     font-size: 0.85rem;
 }
 
+.tarjeta-seleccionable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.tarjeta-seleccionable.seleccionada {
+    border-color: var(--color-acento-panel);
+    background: var(--color-acento-suave-panel);
+}
+
 .grilla-productos-panel {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));

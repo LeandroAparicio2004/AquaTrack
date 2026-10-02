@@ -21,13 +21,13 @@ SCRUM-20 Administración de Flota de Repartidores X
 SCRUM-49 Creacion de Admin X
 
 Sprint 3 - Pedidos
-SCRUM-18 Control de Pedidos
+SCRUM-18 Control de Pedidos X
 SCRUM-22 Realizacion de Pedido 
 SCRUM-23 Visualizacion de codigo de confirmacion 
 SCRUM-14 Validación de Recepción
 
 Sprint 4 - Entregas y Seguimiento 
-SCRUM-12 Gestion de Entregas
+SCRUM-12 Gestion de Entregas X
 SCRUM-13 Visualizacion de Ruta Optimizadas 
 SCRUM-24 Seguimiento en Vivo
 SCRUM-26 Comunicacion con Repartidor 
@@ -35,7 +35,7 @@ SCRUM-36 Configurar Supabase Realtime (msj)
 SCRUM-37 Configurar integracion con OpenSteetMap y OSRM
 
 Sprint 5 - Paneles y Suscripción 
-SCRUM-16 Consulta de Dashboard Vendedor
+SCRUM-16 Consulta de Dashboard Vendedor X
 SCRUM-17 Analisis de Metricas Comerciales
 SCRUM-21 Consulta de Dashboard Cliente
 SCRUM-25 Programacion de Suscripciones

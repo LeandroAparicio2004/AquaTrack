@@ -48,11 +48,21 @@
             </div>
 
             <div class="panel-pestanas" role="tablist">
-                <button type="button" class="panel-pestana activa" data-pestana="perfil" role="tab"
-                    aria-selected="true">Mi perfil</button>
+                <button type="button" class="panel-pestana activa" data-pestana="entregas" role="tab"
+                    aria-selected="true">Mis Entregas</button>
+                <button type="button" class="panel-pestana" data-pestana="perfil" role="tab"
+                    aria-selected="false">Mi perfil</button>
             </div>
 
-            <section class="panel-seccion" id="seccion-perfil" role="tabpanel">
+            <section class="panel-seccion" id="seccion-entregas" role="tabpanel">
+                <h2>Mis Entregas</h2>
+
+                <p class="estado-productos-panel oculto" id="estado-entregas-repartidor"></p>
+
+                <div class="grilla-productos-panel" id="lista-entregas-repartidor"></div>
+            </section>
+
+            <section class="panel-seccion oculto" id="seccion-perfil" role="tabpanel">
                 <h2>Mi perfil</h2>
 
                 <form id="formulario-perfil-repartidor" novalidate>

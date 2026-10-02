@@ -1092,12 +1092,10 @@ async function crearPedidosDesdeCarrito(
                     direccion_referencia:
                         direccion.referencia,
 
-                    direccion_latitud:
+                    latitud:
                         direccion.latitud,
-                    direccion_longitud:
+                    longitud:
                         direccion.longitud,
-                    direccion_formateada:
-                        direccion.direccionFormateada,
 
                     subtotal: grupo.subtotal,
                     descuento_envases: grupo.descuento,

@@ -15,6 +15,121 @@ function escaparHtml(valor) {
 let usuarioActual = null;
 let archivoFotoRepartidor = null;
 
+const etiquetasEstadoEntrega = {
+    asignada: 'Asignada',
+    en_camino: 'En camino'
+};
+
+function claseEstadoEntrega(estado) {
+    return estado === 'en_camino' ? 'en_camino' : 'asignada';
+}
+
+async function cargarMisEntregas() {
+    const estadoVacio = document.getElementById('estado-entregas-repartidor');
+    const lista = document.getElementById('lista-entregas-repartidor');
+
+    const { data, error } = await supabaseCliente
+        .from('entregas')
+        .select(`
+            id, estado, asignada_en,
+            pedidos (
+                id, direccion_calle, direccion_numero, direccion_ciudad, direccion_referencia,
+                total, metodo_pago,
+                usuarios!pedidos_cliente_id_fkey ( nombre, apellido, telefono ),
+                detalles_pedidos ( cantidad, productos ( nombre ) )
+            )
+        `)
+        .eq('repartidor_id', usuarioActual.id)
+        .in('estado', ['asignada', 'en_camino'])
+        .order('asignada_en', { ascending: true });
+
+    if (error) {
+        estadoVacio.textContent = 'No pudimos cargar tus entregas. Recargá la página.';
+        estadoVacio.classList.remove('oculto');
+        return;
+    }
+
+    lista.innerHTML = '';
+
+    if (!data || data.length === 0) {
+        estadoVacio.textContent = 'No tenés entregas asignadas por ahora.';
+        estadoVacio.classList.remove('oculto');
+        return;
+    }
+
+    estadoVacio.classList.add('oculto');
+
+    data.forEach((entrega) => {
+        const pedido = entrega.pedidos;
+        const nombreCliente = `${pedido.usuarios?.nombre || ''} ${pedido.usuarios?.apellido || ''}`.trim();
+
+        const itemsHtml = (pedido.detalles_pedidos || []).map((item) => `
+            <p class="tarjeta-producto-panel-descripcion">
+                ${item.cantidad}x ${escaparHtml(item.productos?.nombre || 'Producto')}
+            </p>
+        `).join('');
+
+        const tarjeta = document.createElement('article');
+        tarjeta.className = 'tarjeta-producto-panel';
+        tarjeta.innerHTML = `
+            <div class="tarjeta-producto-panel-superior">
+                <h3>${escaparHtml(nombreCliente)}</h3>
+                <span class="etiqueta-estado-producto ${claseEstadoEntrega(entrega.estado)}">
+                    ${etiquetasEstadoEntrega[entrega.estado]}
+                </span>
+            </div>
+            <p class="tarjeta-producto-panel-descripcion">
+                ${escaparHtml(pedido.direccion_calle)} ${escaparHtml(pedido.direccion_numero || '')},
+                ${escaparHtml(pedido.direccion_ciudad)}
+                ${pedido.direccion_referencia ? `— ${escaparHtml(pedido.direccion_referencia)}` : ''}
+            </p>
+            ${pedido.usuarios?.telefono ? `<p class="tarjeta-producto-panel-descripcion">Tel: ${escaparHtml(pedido.usuarios.telefono)}</p>` : ''}
+            ${itemsHtml}
+            <div class="tarjeta-producto-panel-detalle">
+                <span>${pedido.metodo_pago === 'transferencia' ? 'Transferencia' : 'Efectivo'}</span>
+                <strong>${formatearPrecio(pedido.total)}</strong>
+            </div>
+            <div class="tarjeta-producto-panel-acciones">
+                ${entrega.estado === 'asignada'
+                ? `<button type="button" class="btn btn-principal btn-chico" data-salir-entregar="${entrega.id}">Salir a entregar</button>`
+                : `<button type="button" class="btn btn-principal btn-chico" data-confirmar-entrega="${entrega.id}">Confirmar entrega</button>`}
+            </div>
+        `;
+
+        lista.appendChild(tarjeta);
+    });
+}
+
+function formatearPrecio(valor) {
+    return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(valor || 0);
+}
+
+document.getElementById('lista-entregas-repartidor').addEventListener('click', async (evento) => {
+    const botonSalir = evento.target.closest('[data-salir-entregar]');
+    const botonConfirmar = evento.target.closest('[data-confirmar-entrega]');
+    if (!botonSalir && !botonConfirmar) return;
+
+    const boton = botonSalir || botonConfirmar;
+    boton.disabled = true;
+
+    const cambios = botonSalir
+        ? { estado: 'en_camino', iniciada_en: new Date().toISOString() }
+        : { estado: 'entregada', entregada_en: new Date().toISOString() };
+
+    const { error } = await supabaseCliente
+        .from('entregas')
+        .update(cambios)
+        .eq('id', boton.dataset.salirEntregar || boton.dataset.confirmarEntrega);
+
+    if (error) {
+        alert('No pudimos actualizar la entrega. Intentá de nuevo.');
+        boton.disabled = false;
+        return;
+    }
+
+    await cargarMisEntregas();
+});
+
 async function precargarPerfilRepartidor() {
     const { data: perfil, error } = await supabaseCliente
         .from('usuarios')
@@ -149,7 +264,31 @@ async function inicializarPanel() {
     document.getElementById('panel-main').classList.remove('oculto');
 
     precargarPerfilRepartidor();
+    cargarMisEntregas();
 }
+
+const seccionesRepartidor = {
+    entregas: document.getElementById('seccion-entregas'),
+    perfil: document.getElementById('seccion-perfil')
+};
+
+document.querySelectorAll('.panel-pestana').forEach((pestana) => {
+    pestana.addEventListener('click', () => {
+        document.querySelectorAll('.panel-pestana').forEach((boton) => {
+            boton.classList.remove('activa');
+            boton.setAttribute('aria-selected', 'false');
+        });
+        pestana.classList.add('activa');
+        pestana.setAttribute('aria-selected', 'true');
+
+        Object.values(seccionesRepartidor).forEach((seccion) => seccion.classList.add('oculto'));
+        seccionesRepartidor[pestana.dataset.pestana].classList.remove('oculto');
+
+        if (pestana.dataset.pestana === 'entregas') {
+            cargarMisEntregas();
+        }
+    });
+});
 
 inicializarPanel();
 
