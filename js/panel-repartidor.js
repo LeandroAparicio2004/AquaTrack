@@ -56,6 +56,10 @@ async function cargarMisEntregas() {
     const sinUbicacion = (data || []).filter((entrega) => !entrega.pedidos?.latitud || !entrega.pedidos?.longitud);
     const entregasOrdenadas = [...ordenConUbicacion, ...sinUbicacion];
 
+    if ((data || []).some((entrega) => entrega.estado === 'en_camino')) {
+        iniciarSeguimientoUbicacion();
+    }
+
     lista.innerHTML = '';
 
     if (!data || data.length === 0) {
@@ -259,6 +263,8 @@ document.getElementById('lista-entregas-repartidor').addEventListener('click', a
     await cargarMisEntregas(); 
 });
 
+
+
 document.getElementById('btn-salir-repartir').addEventListener('click', async () => {
     const boton = document.getElementById('btn-salir-repartir');
     boton.disabled = true;
@@ -276,6 +282,57 @@ document.getElementById('btn-salir-repartir').addEventListener('click', async ()
     }
 
     await cargarMisEntregas();
+    iniciarSeguimientoUbicacion();
+});
+
+let intervaloUbicacion = null;
+
+async function iniciarSeguimientoUbicacion() {
+    if (intervaloUbicacion || !navigator.geolocation) {
+        return;
+    }
+
+    const { data: entregasEnCamino } = await supabaseCliente
+        .from('entregas')
+        .select('id')
+        .eq('repartidor_id', usuarioActual.id)
+        .eq('estado', 'en_camino');
+
+    if (!entregasEnCamino || entregasEnCamino.length === 0) {
+        return;
+    }
+
+    const idsEntregas = entregasEnCamino.map((entrega) => entrega.id);
+
+    const guardarPosicionActual = () => {
+        navigator.geolocation.getCurrentPosition(async (posicion) => {
+            const filas = idsEntregas.map((idEntrega) => ({
+                entrega_id: idEntrega,
+                latitud: posicion.coords.latitude,
+                longitud: posicion.coords.longitude
+            }));
+
+            await supabaseCliente.from('ubicaciones_entregas').insert(filas);
+        }, () => {}, { enableHighAccuracy: true, timeout: 8000 });
+    };
+
+    guardarPosicionActual();
+    intervaloUbicacion = setInterval(guardarPosicionActual, 15000);
+}
+
+function detenerSeguimientoUbicacion() {
+    if (intervaloUbicacion) {
+        clearInterval(intervaloUbicacion);
+        intervaloUbicacion = null;
+    }
+}
+
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        detenerSeguimientoUbicacion();
+    } else {
+        iniciarSeguimientoUbicacion();
+    }
 });
 
 async function precargarPerfilRepartidor() {

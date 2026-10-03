@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <script>
+    (function () {
+      if (localStorage.getItem('aquatrack_tema') === 'oscuro') {
+        document.documentElement.setAttribute('data-tema', 'oscuro');
+      }
+    })();
+  </script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seguimiento de tu pedido — AquaTrack</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/comunes.css">
+  <link rel="stylesheet" href="css/inicio.css">
+  <link rel="stylesheet" href="css/seguimiento.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+
+<body>
+  <header class="encabezado inicio-encabezado">
+    <div class="contenedor encabezado-interno">
+      <a href="index.html" class="marca-inicio" aria-label="Ir al inicio de AquaTrack">
+        <span class="logo">AquaTrack</span>
+      </a>
+
+      <nav class="navegacion-inicio" aria-label="Navegación principal">
+        <a href="productos.html" class="enlace-nav">Productos</a>
+
+        <div class="nav-sesion" id="nav-invitado">
+          <a href="login.html" class="enlace-nav">Iniciar sesión</a>
+          <a href="registro.html" class="btn btn-secundario">Crear cuenta</a>
+        </div>
+
+        <div class="nav-sesion oculto" id="nav-usuario">
+          <button type="button" class="btn btn-secundario btn-peligro" id="boton-cerrar-sesion">Salir</button>
+        </div>
+
+        <button type="button" class="btn-tema" id="btn-tema" aria-label="Cambiar tema"></button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="pagina-seguimiento">
+    <div class="contenedor">
+
+      <div class="encabezado-seguimiento">
+        <p class="etiqueta-seccion">Seguimiento</p>
+        <h1 id="titulo-seguimiento">Tu pedido</h1>
+      </div>
+
+      <div class="estado-seguimiento oculto" id="estado-seguimiento">
+        <p id="texto-estado-seguimiento">Cargando tu pedido...</p>
+        <a href="productos.html" class="btn btn-principal">Ver catálogo</a>
+      </div>
+
+      <div class="grilla-seguimiento oculto" id="contenido-seguimiento">
+
+        <div class="panel-seguimiento">
+          <div class="tarjeta-estado-pedido">
+            <span class="etiqueta-estado-pedido" id="etiqueta-estado-pedido"></span>
+            <p id="texto-ayuda-estado"></p>
+          </div>
+
+          <div id="mapa-seguimiento" class="mapa-seguimiento"></div>
+          <p class="nota-mapa-seguimiento" id="nota-mapa-seguimiento"></p>
+        </div>
+
+        <aside class="panel-seguimiento panel-detalle-seguimiento">
+          <div class="bloque-detalle-seguimiento" id="bloque-repartidor">
+            <h2>Tu repartidor</h2>
+            <p id="nombre-repartidor-seguimiento">Todavía no te asignaron un repartidor.</p>
+            <p id="telefono-repartidor-seguimiento"></p>
+          </div>
+
+          <div class="bloque-detalle-seguimiento">
+            <h2>Dirección de entrega</h2>
+            <p id="direccion-seguimiento"></p>
+          </div>
+
+          <div class="bloque-detalle-seguimiento">
+            <h2>Tu pedido</h2>
+            <div id="items-seguimiento"></div>
+            <div class="fila-total-seguimiento">
+              <span>Total</span>
+              <strong id="total-seguimiento"></strong>
+            </div>
+          </div>
+        </aside>
+
+      </div>
+
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="js/seguimiento.js"></script>
+  <script src="js/tema.js"></script>
+</body>
+
+</html>
