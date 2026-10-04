@@ -230,6 +230,151 @@ document.getElementById('lista-pedidos-panel').addEventListener('click', async (
     await cargarPedidosPanel();
 });
 
+const etiquetasFrecuenciaPanel = {
+    semanal: 'Semanal',
+    quincenal: 'Quincenal',
+    mensual: 'Mensual'
+};
+
+const etiquetasEstadoSuscripcionPanel = {
+    activa: 'Activa',
+    pausada: 'Pausada',
+    cancelada: 'Cancelada'
+};
+
+function formatearFechaPanel(valor) {
+    if (!valor) {
+        return '';
+    }
+
+    return new Date(`${valor}T00:00:00`).toLocaleDateString('es-AR', {
+        day: '2-digit', month: '2-digit', year: 'numeric'
+    });
+}
+
+function diasHastaFechaPanel(valor) {
+    if (!valor) {
+        return null;
+    }
+
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    const fechaObjetivo = new Date(`${valor}T00:00:00`);
+
+    return Math.round((fechaObjetivo - hoy) / (1000 * 60 * 60 * 24));
+}
+
+async function cargarSuscripcionesPanel() {
+    const estadoVacio = document.getElementById('estado-suscripciones-panel');
+
+    const { data, error } = await supabaseCliente
+        .from('suscripciones')
+        .select(`
+            id, cantidad, envases_devueltos, frecuencia, proxima_entrega, estado,
+            direccion_calle, direccion_numero, direccion_ciudad, direccion_referencia,
+            usuarios ( nombre, apellido, telefono ),
+            productos ( nombre, capacidad_litros )
+        `)
+        .eq('distribuidora_id', distribuidoraActual.id)
+        .order('proxima_entrega', { ascending: true });
+
+    if (error) {
+        estadoVacio.textContent = 'No pudimos cargar las suscripciones. Recargá la página.';
+        estadoVacio.classList.remove('oculto');
+        return;
+    }
+
+    suscripcionesDelPanel = data || [];
+    renderizarSuscripcionesPanel();
+}
+
+function renderizarSuscripcionesPanel() {
+    const estadoVacio = document.getElementById('estado-suscripciones-panel');
+    const lista = document.getElementById('lista-suscripciones-panel');
+    const filtro = document.getElementById('filtro-estado-suscripciones').value;
+
+    const suscripcionesFiltradas = suscripcionesDelPanel.filter((suscripcion) => {
+        if (filtro === 'todas') return true;
+        if (filtro === 'activa_pausada') return suscripcion.estado === 'activa' || suscripcion.estado === 'pausada';
+        return suscripcion.estado === filtro;
+    });
+
+    if (suscripcionesFiltradas.length === 0) {
+        lista.innerHTML = '';
+        estadoVacio.textContent = suscripcionesDelPanel.length === 0
+            ? 'Todavía ningún cliente tiene una suscripción activa con tu distribuidora.'
+            : 'No hay suscripciones con este filtro.';
+        estadoVacio.classList.remove('oculto');
+        return;
+    }
+
+    estadoVacio.classList.add('oculto');
+
+    lista.innerHTML = suscripcionesFiltradas.map((suscripcion) => {
+        const cliente = suscripcion.usuarios;
+        const producto = suscripcion.productos;
+        const nombreCliente = `${cliente?.nombre || ''} ${cliente?.apellido || ''}`.trim() || 'Cliente';
+
+        const direccion = [
+            `${suscripcion.direccion_calle || ''} ${suscripcion.direccion_numero || ''}`.trim(),
+            suscripcion.direccion_ciudad,
+            suscripcion.direccion_referencia ? `Ref: ${suscripcion.direccion_referencia}` : ''
+        ].filter(Boolean).join(', ');
+
+        let proximaEntregaHtml = '';
+        if (suscripcion.estado !== 'cancelada') {
+            const dias = diasHastaFechaPanel(suscripcion.proxima_entrega);
+            let claseDias = '';
+            let textoDias = '';
+
+            if (dias !== null) {
+                if (dias < 0) {
+                    claseDias = 'vencida';
+                    textoDias = ' (atrasada)';
+                } else if (dias === 0) {
+                    claseDias = 'vencida';
+                    textoDias = ' (hoy)';
+                } else if (dias <= 3) {
+                    claseDias = 'proxima';
+                    textoDias = ` (en ${dias} día${dias === 1 ? '' : 's'})`;
+                }
+            }
+
+            proximaEntregaHtml = `
+                <p class="tarjeta-producto-panel-descripcion">
+                    Próxima entrega:
+                    <span class="proxima-entrega-suscripcion ${claseDias}">
+                        ${formatearFechaPanel(suscripcion.proxima_entrega)}${textoDias}
+                    </span>
+                </p>
+            `;
+        }
+
+        return `
+            <article class="tarjeta-producto-panel">
+                <div class="tarjeta-producto-panel-superior">
+                    <h3>${escaparHtml(nombreCliente)}</h3>
+                    <span class="etiqueta-estado-producto ${suscripcion.estado}">
+                        ${etiquetasEstadoSuscripcionPanel[suscripcion.estado] || suscripcion.estado}
+                    </span>
+                </div>
+                ${cliente?.telefono ? `<p class="tarjeta-producto-panel-descripcion">Tel: ${escaparHtml(cliente.telefono)}</p>` : ''}
+                <p class="tarjeta-producto-panel-descripcion">
+                    ${escaparHtml(producto?.nombre || 'Producto')} (${producto?.capacidad_litros || '?'}L) x${suscripcion.cantidad}
+                    — ${etiquetasFrecuenciaPanel[suscripcion.frecuencia] || suscripcion.frecuencia}
+                </p>
+                <p class="tarjeta-producto-panel-descripcion">${escaparHtml(direccion)}</p>
+                ${suscripcion.envases_devueltos > 0
+                ? `<p class="tarjeta-producto-panel-descripcion">Devuelve ${suscripcion.envases_devueltos} envase(s) por entrega</p>`
+                : ''}
+                ${proximaEntregaHtml}
+            </article>
+        `;
+    }).join('');
+}
+
+document.getElementById('filtro-estado-suscripciones').addEventListener('change', renderizarSuscripcionesPanel);
+
 async function cargarTableroEntregas() {
     const estadoVacio = document.getElementById('estado-tablero');
 
@@ -634,11 +779,14 @@ const secciones = {
     pedidos: document.getElementById('seccion-pedidos'),
     asignar: document.getElementById('seccion-asignar'),
     repartidores: document.getElementById('seccion-repartidores'),
+    suscripciones: document.getElementById('seccion-suscripciones'),
     perfil: document.getElementById('seccion-perfil')
 };
 let seccionRepartidoresCargada = false;
 let seccionPedidosCargada = false;
 let seccionTableroCargada = false;
+let seccionSuscripcionesCargada = false;
+let suscripcionesDelPanel = [];
 let pedidosSinAsignar = [];
 let mapaEntregaPorPedido = {};
 let pedidosSeleccionados = new Set();
@@ -670,6 +818,11 @@ pestanas.forEach((pestana) => {
         if (pestana.dataset.pestana === 'asignar') {
             seccionTableroCargada = true;
             cargarTableroEntregas();
+        }
+
+        if (pestana.dataset.pestana === 'suscripciones' && !seccionSuscripcionesCargada) {
+            seccionSuscripcionesCargada = true;
+            cargarSuscripcionesPanel();
         }
     });
 });

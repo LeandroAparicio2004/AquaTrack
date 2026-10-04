@@ -68,6 +68,8 @@
                     aria-selected="false">Asignar Entregas</button>
                 <button type="button" class="panel-pestana" data-pestana="repartidores" role="tab"
                     aria-selected="false">Repartidores</button>
+                <button type="button" class="panel-pestana" data-pestana="suscripciones" role="tab"
+                    aria-selected="false">Suscripciones</button>
                 <button type="button" class="panel-pestana" data-pestana="perfil" role="tab"
                     aria-selected="false">Perfil del negocio</button>
             </div>
@@ -189,6 +191,24 @@
                     </div>
                 </div>
                 <p class="mensaje-estado oculto" id="mensaje-invitar-repartidor"></p>
+            </section>
+
+            <section class="panel-seccion oculto" id="seccion-suscripciones" role="tabpanel">
+                <div class="panel-seccion-encabezado">
+                    <h2>Suscripciones</h2>
+
+                    <select id="filtro-estado-suscripciones" class="filtro-pedidos">
+                        <option value="activa_pausada">Activas y pausadas</option>
+                        <option value="activa">Solo activas</option>
+                        <option value="pausada">Solo pausadas</option>
+                        <option value="cancelada">Canceladas</option>
+                        <option value="todas">Todas</option>
+                    </select>
+                </div>
+
+                <p class="estado-productos-panel oculto" id="estado-suscripciones-panel"></p>
+
+                <div class="grilla-productos-panel" id="lista-suscripciones-panel"></div>
             </section>
 
             <section class="panel-seccion oculto" id="seccion-perfil" role="tabpanel">

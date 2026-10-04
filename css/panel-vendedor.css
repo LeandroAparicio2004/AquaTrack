@@ -459,6 +459,33 @@ body {
     background: var(--color-amarillo-fondo-panel);
 }
 
+.etiqueta-estado-producto.activa {
+    color: var(--color-exito-panel);
+    background: var(--color-exito-fondo-panel);
+}
+
+.etiqueta-estado-producto.pausada {
+    color: var(--color-advertencia-panel);
+    background: var(--color-advertencia-fondo-panel);
+}
+
+.etiqueta-estado-producto.cancelada {
+    color: var(--color-peligro-panel);
+    background: var(--color-peligro-fondo-panel);
+}
+
+.proxima-entrega-suscripcion {
+    font-weight: 700;
+}
+
+.proxima-entrega-suscripcion.vencida {
+    color: var(--color-peligro-panel);
+}
+
+.proxima-entrega-suscripcion.proxima {
+    color: var(--color-advertencia-panel);
+}
+
 .tablero-entregas {
     display: flex;
     gap: 14px;
