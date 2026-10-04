@@ -237,5 +237,13 @@ document.getElementById('boton-cerrar-sesion').addEventListener('click', async (
     window.location.href = 'login.html';
 });
 
+document.getElementById('boton-volver-seguimiento').addEventListener('click', () => {
+    if (window.history.length > 1) {
+        window.history.back();
+    } else {
+        window.location.href = 'historial.html';
+    }
+});
+
 cargarSeguimiento();
 verificarSesionNav();

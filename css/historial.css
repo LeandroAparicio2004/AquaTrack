@@ -1,0 +1,139 @@
+.pagina-historial {
+  padding: 40px 0 80px;
+}
+
+.filtros-historial {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.chip-filtro-historial {
+  border: 1px solid var(--color-borde-inicio);
+  background: transparent;
+  color: var(--color-texto-secundario-inicio);
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.chip-filtro-historial:hover {
+  border-color: var(--color-acento-inicio);
+}
+
+.chip-filtro-historial.activo {
+  background: var(--color-acento-inicio);
+  border-color: var(--color-acento-inicio);
+  color: #ffffff;
+}
+
+.estado-historial {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--color-texto-secundario-inicio);
+  border: 1px dashed var(--color-borde-inicio);
+  border-radius: 16px;
+}
+
+.estado-historial.oculto {
+  display: none;
+}
+
+.lista-historial {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tarjeta-historial {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: var(--color-superficie-inicio);
+  border: 1px solid var(--color-borde-inicio);
+  border-radius: 14px;
+  padding: 18px 22px;
+}
+
+.tarjeta-historial.oculto {
+  display: none;
+}
+
+.info-historial {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 200px;
+}
+
+.numero-pedido-historial {
+  font-weight: 800;
+  color: var(--color-texto-inicio);
+  font-size: 0.95rem;
+}
+
+.distribuidora-historial {
+  color: var(--color-texto-secundario-inicio);
+  font-size: 0.85rem;
+}
+
+.fecha-historial {
+  color: var(--color-texto-secundario-inicio);
+  font-size: 0.78rem;
+}
+
+.detalle-historial {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.total-historial {
+  font-weight: 800;
+  color: var(--color-texto-inicio);
+  font-size: 1rem;
+  min-width: 90px;
+  text-align: right;
+}
+
+.acciones-historial {
+  display: flex;
+  gap: 8px;
+}
+
+.acciones-historial a {
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--color-acento-inicio);
+  color: var(--color-acento-inicio);
+}
+
+.acciones-historial a:hover {
+  background: var(--color-acento-inicio);
+  color: #ffffff;
+}
+
+@media (max-width: 640px) {
+  .tarjeta-historial {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .detalle-historial {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .total-historial {
+    text-align: left;
+  }
+}

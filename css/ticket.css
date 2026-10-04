@@ -1,0 +1,144 @@
+.pagina-ticket {
+  padding: 40px 0 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.boton-volver-ticket {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto 16px;
+  display: block;
+  background: none;
+  border: none;
+  color: var(--color-texto-secundario-inicio);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: left;
+  padding: 6px 0;
+}
+
+.boton-volver-ticket:hover {
+  color: var(--color-acento-inicio);
+}
+
+.estado-ticket.oculto,
+.ticket.oculto {
+  display: none;
+}
+
+.ticket {
+  width: 100%;
+  max-width: 420px;
+  background: var(--color-superficie-inicio);
+  border: 1px solid var(--color-borde-inicio);
+  border-radius: 16px;
+  padding: 28px;
+  font-family: 'Manrope', monospace;
+}
+
+.ticket h1 {
+  text-align: center;
+  color: var(--color-texto-inicio);
+  font-size: 1.4rem;
+}
+
+.subtitulo-ticket {
+  text-align: center;
+  color: var(--color-texto-secundario-inicio);
+  font-size: 0.85rem;
+  margin-bottom: 6px;
+}
+
+.separador-ticket {
+  border-top: 1px dashed var(--color-borde-inicio);
+  margin: 14px 0;
+}
+
+.fila-ticket {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.88rem;
+  color: var(--color-texto-inicio);
+  padding: 3px 0;
+}
+
+.fila-ticket.oculto {
+  display: none;
+}
+
+.fila-ticket span {
+  color: var(--color-texto-secundario-inicio);
+}
+
+.fila-total-ticket {
+  font-size: 1.05rem;
+  margin-top: 6px;
+}
+
+.fila-item-ticket {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.85rem;
+  color: var(--color-texto-inicio);
+  padding: 4px 0;
+}
+
+.fila-item-ticket small {
+  display: block;
+  color: var(--color-texto-secundario-inicio);
+}
+
+.bloque-qr-ticket {
+  text-align: center;
+}
+
+.bloque-qr-ticket #qr-ticket {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.bloque-qr-ticket p {
+  font-size: 0.8rem;
+  color: var(--color-texto-secundario-inicio);
+  margin-bottom: 4px;
+}
+
+.codigo-manual-ticket {
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--color-texto-inicio);
+}
+
+.enlace-seguimiento-ticket {
+  display: block;
+  text-align: center;
+  margin-top: 20px;
+  color: var(--color-acento-inicio);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.acciones-descarga-ticket {
+  width: 100%;
+  max-width: 420px;
+  margin: 16px auto 0;
+  display: flex;
+  gap: 10px;
+}
+
+.acciones-descarga-ticket.oculto {
+  display: none;
+}
+
+.acciones-descarga-ticket .btn {
+  flex: 1;
+  text-align: center;
+  font-size: 0.88rem;
+}

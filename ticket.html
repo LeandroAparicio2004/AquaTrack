@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <script>
+    (function () {
+      if (localStorage.getItem('aquatrack_tema') === 'oscuro') {
+        document.documentElement.setAttribute('data-tema', 'oscuro');
+      }
+    })();
+  </script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tu ticket — AquaTrack</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/comunes.css">
+  <link rel="stylesheet" href="css/inicio.css">
+  <link rel="stylesheet" href="css/ticket.css">
+</head>
+
+<body>
+  <header class="encabezado inicio-encabezado">
+    <div class="contenedor encabezado-interno">
+      <a href="index.html" class="marca-inicio" aria-label="Ir al inicio de AquaTrack">
+        <span class="logo">AquaTrack</span>
+      </a>
+
+      <nav class="navegacion-inicio" aria-label="Navegación principal">
+        <a href="productos.html" class="enlace-nav">Productos</a>
+
+        <div class="nav-sesion" id="nav-invitado">
+          <a href="login.html" class="enlace-nav">Iniciar sesión</a>
+        </div>
+
+        <div class="nav-sesion oculto" id="nav-usuario">
+          <a href="historial.html" class="enlace-nav">Mis pedidos</a>
+          <button type="button" class="btn btn-secundario btn-peligro" id="boton-cerrar-sesion">Salir</button>
+        </div>
+
+        <button type="button" class="btn-tema" id="btn-tema" aria-label="Cambiar tema"></button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="pagina-ticket">
+    <div class="contenedor">
+
+      <button type="button" class="boton-volver-ticket" id="boton-volver-ticket">← Volver</button>
+
+      <p class="estado-ticket oculto" id="estado-ticket"></p>
+
+      <div class="ticket oculto" id="ticket">
+        <h1>AquaTrack</h1>
+        <p class="subtitulo-ticket" id="distribuidora-ticket"></p>
+
+        <div class="separador-ticket"></div>
+
+        <div class="fila-ticket"><span>Nombre</span><strong id="nombre-ticket"></strong></div>
+        <div class="fila-ticket"><span>Apellido</span><strong id="apellido-ticket"></strong></div>
+        <div class="fila-ticket oculto" id="fila-dni-ticket"><span>DNI</span><strong id="dni-ticket"></strong></div>
+        <div class="fila-ticket"><span>Domicilio</span><strong id="domicilio-ticket"></strong></div>
+
+        <div class="separador-ticket"></div>
+
+        <div id="items-ticket"></div>
+
+        <div class="separador-ticket"></div>
+
+        <div class="fila-ticket"><span>Subtotal</span><strong id="subtotal-ticket"></strong></div>
+        <div class="fila-ticket oculto" id="fila-descuento-ticket"><span>Descuento por envases</span><strong id="descuento-ticket"></strong></div>
+        <div class="fila-ticket fila-total-ticket"><span>Total</span><strong id="total-ticket"></strong></div>
+
+        <div class="separador-ticket"></div>
+
+        <div class="bloque-qr-ticket">
+          <div id="qr-ticket"></div>
+          <p>Mostrale este código al repartidor al recibir tu pedido</p>
+          <p class="codigo-manual-ticket" id="codigo-manual-ticket"></p>
+        </div>
+
+        <a class="enlace-seguimiento-ticket" id="enlace-seguimiento-ticket" href="#">Seguir mi pedido en vivo</a>
+      </div>
+
+      <div class="acciones-descarga-ticket oculto" id="acciones-descarga-ticket">
+        <button type="button" class="btn btn-secundario" id="boton-descargar-jpg">Descargar JPG</button>
+        <button type="button" class="btn btn-principal" id="boton-descargar-pdf">Descargar PDF</button>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="js/ticket.js"></script>
+  <script src="js/tema.js"></script>
+</body>
+
+</html>

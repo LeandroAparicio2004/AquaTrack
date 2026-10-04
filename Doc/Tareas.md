@@ -24,15 +24,15 @@ Sprint 3 - Pedidos
 SCRUM-18 Control de Pedidos X
 SCRUM-22 Realizacion de Pedido 
 SCRUM-23 Visualizacion de codigo de confirmacion 
-SCRUM-14 Validación de Recepción
+SCRUM-14 Validación de Recepción X 
 
 Sprint 4 - Entregas y Seguimiento 
 SCRUM-12 Gestion de Entregas X
-SCRUM-13 Visualizacion de Ruta Optimizadas 
-SCRUM-24 Seguimiento en Vivo
+SCRUM-13 Visualizacion de Ruta Optimizadas X
+SCRUM-24 Seguimiento en Vivo X
 SCRUM-26 Comunicacion con Repartidor 
 SCRUM-36 Configurar Supabase Realtime (msj)
-SCRUM-37 Configurar integracion con OpenSteetMap y OSRM
+SCRUM-37 Configurar integracion con OpenSteetMap y OSRM X
 
 Sprint 5 - Paneles y Suscripción 
 SCRUM-16 Consulta de Dashboard Vendedor X
