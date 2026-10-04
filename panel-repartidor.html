@@ -129,9 +129,45 @@
         </div>
     </main>
 
+    <div class="modal-fondo oculto" id="modal-validacion-entrega" role="dialog" aria-modal="true"
+        aria-labelledby="titulo-modal-validacion">
+        <div class="modal-validacion-entrega">
+            <button type="button" class="boton-cerrar-modal" id="boton-cerrar-modal-validacion"
+                aria-label="Cerrar ventana">×</button>
+
+            <h2 id="titulo-modal-validacion">Confirmar entrega</h2>
+            <p class="subtitulo-modal-validacion">
+                Pedile al cliente el código QR o el código manual de su ticket para confirmar que recibió el pedido.
+            </p>
+
+            <div class="pestanas-validacion-entrega">
+                <button type="button" class="pestana-validacion activa" data-modo-validacion="qr">Escanear QR</button>
+                <button type="button" class="pestana-validacion" data-modo-validacion="manual">Código manual</button>
+            </div>
+
+            <div class="panel-escaner-qr" id="panel-escaner-qr">
+                <div id="lector-qr-entrega"></div>
+                <p class="estado-escaner-qr oculto" id="estado-escaner-qr"></p>
+            </div>
+
+            <div class="panel-codigo-manual oculto" id="panel-codigo-manual">
+                <div class="campo">
+                    <label for="input-codigo-manual-entrega">Código del ticket</label>
+                    <input type="text" id="input-codigo-manual-entrega" placeholder="Ej: AC9BFB6E" maxlength="8"
+                        autocapitalize="characters">
+                </div>
+                <button type="button" class="btn btn-principal" id="boton-confirmar-codigo-manual">Confirmar
+                    entrega</button>
+            </div>
+
+            <p class="mensaje-estado oculto" id="mensaje-validacion-entrega"></p>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="js/supabase-config.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="js/panel-repartidor.js"></script>
     <script src="js/tema.js"></script>
 </body>

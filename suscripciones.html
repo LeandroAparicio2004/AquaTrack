@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <script>
+    (function () {
+      if (localStorage.getItem('aquatrack_tema') === 'oscuro') {
+        document.documentElement.setAttribute('data-tema', 'oscuro');
+      }
+    })();
+  </script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Programá pedidos automáticos de agua a domicilio en AquaTrack.">
+  <title>Mis suscripciones — AquaTrack</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/comunes.css">
+  <link rel="stylesheet" href="css/inicio.css">
+  <link rel="stylesheet" href="css/seguimiento.css">
+  <link rel="stylesheet" href="css/suscripciones.css">
+</head>
+
+<body>
+  <header class="encabezado inicio-encabezado">
+    <div class="contenedor encabezado-interno">
+      <a href="index.html" class="marca-inicio" aria-label="Ir al inicio de AquaTrack">
+        <span class="logo">AquaTrack</span>
+      </a>
+
+      <nav class="navegacion-inicio" aria-label="Navegación principal">
+        <a href="productos.html" class="enlace-nav">Productos</a>
+
+        <div class="nav-sesion" id="nav-invitado">
+          <a href="login.html" class="enlace-nav">Iniciar sesión</a>
+          <a href="registro.html" class="btn btn-secundario">Crear cuenta</a>
+        </div>
+
+        <div class="nav-sesion oculto" id="nav-usuario">
+          <a href="historial.html" class="enlace-nav">Mis pedidos</a>
+          <a href="suscripciones.html" class="enlace-nav">Suscripciones</a>
+          <button type="button" class="btn btn-secundario btn-peligro" id="boton-cerrar-sesion">Salir</button>
+        </div>
+
+        <button type="button" class="btn-tema" id="btn-tema" aria-label="Cambiar tema"></button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="pagina-suscripciones">
+    <div class="contenedor">
+
+      <div class="encabezado-seguimiento">
+        <p class="etiqueta-seccion">Pedidos automáticos</p>
+        <h1>Mis suscripciones</h1>
+      </div>
+
+      <button type="button" class="btn btn-principal" id="boton-nueva-suscripcion">+ Nueva suscripción</button>
+
+      <p class="estado-suscripciones oculto" id="estado-suscripciones"></p>
+
+      <div class="lista-suscripciones" id="lista-suscripciones"></div>
+
+    </div>
+  </main>
+
+  <div class="modal-fondo oculto" id="modal-suscripcion" role="dialog" aria-modal="true"
+    aria-labelledby="titulo-modal-suscripcion">
+    <div class="modal-suscripcion">
+      <button type="button" class="boton-cerrar-modal" id="boton-cerrar-modal-suscripcion"
+        aria-label="Cerrar ventana">×</button>
+
+      <h2 id="titulo-modal-suscripcion">Nueva suscripción</h2>
+      <p class="subtitulo-modal-suscripcion">
+        Elegí la empresa, el producto y cada cuánto querés que te llegue.
+      </p>
+
+      <form id="formulario-suscripcion" novalidate>
+        <div class="campo">
+          <label for="distribuidora-suscripcion">Distribuidora</label>
+          <select id="distribuidora-suscripcion" required>
+            <option value="">Seleccioná una distribuidora...</option>
+          </select>
+        </div>
+
+        <div class="campo">
+          <label for="producto-suscripcion">Producto</label>
+          <select id="producto-suscripcion" required disabled>
+            <option value="">Elegí primero una distribuidora</option>
+          </select>
+        </div>
+
+        <div class="fila-doble">
+          <div class="campo">
+            <label for="cantidad-suscripcion">Cantidad de bidones</label>
+            <input type="number" id="cantidad-suscripcion" min="1" value="1" required>
+          </div>
+          <div class="campo">
+            <label for="envases-suscripcion">Envases a devolver</label>
+            <input type="number" id="envases-suscripcion" min="0" value="0">
+          </div>
+        </div>
+
+        <div class="fila-doble">
+          <div class="campo">
+            <label for="frecuencia-suscripcion">Frecuencia</label>
+            <select id="frecuencia-suscripcion" required>
+              <option value="semanal">Semanal</option>
+              <option value="quincenal">Quincenal</option>
+              <option value="mensual" selected>Mensual</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="fecha-suscripcion">Primera entrega</label>
+            <input type="date" id="fecha-suscripcion" required>
+          </div>
+        </div>
+
+        <div class="campo">
+          <label for="calle-suscripcion">Calle y número</label>
+          <div class="fila-doble">
+            <input type="text" id="calle-suscripcion" placeholder="Av. Siempre Viva" required>
+            <input type="text" id="numero-suscripcion" placeholder="Número">
+          </div>
+        </div>
+
+        <div class="fila-doble">
+          <div class="campo">
+            <label for="ciudad-suscripcion">Ciudad</label>
+            <input type="text" id="ciudad-suscripcion" required>
+          </div>
+          <div class="campo">
+            <label for="provincia-suscripcion">Provincia</label>
+            <input type="text" id="provincia-suscripcion">
+          </div>
+        </div>
+
+        <div class="campo">
+          <label for="referencia-suscripcion">Referencia (opcional)</label>
+          <input type="text" id="referencia-suscripcion" placeholder="Casa con portón negro">
+        </div>
+
+        <div class="campo">
+          <label>Método de pago</label>
+
+          <label class="opcion-pago-suscripcion">
+            <input type="radio" name="metodo-pago-suscripcion" value="efectivo" checked>
+            Efectivo al recibir cada pedido
+          </label>
+          <label class="opcion-pago-suscripcion">
+            <input type="radio" name="metodo-pago-suscripcion" value="transferencia">
+            Transferencia por cada pedido
+          </label>
+        </div>
+
+        <p class="mensaje-estado oculto" id="mensaje-suscripcion"></p>
+
+        <button type="submit" class="btn btn-principal" id="boton-guardar-suscripcion">Crear suscripción</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/suscripciones.js"></script>
+  <script src="js/tema.js"></script>
+</body>
+
+</html>

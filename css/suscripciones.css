@@ -1,0 +1,249 @@
+.pagina-suscripciones {
+  padding: 40px 0 80px;
+}
+
+#boton-nueva-suscripcion {
+  margin-bottom: 24px;
+}
+
+.estado-suscripciones {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--color-texto-secundario-inicio);
+  border: 1px dashed var(--color-borde-inicio);
+  border-radius: 16px;
+}
+
+.estado-suscripciones.oculto {
+  display: none;
+}
+
+.lista-suscripciones {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tarjeta-suscripcion {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  flex-wrap: wrap;
+  background: var(--color-superficie-inicio);
+  border: 1px solid var(--color-borde-inicio);
+  border-radius: 14px;
+  padding: 20px 22px;
+}
+
+.info-suscripcion h3 {
+  color: var(--color-texto-inicio);
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.info-suscripcion p {
+  color: var(--color-texto-secundario-inicio);
+  font-size: 0.85rem;
+  margin-bottom: 2px;
+}
+
+.info-suscripcion a {
+  color: var(--color-acento-inicio);
+  font-weight: 700;
+  font-size: 0.82rem;
+}
+
+.detalle-suscripcion {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.acciones-suscripcion {
+  display: flex;
+  gap: 8px;
+}
+
+.acciones-suscripcion button {
+  font-size: 0.82rem;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.boton-pausar-suscripcion,
+.boton-reactivar-suscripcion {
+  border: 1px solid var(--color-acento-inicio);
+  background: transparent;
+  color: var(--color-acento-inicio);
+}
+
+.boton-pausar-suscripcion:hover,
+.boton-reactivar-suscripcion:hover {
+  background: var(--color-acento-inicio);
+  color: #ffffff;
+}
+
+.boton-cancelar-suscripcion {
+  border: 1px solid #b91c1c;
+  background: transparent;
+  color: #b91c1c;
+}
+
+.boton-cancelar-suscripcion:hover {
+  background: #b91c1c;
+  color: #ffffff;
+}
+
+/* Reutiliza la clase .etiqueta-estado-pedido de seguimiento.css, agregamos el estado "pausada" */
+.etiqueta-estado-pedido.pausada {
+  color: #92400e;
+  background: #fff7ed;
+}
+
+.etiqueta-estado-pedido.cancelada {
+  color: #b91c1c;
+  background: #fef2f2;
+}
+
+/* Modal de alta */
+.modal-suscripcion {
+  width: 100%;
+  max-width: 460px;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  padding: 30px 26px;
+  border-radius: 18px;
+  background: var(--color-superficie-inicio);
+  box-shadow: 0 24px 70px rgba(18, 35, 45, 0.25);
+}
+
+.modal-suscripcion h2 {
+  margin-bottom: 8px;
+  color: var(--color-texto-inicio);
+  font-size: 1.2rem;
+}
+
+.subtitulo-modal-suscripcion {
+  margin-bottom: 20px;
+  color: var(--color-texto-secundario-inicio);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.modal-suscripcion .campo {
+  margin-bottom: 16px;
+}
+
+.modal-suscripcion .campo label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--color-texto-inicio);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.modal-suscripcion .fila-doble {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.modal-suscripcion input,
+.modal-suscripcion select {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid var(--color-borde-inicio);
+  border-radius: 10px;
+  outline: none;
+  color: var(--color-texto-inicio);
+  background: var(--color-campo-inicio);
+  font-family: var(--fuente-base);
+  font-size: 0.92rem;
+}
+
+.modal-suscripcion input:disabled,
+.modal-suscripcion select:disabled {
+  opacity: 0.6;
+}
+
+.opcion-pago-suscripcion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 13px;
+  border: 1px solid var(--color-borde-inicio);
+  border-radius: 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  color: var(--color-texto-inicio);
+  font-size: 0.88rem;
+}
+
+.opcion-pago-suscripcion input {
+  width: auto;
+}
+
+.modal-suscripcion .boton-cerrar-modal {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: var(--color-texto-secundario-inicio);
+  background: var(--color-acento-suave-inicio);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.modal-suscripcion .mensaje-estado {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.modal-suscripcion .mensaje-estado.exito {
+  color: var(--color-exito-texto-inicio);
+  background: var(--color-exito-fondo-inicio);
+}
+
+.modal-suscripcion .mensaje-estado.error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: #b91c1c;
+}
+
+.modal-suscripcion .mensaje-estado.oculto {
+  display: none;
+}
+
+.modal-suscripcion #boton-guardar-suscripcion {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .tarjeta-suscripcion {
+    flex-direction: column;
+  }
+
+  .detalle-suscripcion {
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .modal-suscripcion .fila-doble {
+    grid-template-columns: 1fr;
+  }
+}

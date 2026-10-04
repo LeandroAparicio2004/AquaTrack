@@ -14,6 +14,9 @@ function escaparHtml(valor) {
 
 let usuarioActual = null;
 let archivoFotoRepartidor = null;
+let entregasPedidosCache = {};
+let entregaSeleccionadaValidacion = null;
+let lectorQrEntrega = null;
 
 const etiquetasEstadoEntrega = {
     asignada: 'Asignada',
@@ -48,6 +51,11 @@ async function cargarMisEntregas() {
         estadoVacio.classList.remove('oculto');
         return;
     }
+
+    entregasPedidosCache = {};
+    (data || []).forEach((entrega) => {
+        entregasPedidosCache[entrega.id] = entrega.pedidos?.id;
+    });
 
     const barraSalir = document.getElementById('barra-salir-repartir');
     barraSalir.classList.toggle('oculto', !(data || []).some((entrega) => entrega.estado === 'asignada'));
@@ -243,24 +251,146 @@ function formatearPrecio(valor) {
     return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(valor || 0);
 }
 
-document.getElementById('lista-entregas-repartidor').addEventListener('click', async (evento) => {
+document.getElementById('lista-entregas-repartidor').addEventListener('click', (evento) => {
     const botonConfirmar = evento.target.closest('[data-confirmar-entrega]');
     if (!botonConfirmar) return;
 
-    botonConfirmar.disabled = true;
+    abrirModalValidacionEntrega(botonConfirmar.dataset.confirmarEntrega);
+});
+
+function codigoManualDePedido(idPedido) {
+    return (idPedido || '').slice(0, 8).toUpperCase();
+}
+
+function mostrarMensajeValidacion(texto, tipo) {
+    const mensaje = document.getElementById('mensaje-validacion-entrega');
+    mensaje.textContent = texto;
+    mensaje.className = `mensaje-estado ${tipo}`;
+    mensaje.classList.remove('oculto');
+}
+
+function ocultarMensajeValidacion() {
+    document.getElementById('mensaje-validacion-entrega').classList.add('oculto');
+}
+
+async function iniciarEscanerQr() {
+    const estadoEscaner = document.getElementById('estado-escaner-qr');
+    estadoEscaner.classList.add('oculto');
+
+    try {
+        lectorQrEntrega = new Html5Qrcode('lector-qr-entrega');
+
+        await lectorQrEntrega.start(
+            { facingMode: 'environment' },
+            { fps: 10, qrbox: 220 },
+            (textoDecodificado) => procesarCodigoValidacion(textoDecodificado),
+            () => {}
+        );
+    } catch (error) {
+        estadoEscaner.textContent = 'No pudimos acceder a la cámara. Usá el código manual.';
+        estadoEscaner.classList.remove('oculto');
+    }
+}
+
+async function detenerEscanerQr() {
+    if (lectorQrEntrega) {
+        try {
+            await lectorQrEntrega.stop();
+            await lectorQrEntrega.clear();
+        } catch {
+            // La cámara ya estaba detenida.
+        }
+        lectorQrEntrega = null;
+    }
+}
+
+function abrirModalValidacionEntrega(idEntrega) {
+    entregaSeleccionadaValidacion = idEntrega;
+    ocultarMensajeValidacion();
+    document.getElementById('input-codigo-manual-entrega').value = '';
+    document.getElementById('modal-validacion-entrega').classList.remove('oculto');
+
+    document.querySelectorAll('.pestana-validacion').forEach((pestana) => {
+        pestana.classList.toggle('activa', pestana.dataset.modoValidacion === 'qr');
+    });
+    document.getElementById('panel-escaner-qr').classList.remove('oculto');
+    document.getElementById('panel-codigo-manual').classList.add('oculto');
+
+    iniciarEscanerQr();
+}
+
+async function cerrarModalValidacionEntrega() {
+    await detenerEscanerQr();
+    document.getElementById('modal-validacion-entrega').classList.add('oculto');
+    entregaSeleccionadaValidacion = null;
+}
+
+document.getElementById('boton-cerrar-modal-validacion').addEventListener('click', cerrarModalValidacionEntrega);
+
+document.querySelectorAll('.pestana-validacion').forEach((pestana) => {
+    pestana.addEventListener('click', async () => {
+        document.querySelectorAll('.pestana-validacion').forEach((elemento) => elemento.classList.remove('activa'));
+        pestana.classList.add('activa');
+        ocultarMensajeValidacion();
+
+        const modo = pestana.dataset.modoValidacion;
+        document.getElementById('panel-escaner-qr').classList.toggle('oculto', modo !== 'qr');
+        document.getElementById('panel-codigo-manual').classList.toggle('oculto', modo !== 'manual');
+
+        if (modo === 'qr') {
+            await iniciarEscanerQr();
+        } else {
+            await detenerEscanerQr();
+        }
+    });
+});
+
+async function procesarCodigoValidacion(codigoIngresado) {
+    const idPedidoEsperado = entregasPedidosCache[entregaSeleccionadaValidacion];
+    const valorLimpio = (codigoIngresado || '').trim().toUpperCase();
+
+    const coincide = valorLimpio === (idPedidoEsperado || '').toUpperCase()
+        || valorLimpio === codigoManualDePedido(idPedidoEsperado);
+
+    if (!coincide) {
+        mostrarMensajeValidacion('Ese código no corresponde a este pedido.', 'error');
+        return;
+    }
+
+    await detenerEscanerQr();
+    await confirmarEntregaValidada();
+}
+
+async function confirmarEntregaValidada() {
+    const idEntrega = entregaSeleccionadaValidacion;
 
     const { error } = await supabaseCliente
         .from('entregas')
         .update({ estado: 'entregada', entregada_en: new Date().toISOString() })
-        .eq('id', botonConfirmar.dataset.confirmarEntrega);
+        .eq('id', idEntrega);
 
     if (error) {
-        alert('No pudimos confirmar la entrega. Intentá de nuevo.');
-        botonConfirmar.disabled = false;
+        mostrarMensajeValidacion('No pudimos confirmar la entrega. Intentá de nuevo.', 'error');
         return;
     }
 
-    await cargarMisEntregas(); 
+    mostrarMensajeValidacion('¡Entrega confirmada!', 'exito');
+
+    setTimeout(async () => {
+        await cerrarModalValidacionEntrega();
+        await cargarMisEntregas();
+    }, 900);
+}
+
+document.getElementById('boton-confirmar-codigo-manual').addEventListener('click', () => {
+    const valorIngresado = document.getElementById('input-codigo-manual-entrega').value;
+
+    if (!valorIngresado.trim()) {
+        mostrarMensajeValidacion('Ingresá el código del ticket.', 'error');
+        return;
+    }
+
+    procesarCodigoValidacion(valorIngresado);
 });
 
 

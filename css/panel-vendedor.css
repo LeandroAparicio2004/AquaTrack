@@ -778,6 +778,131 @@ body {
     cursor: pointer;
 }
 
+.modal-validacion-entrega {
+    width: 100%;
+    max-width: 420px;
+    position: relative;
+    padding: 30px 26px;
+    border-radius: 18px;
+    background: var(--color-superficie-panel);
+    box-shadow: 0 24px 70px rgba(18, 35, 45, 0.25);
+}
+
+.modal-validacion-entrega h2 {
+    margin-bottom: 8px;
+    color: var(--color-texto-panel);
+    font-size: 1.2rem;
+}
+
+.modal-validacion-entrega .boton-cerrar-modal {
+    width: 30px;
+    height: 30px;
+    display: grid;
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    color: var(--color-texto-secundario-panel);
+    background: var(--color-acento-suave-panel);
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.subtitulo-modal-validacion {
+    margin-bottom: 18px;
+    color: var(--color-texto-secundario-panel);
+    font-size: 0.85rem;
+    line-height: 1.5;
+}
+
+.pestanas-validacion-entrega {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.pestana-validacion {
+    flex: 1;
+    padding: 9px 0;
+    border: 1px solid var(--color-borde-panel);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--color-texto-secundario-panel);
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.pestana-validacion.activa {
+    background: var(--color-acento-panel);
+    border-color: var(--color-acento-panel);
+    color: #ffffff;
+}
+
+.panel-escaner-qr.oculto,
+.panel-codigo-manual.oculto {
+    display: none;
+}
+
+#lector-qr-entrega {
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.estado-escaner-qr {
+    margin-top: 10px;
+    text-align: center;
+    color: var(--color-texto-secundario-panel);
+    font-size: 0.82rem;
+}
+
+.estado-escaner-qr.oculto {
+    display: none;
+}
+
+.panel-codigo-manual .campo {
+    margin-bottom: 14px;
+}
+
+.panel-codigo-manual label {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--color-texto-panel);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.panel-codigo-manual input {
+    width: 100%;
+    padding: 11px 13px;
+    border: 1px solid var(--color-borde-panel);
+    border-radius: 10px;
+    outline: none;
+    color: var(--color-texto-panel);
+    background: var(--color-campo-panel);
+    font-family: var(--fuente-base);
+    font-size: 1rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.panel-codigo-manual .btn {
+    width: 100%;
+}
+
+.modal-validacion-entrega .mensaje-estado {
+    margin-top: 14px;
+    padding: 12px 14px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
 .btn-ancho {
     width: 100%;
     text-align: center;
