@@ -72,10 +72,35 @@
         </div>
 
         <div class="tarjeta-cuenta-transferencia">
-          <div class="fila-ticket"><span>Alias / CBU</span><strong id="comprobante-alias"></strong></div>
+          <div class="fila-ticket">
+            <span>Alias</span>
+            <span class="valor-copiable">
+              <strong id="comprobante-alias"></strong>
+              <button type="button" class="btn-copiar" data-copiar="comprobante-alias" aria-label="Copiar alias">
+                Copiar
+              </button>
+            </span>
+          </div>
+          <div class="fila-ticket">
+            <span>CBU</span>
+            <span class="valor-copiable">
+              <strong id="comprobante-cbu"></strong>
+              <button type="button" class="btn-copiar" data-copiar="comprobante-cbu" aria-label="Copiar CBU">
+                Copiar
+              </button>
+            </span>
+          </div>
           <div class="fila-ticket"><span>Titular</span><strong id="comprobante-titular"></strong></div>
           <div class="fila-ticket"><span>CUIT</span><strong id="comprobante-cuit"></strong></div>
-          <div class="fila-ticket fila-resumen-total"><span>Monto a transferir</span><strong id="comprobante-monto"></strong></div>
+          <div class="fila-ticket fila-resumen-total"><span>Monto a transferir</span><strong
+              id="comprobante-monto"></strong></div>
+
+          <div class="bloque-qr-transferencia">
+            <div id="qr-transferencia"></div>
+            <p class="texto-ayuda-carrito">
+              Escaneá este código con la cámara o la app de tu banco para copiar el alias/CBU y el monto.
+            </p>
+          </div>
         </div>
 
         <div class="campo">
@@ -336,6 +361,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="js/supabase-config.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <script src="js/carrito.js"></script>
   <script src="js/tema.js"></script>
 </body>

@@ -801,7 +801,8 @@ function renderizarOpcionesPago() {
             <strong>Cuenta central de AquaTrack</strong>
 
             ${configuracionPagoAquaTrack ? `
-                <p>Alias / CBU: <strong>${escaparHtml(configuracionPagoAquaTrack.alias_cbu || '—')}</strong></p>
+                <p>Alias: <strong>${escaparHtml(configuracionPagoAquaTrack.alias || '—')}</strong></p>
+                <p>CBU: <strong>${escaparHtml(configuracionPagoAquaTrack.cbu || '—')}</strong></p>
                 <p>Titular: <strong>${escaparHtml(configuracionPagoAquaTrack.titular_cuenta || '—')}</strong></p>
                 <p>CUIT: <strong>${escaparHtml(configuracionPagoAquaTrack.cuit || '—')}</strong></p>
                 <p class="texto-ayuda-carrito">
@@ -1277,19 +1278,48 @@ function mostrarPasoComprobante(resumen) {
     const panel = document.getElementById('paso-comprobante');
     panel.classList.remove('oculto');
 
-    document.getElementById('comprobante-alias').textContent =
-        configuracionPagoAquaTrack?.alias_cbu || '—';
+    const alias = configuracionPagoAquaTrack?.alias || '—';
+    const cbu = configuracionPagoAquaTrack?.cbu || '—';
+    const titular = configuracionPagoAquaTrack?.titular_cuenta || '—';
+    const cuit = configuracionPagoAquaTrack?.cuit || '—';
+    const montoFormateado = formatearPrecio(resumen.total);
 
-    document.getElementById('comprobante-titular').textContent =
-        configuracionPagoAquaTrack?.titular_cuenta || '—';
+    document.getElementById('comprobante-alias').textContent = alias;
+    document.getElementById('comprobante-cbu').textContent = cbu;
+    document.getElementById('comprobante-titular').textContent = titular;
+    document.getElementById('comprobante-cuit').textContent = cuit;
+    document.getElementById('comprobante-monto').textContent = montoFormateado;
 
-    document.getElementById('comprobante-cuit').textContent =
-        configuracionPagoAquaTrack?.cuit || '—';
-
-    document.getElementById('comprobante-monto').textContent =
-        formatearPrecio(resumen.total);
+    generarQrTransferencia({ alias, cbu, titular, cuit, montoFormateado });
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function generarQrTransferencia({ alias, cbu, titular, cuit, montoFormateado }) {
+    const contenedor = document.getElementById('qr-transferencia');
+
+    if (!contenedor || !window.QRCode) {
+        return;
+    }
+
+    contenedor.innerHTML = '';
+
+    const texto =
+        `Transferencia AquaTrack\n` +
+        `Alias: ${alias}\n` +
+        `CBU: ${cbu}\n` +
+        `Titular: ${titular}\n` +
+        `CUIT: ${cuit}\n` +
+        `Monto: ${montoFormateado}`;
+
+    QRCode.toCanvas(texto, { width: 180, margin: 1 }, (error, canvas) => {
+        if (error) {
+            contenedor.textContent = 'No pudimos generar el código QR.';
+            return;
+        }
+
+        contenedor.appendChild(canvas);
+    });
 }
 
 function mostrarMensajeComprobante(texto, tipo = '') {
@@ -1389,10 +1419,41 @@ if (btnOmitirComprobante) {
     });
 }
 
+document.addEventListener('click', (evento) => {
+    const botonCopiar = evento.target.closest('[data-copiar]');
+
+    if (!botonCopiar) {
+        return;
+    }
+
+    const elementoOrigen =
+        document.getElementById(botonCopiar.dataset.copiar);
+
+    if (!elementoOrigen) {
+        return;
+    }
+
+    navigator.clipboard
+        .writeText(elementoOrigen.textContent.trim())
+        .then(() => {
+            const textoOriginal = botonCopiar.textContent;
+            botonCopiar.textContent = '¡Copiado!';
+            botonCopiar.disabled = true;
+
+            setTimeout(() => {
+                botonCopiar.textContent = textoOriginal;
+                botonCopiar.disabled = false;
+            }, 1500);
+        })
+        .catch(() => {
+            alert('No pudimos copiar. Copialo manualmente.');
+        });
+});
+
 async function cargarConfiguracionPagoAquaTrack() {
     const { data, error } = await supabaseCliente
         .from('configuracion_plataforma')
-        .select('alias_cbu, titular_cuenta, cuit, comision_porcentaje')
+        .select('alias, cbu, titular_cuenta, cuit, comision_porcentaje')
         .eq('id', true)
         .single();
 
