@@ -61,6 +61,41 @@
         <a href="productos.html" class="btn btn-principal">Ver catálogo</a>
       </div>
 
+      <div class="paso-comprobante oculto" id="paso-comprobante">
+        <div class="encabezado-paso">
+          <p class="etiqueta-seccion">Último paso</p>
+          <h2>Subí el comprobante de tu transferencia</h2>
+          <p>
+            Transferí el total de tu pedido a esta cuenta y subí la captura. El admin de AquaTrack
+            va a confirmar el pago y avisarle a cada distribuidora.
+          </p>
+        </div>
+
+        <div class="tarjeta-cuenta-transferencia">
+          <div class="fila-ticket"><span>Alias / CBU</span><strong id="comprobante-alias"></strong></div>
+          <div class="fila-ticket"><span>Titular</span><strong id="comprobante-titular"></strong></div>
+          <div class="fila-ticket"><span>CUIT</span><strong id="comprobante-cuit"></strong></div>
+          <div class="fila-ticket fila-resumen-total"><span>Monto a transferir</span><strong id="comprobante-monto"></strong></div>
+        </div>
+
+        <div class="campo">
+          <label for="input-comprobante">Foto o captura del comprobante</label>
+          <input type="file" id="input-comprobante" accept="image/*">
+        </div>
+
+        <p class="mensaje-estado oculto" id="mensaje-comprobante"></p>
+
+        <div class="acciones-paso">
+          <button type="button" class="btn btn-secundario" id="btn-omitir-comprobante">
+            Subir más tarde
+          </button>
+
+          <button type="button" class="btn btn-principal" id="btn-subir-comprobante" disabled>
+            Subir comprobante y finalizar
+          </button>
+        </div>
+      </div>
+
       <form id="formulario-checkout" class="grilla-checkout" novalidate>
 
         <div class="indicador-pasos" aria-label="Pasos del pedido">
@@ -189,6 +224,7 @@
           <div class="bloque-carrito">
             <h2>Método de pago</h2>
             <div id="opciones-pago"></div>
+            <p class="mensaje-estado oculto" id="mensaje-metodo-pago"></p>
           </div>
 
           <div class="acciones-paso">

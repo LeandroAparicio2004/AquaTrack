@@ -22,7 +22,7 @@ SCRUM-49 Creacion de Admin X
 
 Sprint 3 - Pedidos
 SCRUM-18 Control de Pedidos X
-SCRUM-22 Realizacion de Pedido 
+SCRUM-22 Realizacion de Pedido  
 SCRUM-23 Visualizacion de codigo de confirmacion X
 SCRUM-14 Validación de Recepción X 
 

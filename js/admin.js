@@ -149,12 +149,185 @@ document.getElementById('lista-pendientes').addEventListener('click', (evento) =
     }
 });
 
+function formatearPrecioAdmin(precio) {
+    return new Intl.NumberFormat('es-AR', {
+        style: 'currency',
+        currency: 'ARS',
+        maximumFractionDigits: 0
+    }).format(Number(precio) || 0);
+}
+
+function crearTarjetaPago(pago) {
+    const cliente = pago.usuarios
+        ? `${pago.usuarios.nombre || ''} ${pago.usuarios.apellido || ''}`.trim()
+        : 'Cliente';
+
+    const fecha = pago.creado_en
+        ? new Date(pago.creado_en).toLocaleString('es-AR')
+        : '';
+
+    const desglose = (pago.desglose || []).map((item) => `
+        <div class="fila-desglose-pago">
+            <div class="fila-desglose-pago-info">
+                <strong>${escaparHtml(item.nombre)}</strong>
+                <span>Alias/CBU: ${escaparHtml(item.alias_cbu || 'No cargado')}</span>
+                <span>Titular: ${escaparHtml(item.titular_cuenta || 'No cargado')}</span>
+            </div>
+            <div class="fila-desglose-pago-monto">
+                ${formatearPrecioAdmin(item.monto)}
+            </div>
+        </div>
+    `).join('');
+
+    const comprobante = pago.comprobante_url
+        ? `<a href="${escaparHtml(pago.comprobante_url)}" target="_blank" rel="noopener" class="enlace-comprobante-pago">Ver comprobante</a>`
+        : `<span class="texto-sin-comprobante">El cliente todavía no subió el comprobante.</span>`;
+
+    const tarjeta = document.createElement('article');
+    tarjeta.className = 'tarjeta-pago-transferencia';
+
+    tarjeta.innerHTML = `
+        <div class="tarjeta-pago-superior">
+            <div>
+                <h3>${escaparHtml(cliente)}</h3>
+                <p class="tarjeta-pago-fecha">${escaparHtml(fecha)}</p>
+            </div>
+            <span class="etiqueta-estado-producto pendiente">Pendiente</span>
+        </div>
+
+        <div class="tarjeta-pago-totales">
+            <div class="fila-resumen">
+                <span>Monto total transferido</span>
+                <strong>${formatearPrecioAdmin(pago.monto_total)}</strong>
+            </div>
+            <div class="fila-resumen">
+                <span>Comisión AquaTrack (${Number(pago.comision_porcentaje) || 0}%)</span>
+                <strong>${formatearPrecioAdmin((Number(pago.monto_total) || 0) * (Number(pago.comision_porcentaje) || 0) / 100)}</strong>
+            </div>
+        </div>
+
+        <div class="tarjeta-pago-comprobante">${comprobante}</div>
+
+        <h4 class="titulo-desglose-pago">A rendir a cada distribuidora</h4>
+        <div class="desglose-pago">${desglose || '<p>Sin pedidos asociados.</p>'}</div>
+
+        <div class="tarjeta-producto-panel-acciones">
+            <button type="button" class="btn btn-principal btn-chico" data-confirmar-pago="${pago.id}">
+                Confirmar pago recibido
+            </button>
+        </div>
+    `;
+
+    return tarjeta;
+}
+
+async function cargarPagosTransferencia() {
+    const lista = document.getElementById('lista-pagos-transferencia');
+    const estadoVacio = document.getElementById('estado-pagos');
+
+    const { data, error } = await supabaseCliente
+        .from('pagos_transferencia')
+        .select(`
+            id, monto_total, comision_porcentaje, comprobante_url, estado, creado_en,
+            usuarios ( nombre, apellido )
+        `)
+        .eq('estado', 'pendiente')
+        .order('creado_en', { ascending: false });
+
+    lista.innerHTML = '';
+
+    if (error) {
+        estadoVacio.textContent = 'No pudimos cargar los pagos. Recargá la página.';
+        estadoVacio.classList.remove('oculto');
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        estadoVacio.textContent = 'No hay pagos por transferencia pendientes de confirmar.';
+        estadoVacio.classList.remove('oculto');
+        return;
+    }
+
+    estadoVacio.classList.add('oculto');
+
+    for (const pago of data) {
+        const { data: pedidosDelPago } = await supabaseCliente
+            .from('pedidos')
+            .select('total, distribuidoras ( nombre, alias_cbu, titular_cuenta )')
+            .eq('pago_transferencia_id', pago.id);
+
+        const mapaDesglose = new Map();
+
+        (pedidosDelPago || []).forEach((pedido) => {
+            const nombre = pedido.distribuidoras?.nombre || 'Distribuidora';
+
+            if (!mapaDesglose.has(nombre)) {
+                mapaDesglose.set(nombre, {
+                    nombre,
+                    alias_cbu: pedido.distribuidoras?.alias_cbu,
+                    titular_cuenta: pedido.distribuidoras?.titular_cuenta,
+                    monto: 0
+                });
+            }
+
+            mapaDesglose.get(nombre).monto += Number(pedido.total) || 0;
+        });
+
+        pago.desglose = Array.from(mapaDesglose.values());
+
+        lista.appendChild(crearTarjetaPago(pago));
+    }
+}
+
+async function confirmarPago(id, boton) {
+    boton.disabled = true;
+    boton.textContent = 'Confirmando...';
+
+    const {
+        data: { session }
+    } = await supabaseCliente.auth.getSession();
+
+    const { error } = await supabaseCliente
+        .from('pagos_transferencia')
+        .update({
+            estado: 'confirmado',
+            confirmado_por: session?.user?.id || null,
+            confirmado_en: new Date().toISOString()
+        })
+        .eq('id', id);
+
+    if (error) {
+        alert('No pudimos confirmar el pago. Intentá de nuevo.');
+        boton.disabled = false;
+        boton.textContent = 'Confirmar pago recibido';
+        return;
+    }
+
+    await cargarPagosTransferencia();
+}
+
+document.getElementById('lista-pagos-transferencia').addEventListener('click', (evento) => {
+    const botonConfirmar = evento.target.closest('[data-confirmar-pago]');
+
+    if (botonConfirmar) {
+        const confirmado = confirm(
+            '¿Confirmás que la transferencia llegó a la cuenta de AquaTrack?'
+        );
+
+        if (confirmado) {
+            confirmarPago(botonConfirmar.dataset.confirmarPago, botonConfirmar);
+        }
+    }
+});
+
 const pestanas = document.querySelectorAll('.panel-pestana');
 const secciones = {
     pendientes: document.getElementById('seccion-pendientes'),
-    todas: document.getElementById('seccion-todas')
+    todas: document.getElementById('seccion-todas'),
+    pagos: document.getElementById('seccion-pagos')
 };
 let seccionTodasCargada = false;
+let seccionPagosCargada = false;
 
 pestanas.forEach((pestana) => {
     pestana.addEventListener('click', () => {
@@ -173,6 +346,11 @@ pestanas.forEach((pestana) => {
         if (pestana.dataset.pestana === 'todas' && !seccionTodasCargada) {
             seccionTodasCargada = true;
             cargarTodas();
+        }
+
+        if (pestana.dataset.pestana === 'pagos' && !seccionPagosCargada) {
+            seccionPagosCargada = true;
+            cargarPagosTransferencia();
         }
     });
 });

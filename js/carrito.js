@@ -6,6 +6,10 @@ let marcadorDireccion = null;
 let temporizadorBusquedaDireccion = null;
 let resultadosDirecciones = [];
 
+let configuracionPagoAquaTrack = null;
+let idPagoTransferenciaActual = null;
+let resumenActualCheckout = null;
+
 function escaparHtml(valor) {
     return String(valor ?? '').replace(/[&<>"']/g, (caracter) => {
         const caracteresEspeciales = {
@@ -796,10 +800,16 @@ function renderizarOpcionesPago() {
 
             <strong>Cuenta central de AquaTrack</strong>
 
-            <p>
-                Los datos de alias, CBU, titular y CUIT
-                se mostrarán al comenzar el pago.
-            </p>
+            ${configuracionPagoAquaTrack ? `
+                <p>Alias / CBU: <strong>${escaparHtml(configuracionPagoAquaTrack.alias_cbu || '—')}</strong></p>
+                <p>Titular: <strong>${escaparHtml(configuracionPagoAquaTrack.titular_cuenta || '—')}</strong></p>
+                <p>CUIT: <strong>${escaparHtml(configuracionPagoAquaTrack.cuit || '—')}</strong></p>
+                <p class="texto-ayuda-carrito">
+                    Vas a poder subir el comprobante después de confirmar el pedido.
+                </p>
+            ` : `
+                <p>No pudimos cargar los datos de la cuenta. Recargá la página.</p>
+            `}
         </div>
     `;
 
@@ -1072,7 +1082,8 @@ function obtenerDatosDireccion() {
 async function crearPedidosDesdeCarrito(
     sesion,
     resumen,
-    metodoPago
+    metodoPago,
+    idPagoTransferencia = null
 ) {
     const direccion = obtenerDatosDireccion();
     const pedidosCreados = [];
@@ -1101,7 +1112,9 @@ async function crearPedidosDesdeCarrito(
                     descuento_envases: grupo.descuento,
                     total: grupo.total,
                     envases_devueltos: grupo.envases,
-                    metodo_pago: metodoPago
+                    metodo_pago: metodoPago,
+                    pago_transferencia_id:
+                        idPagoTransferencia || null
                 })
                 .select('id')
                 .single();
@@ -1194,16 +1207,50 @@ document
             }
 
             const resumen = actualizarResumen();
+            let idPagoCreado = null;
+
+            if (metodoSeleccionado.value === 'transferencia') {
+                const comisionConfigurada = Number(
+                    configuracionPagoAquaTrack?.comision_porcentaje
+                ) || 0;
+
+                const { data: pago, error: errorPago } =
+                    await supabaseCliente
+                        .from('pagos_transferencia')
+                        .insert({
+                            cliente_id: session.user.id,
+                            monto_total: resumen.total,
+                            comision_porcentaje: comisionConfigurada
+                        })
+                        .select('id')
+                        .single();
+
+                if (errorPago || !pago) {
+                    throw new Error(
+                        'No pudimos iniciar el pago por transferencia.'
+                    );
+                }
+
+                idPagoCreado = pago.id;
+            }
 
             await crearPedidosDesdeCarrito(
                 session,
                 resumen,
-                metodoSeleccionado.value
+                metodoSeleccionado.value,
+                idPagoCreado
             );
 
             localStorage.removeItem(
                 'aquatrack_carrito'
             );
+
+            if (metodoSeleccionado.value === 'transferencia') {
+                idPagoTransferenciaActual = idPagoCreado;
+                resumenActualCheckout = resumen;
+                mostrarPasoComprobante(resumen);
+                return;
+            }
 
             window.location.href =
                 'productos.html?pedido=confirmado';
@@ -1221,6 +1268,138 @@ document
                 textoOriginal;
         }
     });
+
+function mostrarPasoComprobante(resumen) {
+    document
+        .getElementById('formulario-checkout')
+        .classList.add('oculto');
+
+    const panel = document.getElementById('paso-comprobante');
+    panel.classList.remove('oculto');
+
+    document.getElementById('comprobante-alias').textContent =
+        configuracionPagoAquaTrack?.alias_cbu || '—';
+
+    document.getElementById('comprobante-titular').textContent =
+        configuracionPagoAquaTrack?.titular_cuenta || '—';
+
+    document.getElementById('comprobante-cuit').textContent =
+        configuracionPagoAquaTrack?.cuit || '—';
+
+    document.getElementById('comprobante-monto').textContent =
+        formatearPrecio(resumen.total);
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function mostrarMensajeComprobante(texto, tipo = '') {
+    const mensaje = document.getElementById('mensaje-comprobante');
+
+    mensaje.textContent = texto;
+    mensaje.className = `mensaje-estado ${tipo}`.trim();
+    mensaje.classList.remove('oculto');
+}
+
+const inputComprobante = document.getElementById('input-comprobante');
+const btnSubirComprobante = document.getElementById('btn-subir-comprobante');
+const btnOmitirComprobante = document.getElementById('btn-omitir-comprobante');
+
+if (inputComprobante) {
+    inputComprobante.addEventListener('change', () => {
+        btnSubirComprobante.disabled =
+            !inputComprobante.files ||
+            inputComprobante.files.length === 0;
+    });
+}
+
+if (btnSubirComprobante) {
+    btnSubirComprobante.addEventListener('click', async () => {
+        const archivo = inputComprobante.files?.[0];
+
+        if (!archivo || !idPagoTransferenciaActual) {
+            return;
+        }
+
+        btnSubirComprobante.disabled = true;
+        btnSubirComprobante.textContent = 'Subiendo...';
+
+        try {
+            const extension =
+                archivo.name.split('.').pop() || 'jpg';
+
+            const rutaArchivo =
+                `${idPagoTransferenciaActual}/comprobante-${Date.now()}.${extension}`;
+
+            const { error: errorSubida } =
+                await supabaseCliente.storage
+                    .from('comprobantes-transferencia')
+                    .upload(rutaArchivo, archivo, {
+                        cacheControl: '3600',
+                        upsert: false
+                    });
+
+            if (errorSubida) {
+                throw new Error(
+                    'No pudimos subir el comprobante. Probá de nuevo.'
+                );
+            }
+
+            const { data: urlPublica } =
+                supabaseCliente.storage
+                    .from('comprobantes-transferencia')
+                    .getPublicUrl(rutaArchivo);
+
+            const { error: errorRpc } =
+                await supabaseCliente.rpc(
+                    'adjuntar_comprobante_pago',
+                    {
+                        id_pago: idPagoTransferenciaActual,
+                        url_comprobante: urlPublica.publicUrl
+                    }
+                );
+
+            if (errorRpc) {
+                throw new Error(
+                    'Subimos la imagen, pero no pudimos vincularla al pago.'
+                );
+            }
+
+            window.location.href =
+                'productos.html?pedido=confirmado';
+        } catch (error) {
+            console.error(error);
+
+            mostrarMensajeComprobante(
+                error.message ||
+                'No pudimos subir el comprobante.',
+                'error'
+            );
+
+            btnSubirComprobante.disabled = false;
+            btnSubirComprobante.textContent =
+                'Subir comprobante y finalizar';
+        }
+    });
+}
+
+if (btnOmitirComprobante) {
+    btnOmitirComprobante.addEventListener('click', () => {
+        window.location.href =
+            'productos.html?pedido=confirmado';
+    });
+}
+
+async function cargarConfiguracionPagoAquaTrack() {
+    const { data, error } = await supabaseCliente
+        .from('configuracion_plataforma')
+        .select('alias_cbu, titular_cuenta, cuit, comision_porcentaje')
+        .eq('id', true)
+        .single();
+
+    if (!error && data) {
+        configuracionPagoAquaTrack = data;
+    }
+}
 
 async function verificarSesion() {
     const {
@@ -1258,6 +1437,8 @@ async function inicializarCarrito() {
         window.location.href = 'login.html';
         return;
     }
+
+    await cargarConfiguracionPagoAquaTrack();
 
     carritoActual = obtenerCarrito();
 
