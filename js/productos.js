@@ -3,6 +3,7 @@ const estadoCatalogo = document.getElementById('estado-catalogo');
 const contadorProductos = document.getElementById('contador-productos');
 const buscadorProductos = document.getElementById('buscador-productos');
 const filtroCapacidad = document.getElementById('filtro-capacidad');
+const filtroTipo = document.getElementById('filtro-tipo');
 const botonCarrito = document.getElementById('boton-carrito');
 const cantidadCarrito = document.getElementById('cantidad-carrito');
 const modalAcceso = document.getElementById('modal-acceso');
@@ -124,11 +125,14 @@ function renderizarProductos() {
     const textoBusqueda = buscadorProductos.value.trim().toLowerCase();
     const capacidadSeleccionada = filtroCapacidad.value;
 
+    const tipoSeleccionado = filtroTipo.value;
+
     const productosFiltrados = productosDisponibles.filter((producto) => {
         const distribuidora = obtenerDistribuidora(producto);
         const contenidoProducto = [
             producto.nombre,
             producto.descripcion,
+            producto.incluye_combo,
             distribuidora.nombre
         ]
             .join(' ')
@@ -139,8 +143,12 @@ function renderizarProductos() {
         const coincideCapacidad =
             capacidadSeleccionada === 'todas' ||
             String(producto.capacidad_litros) === capacidadSeleccionada;
+        const coincideTipo =
+            tipoSeleccionado === 'todos' ||
+            (tipoSeleccionado === 'combos' && producto.es_combo) ||
+            (tipoSeleccionado === 'individuales' && !producto.es_combo);
 
-        return coincideBusqueda && coincideCapacidad;
+        return coincideBusqueda && coincideCapacidad && coincideTipo;
     });
 
     listaProductos.innerHTML = '';
@@ -175,7 +183,9 @@ function renderizarProductos() {
           ${crearIconoProducto()}
         </div>
 
-        <span class="etiqueta-producto">Disponible</span>
+        ${producto.es_combo
+                ? '<span class="etiqueta-producto etiqueta-combo">Combo</span>'
+                : '<span class="etiqueta-producto">Disponible</span>'}
       </div>
 
       <p class="nombre-distribuidora">
@@ -188,9 +198,13 @@ function renderizarProductos() {
         ${escaparHtml(descripcion)}
       </p>
 
+      ${producto.es_combo && producto.incluye_combo
+                ? `<p class="incluye-combo-producto"><strong>Incluye:</strong> ${escaparHtml(producto.incluye_combo)}</p>`
+                : ''}
+
       <div class="detalle-producto">
         <span class="capacidad-producto">
-          ${escaparHtml(producto.capacidad_litros)} litros
+          ${producto.es_combo ? 'Combo' : `${escaparHtml(producto.capacidad_litros)} litros`}
         </span>
 
         <div class="precios-producto">
@@ -249,6 +263,8 @@ async function cargarProductos() {
       descuento_por_envase,
       activo,
       foto_url,
+      es_combo,
+      incluye_combo,
       distribuidoras!inner (
         id,
         nombre,
@@ -333,6 +349,7 @@ listaProductos.addEventListener('click', (evento) => {
 
 buscadorProductos.addEventListener('input', renderizarProductos);
 filtroCapacidad.addEventListener('change', renderizarProductos);
+filtroTipo.addEventListener('change', renderizarProductos);
 
 botonCarrito.addEventListener('click', async () => {
     const {

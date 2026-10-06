@@ -1141,3 +1141,55 @@ body {
         flex-direction: column;
     }
 }
+
+.fila-desglose-pago {
+    flex-wrap: wrap;
+}
+
+.fila-desglose-pago-derecha {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.5rem;
+}
+
+.etiqueta-pagada-distribuidora {
+    background: rgba(46, 204, 113, 0.15);
+    color: #2ecc71;
+    border: 1px solid rgba(46, 204, 113, 0.4);
+    border-radius: 999px;
+    padding: 0.3rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+    .fila-desglose-pago-derecha {
+        align-items: flex-start;
+        width: 100%;
+    }
+}
+
+.campo.oculto {
+    display: none;
+}
+
+.campo-checkbox {
+    flex-direction: row;
+    align-items: center;
+}
+
+.etiqueta-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.etiqueta-checkbox input[type="checkbox"] {
+    width: 1.1rem;
+    height: 1.1rem;
+    cursor: pointer;
+}

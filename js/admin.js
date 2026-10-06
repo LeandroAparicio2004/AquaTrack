@@ -306,7 +306,7 @@ async function confirmarPago(id, boton) {
     await cargarPagosTransferencia();
 }
 
-document.getElementById('lista-pagos-transferencia').addEventListener('click', (evento) => {
+document.getElementById('lista-pagos-transferencia')?.addEventListener('click', (evento) => {
     const botonConfirmar = evento.target.closest('[data-confirmar-pago]');
 
     if (botonConfirmar) {

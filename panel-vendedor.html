@@ -328,7 +328,19 @@
                     <textarea id="descripcion-producto" rows="2" placeholder="Agua mineral sin gas..."></textarea>
                 </div>
 
-                <div class="fila-doble">
+                <div class="campo campo-checkbox">
+                    <label class="etiqueta-checkbox">
+                        <input type="checkbox" id="es-combo-producto">
+                        Es un combo (varios productos agrupados a un precio especial)
+                    </label>
+                </div>
+
+                <div class="campo oculto" id="campo-incluye-combo">
+                    <label for="incluye-combo-producto">¿Qué incluye el combo?</label>
+                    <textarea id="incluye-combo-producto" rows="2" placeholder="Ej: 2 bidones de 20L + 1 dispenser"></textarea>
+                </div>
+
+                <div class="fila-doble" id="fila-litros-precio">
                     <div class="campo">
                         <label for="litros-producto">Capacidad (litros)</label>
                         <input type="number" id="litros-producto" min="1" step="0.5" required>

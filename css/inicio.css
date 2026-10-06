@@ -269,7 +269,7 @@ body {
 
 .filtros-catalogo {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 220px;
+  grid-template-columns: minmax(0, 1fr) 200px 200px;
   gap: 14px;
   margin-bottom: 30px;
 }
@@ -916,4 +916,15 @@ body.sin-desplazamiento {
   color: var(--color-acento-inicio);
   font-size: 0.78rem;
   font-weight: 700;
+}
+
+.etiqueta-combo {
+    background: #ffb020;
+    color: #1a1a1a;
+}
+
+.incluye-combo-producto {
+    font-size: 0.85rem;
+    opacity: 0.85;
+    margin: 0.25rem 0 0.5rem;
 }

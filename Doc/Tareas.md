@@ -20,9 +20,9 @@ SCRUM-11 Aprobacion de Distribuidoras X
 SCRUM-20 Administración de Flota de Repartidores X
 SCRUM-49 Creacion de Admin X
 
-Sprint 3 - Pedidos
+Sprint 3 - Pedidos (Cerrando)
 SCRUM-18 Control de Pedidos X
-SCRUM-22 Realizacion de Pedido  
+SCRUM-22 Realizacion de Pedido X
 SCRUM-23 Visualizacion de codigo de confirmacion X
 SCRUM-14 Validación de Recepción X 
 
@@ -36,9 +36,9 @@ SCRUM-37 Configurar integracion con OpenSteetMap y OSRM X
 
 Sprint 5 - Paneles y Suscripción 
 SCRUM-16 Consulta de Dashboard Vendedor X
-SCRUM-17 Analisis de Metricas Comerciales
-SCRUM-21 Consulta de Dashboard Cliente
-SCRUM-25 Programacion de Suscripciones
+SCRUM-17 Metricas Comerciales
+SCRUM-21 Consulta de Dashboard Cliente X
+SCRUM-25 Programacion de Suscripciones X
 SCRUM-50 Promociones y Combos de Productos
 
 Sprint 6 - UX
