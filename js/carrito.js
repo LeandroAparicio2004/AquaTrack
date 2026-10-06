@@ -1233,6 +1233,7 @@ document
                 }
 
                 idPagoCreado = pago.id;
+                localStorage.setItem('aquatrack_pago_pendiente', idPagoCreado);
             }
 
             await crearPedidosDesdeCarrito(
@@ -1248,8 +1249,7 @@ document
 
             if (metodoSeleccionado.value === 'transferencia') {
                 idPagoTransferenciaActual = idPagoCreado;
-                resumenActualCheckout = resumen;
-                mostrarPasoComprobante(resumen);
+                mostrarPasoComprobante(resumen.total);
                 return;
             }
 
@@ -1270,7 +1270,11 @@ document
         }
     });
 
-function mostrarPasoComprobante(resumen) {
+function mostrarPasoComprobante(montoTotal) {
+    document
+        .getElementById('estado-carrito-vacio')
+        .classList.add('oculto');
+
     document
         .getElementById('formulario-checkout')
         .classList.add('oculto');
@@ -1282,15 +1286,13 @@ function mostrarPasoComprobante(resumen) {
     const cbu = configuracionPagoAquaTrack?.cbu || '—';
     const titular = configuracionPagoAquaTrack?.titular_cuenta || '—';
     const cuit = configuracionPagoAquaTrack?.cuit || '—';
-    const montoFormateado = formatearPrecio(resumen.total);
+    const montoFormateado = formatearPrecio(montoTotal);
 
     document.getElementById('comprobante-alias').textContent = alias;
     document.getElementById('comprobante-cbu').textContent = cbu;
     document.getElementById('comprobante-titular').textContent = titular;
     document.getElementById('comprobante-cuit').textContent = cuit;
     document.getElementById('comprobante-monto').textContent = montoFormateado;
-
-    generarQrTransferencia({ alias, cbu, titular, cuit, montoFormateado });
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -1304,21 +1306,13 @@ function generarQrTransferencia({ alias, cbu, titular, cuit, montoFormateado }) 
 
     contenedor.innerHTML = '';
 
-    const texto =
-        `Transferencia AquaTrack\n` +
-        `Alias: ${alias}\n` +
-        `CBU: ${cbu}\n` +
-        `Titular: ${titular}\n` +
-        `CUIT: ${cuit}\n` +
-        `Monto: ${montoFormateado}`;
+    const texto = `Alias: ${alias} | CBU: ${cbu} | Monto: ${montoFormateado}`;
 
-    QRCode.toCanvas(texto, { width: 180, margin: 1 }, (error, canvas) => {
-        if (error) {
-            contenedor.textContent = 'No pudimos generar el código QR.';
-            return;
-        }
-
-        contenedor.appendChild(canvas);
+    new QRCode(contenedor, {
+        text: texto,
+        width: 180,
+        height: 180,
+        correctLevel: QRCode.CorrectLevel.L
     });
 }
 
@@ -1332,13 +1326,39 @@ function mostrarMensajeComprobante(texto, tipo = '') {
 
 const inputComprobante = document.getElementById('input-comprobante');
 const btnSubirComprobante = document.getElementById('btn-subir-comprobante');
-const btnOmitirComprobante = document.getElementById('btn-omitir-comprobante');
+const btnCancelarComprobante = document.getElementById('btn-cancelar-comprobante');
+
+const textoSelectorArchivo = document.getElementById('texto-selector-archivo');
+const vistaPreviaComprobante = document.getElementById('vista-previa-comprobante');
+const imagenPreviaComprobante = document.getElementById('imagen-previa-comprobante');
+const btnQuitarComprobante = document.getElementById('btn-quitar-comprobante');
 
 if (inputComprobante) {
     inputComprobante.addEventListener('change', () => {
-        btnSubirComprobante.disabled =
-            !inputComprobante.files ||
-            inputComprobante.files.length === 0;
+        const archivo = inputComprobante.files?.[0];
+
+        btnSubirComprobante.disabled = !archivo;
+
+        if (!archivo) {
+            vistaPreviaComprobante.classList.add('oculto');
+            textoSelectorArchivo.textContent = 'Elegir imagen';
+            return;
+        }
+
+        textoSelectorArchivo.textContent = archivo.name;
+
+        const url = URL.createObjectURL(archivo);
+        imagenPreviaComprobante.src = url;
+        vistaPreviaComprobante.classList.remove('oculto');
+    });
+}
+
+if (btnQuitarComprobante) {
+    btnQuitarComprobante.addEventListener('click', () => {
+        inputComprobante.value = '';
+        vistaPreviaComprobante.classList.add('oculto');
+        textoSelectorArchivo.textContent = 'Elegir imagen';
+        btnSubirComprobante.disabled = true;
     });
 }
 
@@ -1394,6 +1414,8 @@ if (btnSubirComprobante) {
                 );
             }
 
+            localStorage.removeItem('aquatrack_pago_pendiente');
+
             window.location.href =
                 'productos.html?pedido=confirmado';
         } catch (error) {
@@ -1412,10 +1434,40 @@ if (btnSubirComprobante) {
     });
 }
 
-if (btnOmitirComprobante) {
-    btnOmitirComprobante.addEventListener('click', () => {
-        window.location.href =
-            'productos.html?pedido=confirmado';
+if (btnCancelarComprobante) {
+    btnCancelarComprobante.addEventListener('click', async () => {
+        const confirmado = confirm(
+            '¿Seguro que querés cancelar este pedido? Esta acción no se puede deshacer.'
+        );
+
+        if (!confirmado) {
+            return;
+        }
+
+        btnCancelarComprobante.disabled = true;
+        btnCancelarComprobante.textContent = 'Cancelando...';
+
+        try {
+            const { error } = await supabaseCliente.rpc(
+                'cancelar_pago_transferencia',
+                { id_pago: idPagoTransferenciaActual }
+            );
+
+            if (error) {
+                throw new Error('No pudimos cancelar el pedido. Probá de nuevo.');
+            }
+
+            localStorage.removeItem('aquatrack_pago_pendiente');
+
+            alert('Tu pedido fue cancelado.');
+            window.location.href = 'productos.html';
+        } catch (error) {
+            console.error(error);
+            alert(error.message || 'No pudimos cancelar el pedido.');
+
+            btnCancelarComprobante.disabled = false;
+            btnCancelarComprobante.textContent = 'Cancelar pedido';
+        }
     });
 }
 
@@ -1489,6 +1541,29 @@ document
         window.location.href = 'login.html';
     });
 
+async function reanudarPagoPendiente() {
+    const idPagoPendiente = localStorage.getItem('aquatrack_pago_pendiente');
+
+    if (!idPagoPendiente) {
+        return false;
+    }
+
+    const { data: pago, error } = await supabaseCliente
+        .from('pagos_transferencia')
+        .select('id, monto_total, estado')
+        .eq('id', idPagoPendiente)
+        .single();
+
+    if (error || !pago || pago.estado !== 'pendiente') {
+        localStorage.removeItem('aquatrack_pago_pendiente');
+        return false;
+    }
+
+    idPagoTransferenciaActual = pago.id;
+    mostrarPasoComprobante(pago.monto_total);
+    return true;
+}
+
 async function inicializarCarrito() {
     const {
         data: { session }
@@ -1500,6 +1575,12 @@ async function inicializarCarrito() {
     }
 
     await cargarConfiguracionPagoAquaTrack();
+
+    const hayPagoPendiente = await reanudarPagoPendiente();
+
+    if (hayPagoPendiente) {
+        return;
+    }
 
     carritoActual = obtenerCarrito();
 

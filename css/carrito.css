@@ -726,3 +726,62 @@
 #qr-transferencia canvas {
   border-radius: 10px;
 }
+
+.selector-archivo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px dashed var(--color-borde-inicio);
+  border-radius: 11px;
+  color: var(--color-texto-inicio);
+  background: var(--color-superficie-inicio);
+  font-size: 0.86rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.selector-archivo:hover {
+  background: var(--color-acento-suave-inicio);
+}
+
+.input-archivo-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  opacity: 0;
+}
+
+.vista-previa-comprobante {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.vista-previa-comprobante.oculto {
+  display: none;
+}
+
+.vista-previa-comprobante img {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--color-borde-inicio);
+}
+
+.btn-quitar-previa {
+  padding: 6px 12px;
+  border: 1px solid var(--color-borde-inicio);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--color-texto-secundario-inicio);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.btn-quitar-previa:hover {
+  color: var(--color-texto-inicio);
+}
