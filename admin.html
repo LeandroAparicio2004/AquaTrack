@@ -52,6 +52,8 @@
                     aria-selected="true">Pendientes</button>
                 <button type="button" class="panel-pestana" data-pestana="todas" role="tab"
                     aria-selected="false">Todas las distribuidoras</button>
+                <button type="button" class="panel-pestana" data-pestana="pagos" role="tab"
+                    aria-selected="false">Pagos por transferencia</button>
             </div>
 
             <section class="panel-seccion" id="seccion-pendientes" role="tabpanel">
@@ -62,6 +64,11 @@
             <section class="panel-seccion oculto" id="seccion-todas" role="tabpanel">
                 <p class="estado-productos-panel oculto" id="estado-todas"></p>
                 <div class="grilla-productos-panel" id="lista-todas"></div>
+            </section>
+
+            <section class="panel-seccion oculto" id="seccion-pagos" role="tabpanel">
+                <p class="estado-productos-panel oculto" id="estado-pagos"></p>
+                <div class="lista-pagos-transferencia" id="lista-pagos-transferencia"></div>
             </section>
         </div>
     </main>

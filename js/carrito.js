@@ -1213,7 +1213,7 @@ document
             if (metodoSeleccionado.value === 'transferencia') {
                 const comisionConfigurada = Number(
                     configuracionPagoAquaTrack?.comision_porcentaje
-                ) || 0;
+                ) || 5;     // Porce%
 
                 const { data: pago, error: errorPago } =
                     await supabaseCliente

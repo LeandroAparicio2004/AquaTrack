@@ -166,18 +166,34 @@ function crearTarjetaPago(pago) {
         ? new Date(pago.creado_en).toLocaleString('es-AR')
         : '';
 
-    const desglose = (pago.desglose || []).map((item) => `
+    const desglose = (pago.desglose || []).map((item) => {
+        const estaPagada = Boolean(item.liquidacion?.pagado);
+
+        const accionPago = estaPagada
+            ? `<span class="etiqueta-pagada-distribuidora">
+                 ✓ Pagada el ${escaparHtml(new Date(item.liquidacion.pagado_en).toLocaleDateString('es-AR'))}
+               </span>`
+            : `<button type="button" class="btn btn-secundario btn-chico" data-marcar-pagada="${pago.id}" data-distribuidora="${item.distribuidora_id}" data-monto="${item.monto}">
+                 Marcar como pagada
+               </button>`;
+
+        return `
         <div class="fila-desglose-pago">
             <div class="fila-desglose-pago-info">
                 <strong>${escaparHtml(item.nombre)}</strong>
-                <span>Alias/CBU: ${escaparHtml(item.alias_cbu || 'No cargado')}</span>
-                <span>Titular: ${escaparHtml(item.titular_cuenta || 'No cargado')}</span>
+                <div class="chips-desglose-pago">
+                    <span class="chip-dato-pago">Alias: <strong>${escaparHtml(item.alias || 'No cargado')}</strong></span>
+                    <span class="chip-dato-pago">CBU: <strong>${escaparHtml(item.cbu || 'No cargado')}</strong></span>
+                    <span class="chip-dato-pago">Titular: <strong>${escaparHtml(item.titular_cuenta || 'No cargado')}</strong></span>
+                </div>
             </div>
-            <div class="fila-desglose-pago-monto">
-                ${formatearPrecioAdmin(item.monto)}
+            <div class="fila-desglose-pago-derecha">
+                <div class="fila-desglose-pago-monto">${formatearPrecioAdmin(item.monto)}</div>
+                ${accionPago}
             </div>
         </div>
-    `).join('');
+        `;
+    }).join('');
 
     const comprobante = pago.comprobante_url
         ? `<a href="${escaparHtml(pago.comprobante_url)}" target="_blank" rel="noopener" class="enlace-comprobante-pago">Ver comprobante</a>`
@@ -229,7 +245,7 @@ async function cargarPagosTransferencia() {
         .from('pagos_transferencia')
         .select(`
             id, monto_total, comision_porcentaje, comprobante_url, estado, creado_en,
-            usuarios ( nombre, apellido )
+            usuarios!pagos_transferencia_cliente_id_fkey ( nombre, apellido )
         `)
         .eq('estado', 'pendiente')
         .order('creado_en', { ascending: false });
@@ -237,6 +253,7 @@ async function cargarPagosTransferencia() {
     lista.innerHTML = '';
 
     if (error) {
+        console.error('Error al cargar pagos_transferencia:', error);
         estadoVacio.textContent = 'No pudimos cargar los pagos. Recargá la página.';
         estadoVacio.classList.remove('oculto');
         return;
@@ -253,27 +270,51 @@ async function cargarPagosTransferencia() {
     for (const pago of data) {
         const { data: pedidosDelPago } = await supabaseCliente
             .from('pedidos')
-            .select('total, distribuidoras ( nombre, alias_cbu, titular_cuenta )')
+            .select('total, distribuidoras ( id, nombre, alias, cbu, titular_cuenta )')
             .eq('pago_transferencia_id', pago.id);
 
         const mapaDesglose = new Map();
 
-        (pedidosDelPago || []).forEach((pedido) => {
-            const nombre = pedido.distribuidoras?.nombre || 'Distribuidora';
+        // Porce%
+        const comisionDelPago = Number(pago.comision_porcentaje) || 0;
 
-            if (!mapaDesglose.has(nombre)) {
-                mapaDesglose.set(nombre, {
-                    nombre,
-                    alias_cbu: pedido.distribuidoras?.alias_cbu,
+        (pedidosDelPago || []).forEach((pedido) => {
+            const idDistribuidora = pedido.distribuidoras?.id;
+
+            if (!idDistribuidora) {
+                return;
+            }
+
+            if (!mapaDesglose.has(idDistribuidora)) {
+                mapaDesglose.set(idDistribuidora, {
+                    distribuidora_id: idDistribuidora,
+                    nombre: pedido.distribuidoras?.nombre || 'Distribuidora',
+                    alias: pedido.distribuidoras?.alias,
+                    cbu: pedido.distribuidoras?.cbu,
                     titular_cuenta: pedido.distribuidoras?.titular_cuenta,
                     monto: 0
                 });
             }
 
-            mapaDesglose.get(nombre).monto += Number(pedido.total) || 0;
+            const totalPedido = Number(pedido.total) || 0;
+            const montoNeto = totalPedido * (1 - comisionDelPago / 100);
+
+            mapaDesglose.get(idDistribuidora).monto += montoNeto;
         });
 
-        pago.desglose = Array.from(mapaDesglose.values());
+        const { data: liquidaciones } = await supabaseCliente
+            .from('liquidaciones_distribuidora')
+            .select('distribuidora_id, pagado, pagado_en')
+            .eq('pago_transferencia_id', pago.id);
+
+        const mapaLiquidaciones = new Map(
+            (liquidaciones || []).map((liq) => [liq.distribuidora_id, liq])
+        );
+
+        pago.desglose = Array.from(mapaDesglose.values()).map((item) => ({
+            ...item,
+            liquidacion: mapaLiquidaciones.get(item.distribuidora_id) || null
+        }));
 
         lista.appendChild(crearTarjetaPago(pago));
     }
@@ -306,8 +347,39 @@ async function confirmarPago(id, boton) {
     await cargarPagosTransferencia();
 }
 
-document.getElementById('lista-pagos-transferencia').addEventListener('click', (evento) => {
+async function marcarDistribuidoraPagada(idPago, idDistribuidora, monto, boton) {
+    boton.disabled = true;
+    boton.textContent = 'Guardando...';
+
+    const {
+        data: { session }
+    } = await supabaseCliente.auth.getSession();
+
+    const { error } = await supabaseCliente
+        .from('liquidaciones_distribuidora')
+        .upsert({
+            pago_transferencia_id: idPago,
+            distribuidora_id: idDistribuidora,
+            monto: monto,
+            pagado: true,
+            pagado_por: session?.user?.id || null,
+            pagado_en: new Date().toISOString()
+        }, { onConflict: 'pago_transferencia_id,distribuidora_id' });
+
+    if (error) {
+        console.error('Error al marcar distribuidora como pagada:', error);
+        alert('No pudimos guardar el pago a la distribuidora. Intentá de nuevo.');
+        boton.disabled = false;
+        boton.textContent = 'Marcar como pagada';
+        return;
+    }
+
+    await cargarPagosTransferencia();
+}
+
+document.getElementById('lista-pagos-transferencia')?.addEventListener('click', (evento) => {
     const botonConfirmar = evento.target.closest('[data-confirmar-pago]');
+    const botonMarcarPagada = evento.target.closest('[data-marcar-pagada]');
 
     if (botonConfirmar) {
         const confirmado = confirm(
@@ -316,6 +388,21 @@ document.getElementById('lista-pagos-transferencia').addEventListener('click', (
 
         if (confirmado) {
             confirmarPago(botonConfirmar.dataset.confirmarPago, botonConfirmar);
+        }
+    }
+
+    if (botonMarcarPagada) {
+        const confirmado = confirm(
+            '¿Confirmás que ya le transferiste a esta distribuidora lo que le corresponde?'
+        );
+
+        if (confirmado) {
+            marcarDistribuidoraPagada(
+                botonMarcarPagada.dataset.marcarPagada,
+                botonMarcarPagada.dataset.distribuidora,
+                botonMarcarPagada.dataset.monto,
+                botonMarcarPagada
+            );
         }
     }
 });

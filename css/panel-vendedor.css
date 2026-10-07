@@ -1141,3 +1141,128 @@ body {
         flex-direction: column;
     }
 }
+
+.lista-pagos-transferencia {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.tarjeta-pago-transferencia {
+    background: var(--color-superficie);
+    border: 1px solid var(--color-borde);
+    border-radius: 12px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.tarjeta-pago-superior {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.tarjeta-pago-superior h3 {
+    margin: 0;
+}
+
+.tarjeta-pago-fecha {
+    margin: 0.2rem 0 0;
+    font-size: 0.85rem;
+    opacity: 0.7;
+}
+
+.tarjeta-pago-totales {
+    background: var(--color-fondo);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.tarjeta-pago-totales .fila-resumen {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.95rem;
+}
+
+.tarjeta-pago-comprobante {
+    font-size: 0.9rem;
+}
+
+.enlace-comprobante-pago {
+    color: var(--color-principal);
+    font-weight: 600;
+}
+
+.texto-sin-comprobante {
+    opacity: 0.7;
+    font-style: italic;
+}
+
+.titulo-desglose-pago {
+    margin: 0;
+    font-size: 1rem;
+}
+
+.desglose-pago {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.fila-desglose-pago {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    border: 1px solid var(--color-borde);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+}
+
+.fila-desglose-pago-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.chips-desglose-pago {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.chip-dato-pago {
+    background: var(--color-fondo);
+    border: 1px solid var(--color-borde);
+    border-radius: 999px;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.fila-desglose-pago-monto {
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+    .fila-desglose-pago {
+        flex-direction: column;
+    }
+
+    .fila-desglose-pago-monto {
+        align-self: flex-end;
+    }
+}
+
+.enlace-comprobante-pago {
+    color: #4da3ff;
+    text-decoration: underline;
+    font-weight: 600;
+}
