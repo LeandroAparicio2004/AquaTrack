@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <script>
+        (function () {
+            if (localStorage.getItem('aquatrack_tema') === 'oscuro') {
+                document.documentElement.setAttribute('data-tema', 'oscuro');
+            }
+        })();
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Métricas — AquaTrack</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/comunes.css">
+    <link rel="stylesheet" href="css/panel-vendedor.css">
+    <link rel="stylesheet" href="css/metricas.css">
+</head>
+
+<body>
+
+    <div class="panel-cargando" id="panel-cargando">
+        <p>Cargando tus métricas...</p>
+    </div>
+
+    <header class="encabezado panel-encabezado oculto" id="panel-header">
+        <div class="contenedor encabezado-interno">
+            <div class="panel-marca">
+                <span class="logo">AquaTrack</span>
+                <span class="panel-etiqueta">Métricas</span>
+            </div>
+
+            <nav class="panel-nav">
+                <a href="panel-vendedor.html" class="btn btn-secundario btn-chico">Volver al panel</a>
+                <button type="button" class="btn-tema" id="btn-tema" aria-label="Cambiar tema"></button>
+                <button type="button" class="btn btn-secundario btn-peligro" id="boton-cerrar-sesion">Salir</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="panel-contenido oculto" id="panel-main">
+        <div class="contenedor">
+
+            <div class="panel-encabezado-negocio">
+                <p class="etiqueta-seccion" id="nombre-distribuidora">Cargando...</p>
+                <h1>Métricas comerciales</h1>
+            </div>
+
+            <div class="campo-filtro campo-filtro-metricas">
+                <label for="filtro-rango-metricas">Período</label>
+                <select id="filtro-rango-metricas">
+                    <option value="7">Últimos 7 días</option>
+                    <option value="30" selected>Últimos 30 días</option>
+                    <option value="90">Últimos 90 días</option>
+                </select>
+            </div>
+
+            <p class="estado-productos-panel oculto" id="estado-metricas"></p>
+
+            <div class="grilla-metricas">
+
+                <article class="tarjeta-metrica tarjeta-metrica-ancha">
+                    <div class="tarjeta-metrica-encabezado">
+                        <h3>Ventas por día</h3>
+                        <div class="tarjeta-metrica-acciones">
+                            <button type="button" class="btn btn-secundario btn-chico" data-descargar-png="grafico-ventas" data-nombre="ventas-por-dia">PNG</button>
+                            <button type="button" class="btn btn-secundario btn-chico" data-descargar-excel="ventas">Excel</button>
+                        </div>
+                    </div>
+                    <canvas id="grafico-ventas"></canvas>
+                </article>
+
+                <article class="tarjeta-metrica">
+                    <div class="tarjeta-metrica-encabezado">
+                        <h3>Pedidos por estado</h3>
+                        <div class="tarjeta-metrica-acciones">
+                            <button type="button" class="btn btn-secundario btn-chico" data-descargar-png="grafico-estados" data-nombre="pedidos-por-estado">PNG</button>
+                            <button type="button" class="btn btn-secundario btn-chico" data-descargar-excel="estados">Excel</button>
+                        </div>
+                    </div>
+                    <canvas id="grafico-estados"></canvas>
+                </article>
+
+                <article class="tarjeta-metrica">
+                    <div class="tarjeta-metrica-encabezado">
+                        <h3>Productos más vendidos</h3>
+                        <div class="tarjeta-metrica-acciones">
+                            <button type="button" class="btn btn-secundario btn-chico" data-descargar-png="grafico-productos" data-nombre="productos-mas-vendidos">PNG</button>
+                            <button type="button" class="btn btn-secundario btn-chico" data-descargar-excel="productos">Excel</button>
+                        </div>
+                    </div>
+                    <canvas id="grafico-productos"></canvas>
+                </article>
+
+                <article class="tarjeta-metrica">
+                    <div class="tarjeta-metrica-encabezado">
+                        <h3>Repartidores con más entregas</h3>
+                        <div class="tarjeta-metrica-acciones">
+                            <button type="button" class="btn btn-secundario btn-chico" data-descargar-png="grafico-repartidores" data-nombre="repartidores-con-mas-entregas">PNG</button>
+                            <button type="button" class="btn btn-secundario btn-chico" data-descargar-excel="repartidores">Excel</button>
+                        </div>
+                    </div>
+                    <canvas id="grafico-repartidores"></canvas>
+                </article>
+
+            </div>
+
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="js/metricas-vendedor.js"></script>
+    <script src="js/tema.js"></script>
+</body>
+
+</html>

@@ -225,14 +225,7 @@ function crearTarjetaPago(pago) {
         <div class="tarjeta-pago-comprobante">${comprobante}</div>
 
         <h4 class="titulo-desglose-pago">A rendir a cada distribuidora</h4>
-        <div class="desglose-pago">${desglose || '<p>Sin pedidos asociados.</p>'}</div>
-
-        <div class="tarjeta-producto-panel-acciones">
-            <button type="button" class="btn btn-principal btn-chico" data-confirmar-pago="${pago.id}">
-                Confirmar pago recibido
-            </button>
-        </div>
-    `;
+        <div class="desglose-pago">${desglose || '<p>Sin pedidos asociados.</p>'}</div>`;
 
     return tarjeta;
 }
@@ -320,32 +313,7 @@ async function cargarPagosTransferencia() {
     }
 }
 
-async function confirmarPago(id, boton) {
-    boton.disabled = true;
-    boton.textContent = 'Confirmando...';
 
-    const {
-        data: { session }
-    } = await supabaseCliente.auth.getSession();
-
-    const { error } = await supabaseCliente
-        .from('pagos_transferencia')
-        .update({
-            estado: 'confirmado',
-            confirmado_por: session?.user?.id || null,
-            confirmado_en: new Date().toISOString()
-        })
-        .eq('id', id);
-
-    if (error) {
-        alert('No pudimos confirmar el pago. Intentá de nuevo.');
-        boton.disabled = false;
-        boton.textContent = 'Confirmar pago recibido';
-        return;
-    }
-
-    await cargarPagosTransferencia();
-}
 
 async function marcarDistribuidoraPagada(idPago, idDistribuidora, monto, boton) {
     boton.disabled = true;
@@ -374,22 +342,38 @@ async function marcarDistribuidoraPagada(idPago, idDistribuidora, monto, boton) 
         return;
     }
 
+    // Si ya se le pagó a TODAS las distribuidoras de este pago, lo marcamos como confirmado.
+    const { data: pedidosDelPago } = await supabaseCliente
+        .from('pedidos')
+        .select('distribuidora_id')
+        .eq('pago_transferencia_id', idPago);
+
+    const distribuidorasUnicas = new Set(
+        (pedidosDelPago || []).map((pedido) => pedido.distribuidora_id)
+    );
+
+    const { data: liquidacionesPagadas } = await supabaseCliente
+        .from('liquidaciones_distribuidora')
+        .select('distribuidora_id')
+        .eq('pago_transferencia_id', idPago)
+        .eq('pagado', true);
+
+    if (distribuidorasUnicas.size > 0 && (liquidacionesPagadas || []).length >= distribuidorasUnicas.size) {
+        await supabaseCliente
+            .from('pagos_transferencia')
+            .update({
+                estado: 'confirmado',
+                confirmado_por: session?.user?.id || null,
+                confirmado_en: new Date().toISOString()
+            })
+            .eq('id', idPago);
+    }
+
     await cargarPagosTransferencia();
 }
 
 document.getElementById('lista-pagos-transferencia')?.addEventListener('click', (evento) => {
-    const botonConfirmar = evento.target.closest('[data-confirmar-pago]');
     const botonMarcarPagada = evento.target.closest('[data-marcar-pagada]');
-
-    if (botonConfirmar) {
-        const confirmado = confirm(
-            '¿Confirmás que la transferencia llegó a la cuenta de AquaTrack?'
-        );
-
-        if (confirmado) {
-            confirmarPago(botonConfirmar.dataset.confirmarPago, botonConfirmar);
-        }
-    }
 
     if (botonMarcarPagada) {
         const confirmado = confirm(
