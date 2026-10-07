@@ -87,7 +87,7 @@ function renderizarProductosPanel() {
 async function cargarProductosPanel() {
     const { data, error } = await supabaseCliente
         .from('productos')
-        .select('id, nombre, descripcion, capacidad_litros, precio, descuento_por_envase, activo, foto_url')
+        .select('id, nombre, descripcion, capacidad_litros, precio, descuento_por_envase, activo, foto_url, es_combo, incluye_combo')
         .eq('distribuidora_id', distribuidoraActual.id)
         .order('creado_en', { ascending: false });
 
@@ -719,7 +719,7 @@ async function inicializarPanel() {
         .select(`
             distribuidoras (
                 id, nombre, descripcion, estado, calle, numero, ciudad, provincia,
-                acepta_efectivo, acepta_transferencia, alias_cbu, titular_cuenta, foto_url
+                acepta_efectivo, acepta_transferencia, alias, cbu, titular_cuenta, foto_url
             )
         `)
         .eq('usuario_id', session.user.id)
@@ -844,6 +844,22 @@ function mostrarVistaFoto(url) {
         : '<span>Sin foto</span>';
 }
 
+const checkboxEsCombo = document.getElementById('es-combo-producto');
+const campoIncluyeCombo = document.getElementById('campo-incluye-combo');
+const inputIncluyeCombo = document.getElementById('incluye-combo-producto');
+const inputLitrosProducto = document.getElementById('litros-producto');
+const campoLitrosProducto = inputLitrosProducto.closest('.campo');
+
+function actualizarVisibilidadCombo() {
+    const esCombo = checkboxEsCombo.checked;
+
+    campoIncluyeCombo.classList.toggle('oculto', !esCombo);
+    campoLitrosProducto.classList.toggle('oculto', esCombo);
+    inputLitrosProducto.required = !esCombo;
+}
+
+checkboxEsCombo.addEventListener('change', actualizarVisibilidadCombo);
+
 function abrirModalProducto(producto) {
     productoEnEdicion = producto || null;
     archivoFotoProducto = null;
@@ -862,8 +878,14 @@ function abrirModalProducto(producto) {
         document.getElementById('precio-producto').value = producto.precio;
         document.getElementById('descuento-envase-producto').value =
             producto.descuento_por_envase || 0;
+        checkboxEsCombo.checked = Boolean(producto.es_combo);
+        inputIncluyeCombo.value = producto.incluye_combo || '';
+    } else {
+        checkboxEsCombo.checked = false;
+        inputIncluyeCombo.value = '';
     }
 
+    actualizarVisibilidadCombo();
     modalProducto.classList.remove('oculto');
 }
 
@@ -917,15 +939,19 @@ formularioProducto.addEventListener('submit', async (evento) => {
     btnGuardarProducto.textContent = 'Guardando...';
 
     try {
+        const esCombo = checkboxEsCombo.checked;
+
         const datosProducto = {
             distribuidora_id: distribuidoraActual.id,
             nombre: document.getElementById('nombre-producto').value.trim(),
             descripcion: document.getElementById('descripcion-producto').value.trim(),
-            capacidad_litros: Number(document.getElementById('litros-producto').value),
+            capacidad_litros: Number(document.getElementById('litros-producto').value) || 0,
             precio: Number(document.getElementById('precio-producto').value),
             descuento_por_envase: Number(
                 document.getElementById('descuento-envase-producto').value
-            )
+            ),
+            es_combo: esCombo,
+            incluye_combo: esCombo ? inputIncluyeCombo.value.trim() : null
         };
 
         if (archivoFotoProducto) {
