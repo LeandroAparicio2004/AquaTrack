@@ -62,13 +62,13 @@ function renderizarProductosPanel() {
                 ${escaparHtml(producto.descripcion || 'Sin descripción.')}
             </p>
             <div class="tarjeta-producto-panel-detalle">
-                <span>${escaparHtml(producto.capacidad_litros)} litros</span>
+                <span>${producto.es_combo ? 'Combo' : `${escaparHtml(producto.capacidad_litros)} litros`}</span>
 
-                <div>
+                <div class="tarjeta-producto-panel-precios">
                     <strong>${formatearPrecio(producto.precio)}</strong>
 
                     ${Number(producto.descuento_por_envase) > 0
-                ? `<span>Con envase: ${formatearPrecio(producto.precio - producto.descuento_por_envase)}</span>`
+                ? `<span class="tarjeta-producto-panel-envase">Con envase: ${formatearPrecio(producto.precio - producto.descuento_por_envase)}</span>`
                 : ''}
                 </div>
             </div>
@@ -754,10 +754,12 @@ function precargarFormularioPerfil() {
     document.getElementById('provincia-perfil').value = distribuidoraActual.provincia || '';
     document.getElementById('acepta-efectivo').checked = Boolean(distribuidoraActual.acepta_efectivo);
     document.getElementById('acepta-transferencia').checked = Boolean(distribuidoraActual.acepta_transferencia);
-    document.getElementById('alias-cbu').value = distribuidoraActual.alias_cbu || '';
+    document.getElementById('alias-transferencia').value = distribuidoraActual.alias || '';
+    document.getElementById('cbu-transferencia').value = distribuidoraActual.cbu || '';
     document.getElementById('titular-cuenta').value = distribuidoraActual.titular_cuenta || '';
 
     document.getElementById('campo-alias').classList.toggle('oculto', !distribuidoraActual.acepta_transferencia);
+    document.getElementById('campo-cbu').classList.toggle('oculto', !distribuidoraActual.acepta_transferencia);
     document.getElementById('campo-titular').classList.toggle('oculto', !distribuidoraActual.acepta_transferencia);
 
     if (distribuidoraActual.foto_url) {
@@ -1020,17 +1022,27 @@ document.getElementById('lista-productos-panel').addEventListener('click', async
 
 const checkTransferencia = document.getElementById('acepta-transferencia');
 const campoAlias = document.getElementById('campo-alias');
+const campoCbu = document.getElementById('campo-cbu');
 const campoTitular = document.getElementById('campo-titular');
 
 checkTransferencia.addEventListener('change', () => {
     campoAlias.classList.toggle('oculto', !checkTransferencia.checked);
+    campoCbu.classList.toggle('oculto', !checkTransferencia.checked);
     campoTitular.classList.toggle('oculto', !checkTransferencia.checked);
 });
+
+let temporizadorMensajePerfil;
 
 function mostrarMensajePerfil(texto, tipo) {
     const mensaje = document.getElementById('mensaje-perfil');
     mensaje.textContent = texto;
     mensaje.className = `mensaje-estado ${tipo}`;
+
+    clearTimeout(temporizadorMensajePerfil);
+
+    temporizadorMensajePerfil = setTimeout(() => {
+        mensaje.classList.add('oculto');
+    }, 3200);
 }
 
 document.getElementById('formulario-perfil').addEventListener('submit', async (evento) => {
@@ -1046,7 +1058,8 @@ document.getElementById('formulario-perfil').addEventListener('submit', async (e
         provincia: document.getElementById('provincia-perfil').value.trim(),
         acepta_efectivo: document.getElementById('acepta-efectivo').checked,
         acepta_transferencia: checkTransferencia.checked,
-        alias_cbu: document.getElementById('alias-cbu').value.trim() || null,
+        alias: document.getElementById('alias-transferencia').value.trim() || null,
+        cbu: document.getElementById('cbu-transferencia').value.trim() || null,
         titular_cuenta: document.getElementById('titular-cuenta').value.trim() || null
     };
 
