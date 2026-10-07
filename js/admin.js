@@ -342,7 +342,6 @@ async function marcarDistribuidoraPagada(idPago, idDistribuidora, monto, boton) 
         return;
     }
 
-    // Si ya se le pagó a TODAS las distribuidoras de este pago, lo marcamos como confirmado.
     const { data: pedidosDelPago } = await supabaseCliente
         .from('pedidos')
         .select('distribuidora_id')
