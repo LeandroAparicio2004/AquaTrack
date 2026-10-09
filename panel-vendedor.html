@@ -18,6 +18,7 @@
         rel="stylesheet">
     <link rel="stylesheet" href="css/comunes.css">
     <link rel="stylesheet" href="css/panel-vendedor.css">
+    <link rel="stylesheet" href="css/calendario-vendedor.css">
 </head>
 
 <body>
@@ -196,19 +197,54 @@
             <section class="panel-seccion oculto" id="seccion-suscripciones" role="tabpanel">
                 <div class="panel-seccion-encabezado">
                     <h2>Suscripciones</h2>
-
-                    <select id="filtro-estado-suscripciones" class="filtro-pedidos">
-                        <option value="activa_pausada">Activas y pausadas</option>
-                        <option value="activa">Solo activas</option>
-                        <option value="pausada">Solo pausadas</option>
-                        <option value="cancelada">Canceladas</option>
-                        <option value="todas">Todas</option>
-                    </select>
+                    <button type="button" class="btn btn-secundario btn-chico" id="btn-alternar-vista-suscripciones">Ver todas las suscripciones</button>
                 </div>
 
-                <p class="estado-productos-panel oculto" id="estado-suscripciones-panel"></p>
+                <div id="vista-calendario-suscripciones">
+                    <form id="formulario-cupo" class="formulario-cupo-diario">
+                        <label for="cupo-diario">Cupo máximo por día</label>
+                        <input type="number" id="cupo-diario" min="0" step="1" placeholder="Sin límite">
+                        <button type="submit" class="btn btn-secundario btn-chico">Guardar</button>
+                    </form>
 
-                <div class="grilla-productos-panel" id="lista-suscripciones-panel"></div>
+                    <p class="mensaje-estado oculto" id="mensaje-cupo"></p>
+
+                    <div class="calendario-navegacion">
+                        <button type="button" class="btn btn-secundario btn-chico" id="btn-mes-anterior">‹ Anterior</button>
+                        <h3 id="etiqueta-mes-calendario">—</h3>
+                        <button type="button" class="btn btn-secundario btn-chico" id="btn-mes-siguiente">Siguiente ›</button>
+                    </div>
+
+                    <div class="calendario-leyenda">
+                        <span class="leyenda-item"><span class="leyenda-punto disponible"></span> Disponible</span>
+                        <span class="leyenda-item"><span class="leyenda-punto lleno"></span> Lleno</span>
+                        <span class="leyenda-item"><span class="leyenda-punto bloqueado"></span> Bloqueado</span>
+                    </div>
+
+                    <div class="grilla-calendario-cabecera">
+                        <span>Dom</span><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span>
+                    </div>
+
+                    <div class="grilla-calendario" id="grilla-calendario"></div>
+                </div>
+
+                <div class="oculto" id="vista-lista-suscripciones">
+                    <div class="panel-seccion-encabezado">
+                        <h2>Todas las suscripciones</h2>
+
+                        <select id="filtro-estado-suscripciones" class="filtro-pedidos">
+                            <option value="activa_pausada">Activas y pausadas</option>
+                            <option value="activa">Solo activas</option>
+                            <option value="pausada">Solo pausadas</option>
+                            <option value="cancelada">Canceladas</option>
+                            <option value="todas">Todas</option>
+                        </select>
+                    </div>
+
+                    <p class="estado-productos-panel oculto" id="estado-suscripciones-panel"></p>
+
+                    <div class="grilla-productos-panel" id="lista-suscripciones-panel"></div>
+                </div>
             </section>
 
             <section class="panel-seccion oculto" id="seccion-perfil" role="tabpanel">
@@ -385,6 +421,20 @@
 
             <h2 id="titulo-modal-repartidor">Repartidor</h2>
             <div id="detalle-repartidor-contenido"></div>
+        </div>
+    </div>
+
+    <div class="modal-fondo oculto" id="modal-detalle-dia" role="dialog" aria-modal="true"
+        aria-labelledby="titulo-modal-dia">
+        <div class="modal-producto">
+            <button type="button" class="boton-cerrar-modal" id="boton-cerrar-modal-dia"
+                aria-label="Cerrar ventana">×</button>
+
+            <h2 id="titulo-modal-dia">Día</h2>
+
+            <button type="button" class="btn btn-secundario btn-ancho oculto" id="btn-alternar-bloqueo-dia"></button>
+
+            <div id="detalle-dia-contenido"></div>
         </div>
     </div>
 

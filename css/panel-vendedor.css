@@ -714,7 +714,7 @@ body {
     height: 100%;
     display: grid;
     position: fixed;
-    z-index: 10;
+    z-index: 2000;
     inset: 0;
     padding: 20px;
     place-items: center;

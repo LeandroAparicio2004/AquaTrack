@@ -486,19 +486,19 @@ function renderizarTablero() {
             </div>
             <div class="zona-drop">
                 ${entregasDelRepartidor.map((entrega) => {
-                    const puedeMoverse = entrega.estado === 'asignada';
-                    const nombreCliente = `${entrega.pedidos.usuarios?.nombre || ''} ${entrega.pedidos.usuarios?.apellido || ''}`;
-                    const direccion = `${entrega.pedidos.direccion_calle} ${entrega.pedidos.direccion_numero || ''}, ${entrega.pedidos.direccion_ciudad}`;
-                    const etiqueta = `
+            const puedeMoverse = entrega.estado === 'asignada';
+            const nombreCliente = `${entrega.pedidos.usuarios?.nombre || ''} ${entrega.pedidos.usuarios?.apellido || ''}`;
+            const direccion = `${entrega.pedidos.direccion_calle} ${entrega.pedidos.direccion_numero || ''}, ${entrega.pedidos.direccion_ciudad}`;
+            const etiqueta = `
                         <span class="etiqueta-estado-producto ${entrega.estado === 'en_camino' ? 'en_camino' : 'asignada'}">
                             ${entrega.estado === 'en_camino' ? 'Enviado (no se puede mover)' : 'Asignada'}
                         </span>
                     `;
 
-                    const items = `<span>${escaparHtml(resumenItemsPedido(entrega.pedidos))}</span>`;
+            const items = `<span>${escaparHtml(resumenItemsPedido(entrega.pedidos))}</span>`;
 
-                    if (!puedeMoverse) {
-                        return `
+            if (!puedeMoverse) {
+                return `
                             <div class="tarjeta-pedido-tablero">
                                 <strong>${escaparHtml(nombreCliente)}</strong>
                                 <span>${escaparHtml(direccion)}</span>
@@ -506,9 +506,9 @@ function renderizarTablero() {
                                 ${etiqueta}
                             </div>
                         `;
-                    }
+            }
 
-                    return `
+            return `
                         <div class="tarjeta-pedido-tablero tarjeta-seleccionable ${pedidosSeleccionados.has(entrega.pedidos.id) ? 'seleccionada' : ''}"
                             draggable="true" data-pedido-click="${entrega.pedidos.id}">
                             <strong>${escaparHtml(nombreCliente)}</strong>
@@ -517,7 +517,7 @@ function renderizarTablero() {
                             ${etiqueta}
                         </div>
                     `;
-                }).join('')}
+        }).join('')}
             </div>
         `;
 
@@ -719,7 +719,7 @@ async function inicializarPanel() {
         .select(`
             distribuidoras (
                 id, nombre, descripcion, estado, calle, numero, ciudad, provincia,
-                acepta_efectivo, acepta_transferencia, alias, cbu, titular_cuenta, foto_url
+                acepta_efectivo, acepta_transferencia, alias, cbu, titular_cuenta, foto_url, cupo_diario
             )
         `)
         .eq('usuario_id', session.user.id)
@@ -744,6 +744,7 @@ async function inicializarPanel() {
 
     cargarProductosPanel();
     precargarFormularioPerfil();
+    document.getElementById('cupo-diario').value = distribuidoraActual.cupo_diario ?? '';
 }
 
 function precargarFormularioPerfil() {
@@ -788,6 +789,8 @@ let seccionRepartidoresCargada = false;
 let seccionPedidosCargada = false;
 let seccionTableroCargada = false;
 let seccionSuscripcionesCargada = false;
+let seccionListaSuscripcionesCargada = false;
+let mesCalendarioActual = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 let suscripcionesDelPanel = [];
 let pedidosSinAsignar = [];
 let mapaEntregaPorPedido = {};
@@ -824,7 +827,7 @@ pestanas.forEach((pestana) => {
 
         if (pestana.dataset.pestana === 'suscripciones' && !seccionSuscripcionesCargada) {
             seccionSuscripcionesCargada = true;
-            cargarSuscripcionesPanel();
+            cargarCalendario();
         }
     });
 });
@@ -1087,44 +1090,288 @@ document.getElementById('boton-cerrar-sesion').addEventListener('click', async (
     window.location.href = 'login.html';
 });
 
-let repartidoresCargados = [];
+function formatearClaveFecha(fecha) {
+    return fecha.toISOString().slice(0, 10);
+}
 
-function renderizarListaRepartidores(lista, contenedorId, estadoVacioId, conAcciones) {
-    const contenedor = document.getElementById(contenedorId);
-    const estadoVacio = document.getElementById(estadoVacioId);
+function etiquetaMes(fecha) {
+    return fecha.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+}
 
-    contenedor.innerHTML = '';
+async function cargarCalendario() {
+    const grilla = document.getElementById('grilla-calendario');
+    grilla.innerHTML = '<p class="estado-productos-panel">Cargando calendario...</p>';
 
-    if (lista.length === 0) {
-        estadoVacio.textContent = conAcciones
-            ? 'No hay solicitudes pendientes por ahora.'
-            : 'Todavía no tenés repartidores en tu flota.';
-        estadoVacio.classList.remove('oculto');
-        return;
+    const primerDiaMes = new Date(mesCalendarioActual.getFullYear(), mesCalendarioActual.getMonth(), 1);
+    const ultimoDiaMes = new Date(mesCalendarioActual.getFullYear(), mesCalendarioActual.getMonth() + 1, 0);
+
+    const desde = formatearClaveFecha(primerDiaMes);
+    const hasta = formatearClaveFecha(ultimoDiaMes);
+
+    const [{ data: pedidos }, { data: suscripciones }, { data: bloqueados }] = await Promise.all([
+        supabaseCliente
+            .from('pedidos')
+            .select('id, fecha_entrega, estado')
+            .eq('distribuidora_id', distribuidoraActual.id)
+            .neq('estado', 'cancelado')
+            .gte('fecha_entrega', desde)
+            .lte('fecha_entrega', hasta),
+        supabaseCliente
+            .from('suscripciones')
+            .select('id, proxima_entrega, estado')
+            .eq('distribuidora_id', distribuidoraActual.id)
+            .eq('estado', 'activa')
+            .gte('proxima_entrega', desde)
+            .lte('proxima_entrega', hasta),
+        supabaseCliente
+            .from('dias_bloqueados')
+            .select('fecha')
+            .eq('distribuidora_id', distribuidoraActual.id)
+            .gte('fecha', desde)
+            .lte('fecha', hasta)
+    ]);
+
+    const conteoPorDia = {};
+
+    (pedidos || []).forEach((pedido) => {
+        conteoPorDia[pedido.fecha_entrega] = (conteoPorDia[pedido.fecha_entrega] || 0) + 1;
+    });
+
+    (suscripciones || []).forEach((suscripcion) => {
+        conteoPorDia[suscripcion.proxima_entrega] = (conteoPorDia[suscripcion.proxima_entrega] || 0) + 1;
+    });
+
+    const diasBloqueados = new Set((bloqueados || []).map((bloqueo) => bloqueo.fecha));
+
+    renderizarCalendario(primerDiaMes, ultimoDiaMes, conteoPorDia, diasBloqueados);
+}
+
+function renderizarCalendario(primerDiaMes, ultimoDiaMes, conteoPorDia, diasBloqueados) {
+    document.getElementById('etiqueta-mes-calendario').textContent = etiquetaMes(mesCalendarioActual);
+
+    const grilla = document.getElementById('grilla-calendario');
+    grilla.innerHTML = '';
+
+    const hoyClave = formatearClaveFecha(new Date());
+    const cupo = distribuidoraActual.cupo_diario;
+
+    for (let i = 0; i < primerDiaMes.getDay(); i++) {
+        const celdaVacia = document.createElement('div');
+        celdaVacia.className = 'dia-calendario dia-vacio';
+        grilla.appendChild(celdaVacia);
     }
 
-    estadoVacio.classList.add('oculto');
-    repartidoresCargados = lista;
+    for (let dia = 1; dia <= ultimoDiaMes.getDate(); dia++) {
+        const fecha = new Date(mesCalendarioActual.getFullYear(), mesCalendarioActual.getMonth(), dia);
+        const clave = formatearClaveFecha(fecha);
+        const cantidad = conteoPorDia[clave] || 0;
+        const bloqueado = diasBloqueados.has(clave);
+        const lleno = !bloqueado && cupo != null && cantidad >= cupo;
+        const esPasado = clave < hoyClave;
 
-    lista.forEach((miembro) => {
-        const repartidor = miembro.usuarios || {};
+        const celda = document.createElement('div');
+        celda.className = 'dia-calendario';
+        if (clave === hoyClave) celda.classList.add('dia-hoy');
+        if (bloqueado) celda.classList.add('dia-bloqueado');
+        else if (lleno) celda.classList.add('dia-lleno');
+        if (esPasado) celda.classList.add('dia-pasado');
 
-        const acciones = conAcciones
-            ? `<div class="tarjeta-producto-panel-acciones">
+        celda.innerHTML = `
+            <span class="dia-calendario-numero">${dia}</span>
+            <span class="dia-calendario-info">
+                ${bloqueado ? 'Bloqueado' : `${cantidad}${cupo != null ? '/' + cupo : ''}`}
+            </span>
+        `;
+
+        if (!esPasado) {
+            celda.addEventListener('click', () => abrirModalDia(clave, bloqueado));
+        }
+
+        grilla.appendChild(celda);
+    }
+}
+
+document.getElementById('btn-mes-anterior').addEventListener('click', () => {
+    mesCalendarioActual = new Date(mesCalendarioActual.getFullYear(), mesCalendarioActual.getMonth() - 1, 1);
+    cargarCalendario();
+});
+
+document.getElementById('btn-mes-siguiente').addEventListener('click', () => {
+    mesCalendarioActual = new Date(mesCalendarioActual.getFullYear(), mesCalendarioActual.getMonth() + 1, 1);
+    cargarCalendario();
+});
+
+let fechaModalDia = null;
+
+async function abrirModalDia(clave, bloqueado) {
+    fechaModalDia = clave;
+
+    const fechaLegible = new Date(`${clave}T00:00:00`).toLocaleDateString('es-AR', {
+        weekday: 'long', day: 'numeric', month: 'long'
+    });
+
+    document.getElementById('titulo-modal-dia').textContent = fechaLegible;
+
+    const contenido = document.getElementById('detalle-dia-contenido');
+    contenido.innerHTML = '<p class="estado-productos-panel">Cargando...</p>';
+
+    const btnBloqueo = document.getElementById('btn-alternar-bloqueo-dia');
+    btnBloqueo.classList.remove('oculto');
+    btnBloqueo.textContent = bloqueado ? 'Desbloquear este día' : 'Bloquear este día';
+    btnBloqueo.dataset.bloqueado = bloqueado ? '1' : '0';
+
+    document.getElementById('modal-detalle-dia').classList.remove('oculto');
+
+    const [{ data: pedidos }, { data: suscripciones }] = await Promise.all([
+        supabaseCliente
+            .from('pedidos')
+            .select('id, total, estado, usuarios!pedidos_cliente_id_fkey ( nombre, apellido )')
+            .eq('distribuidora_id', distribuidoraActual.id)
+            .eq('fecha_entrega', clave)
+            .neq('estado', 'cancelado'),
+        supabaseCliente
+            .from('suscripciones')
+            .select('id, cantidad, usuarios ( nombre, apellido ), productos ( nombre )')
+            .eq('distribuidora_id', distribuidoraActual.id)
+            .eq('proxima_entrega', clave)
+            .eq('estado', 'activa')
+    ]);
+
+    const items = [
+        ...(pedidos || []).map((pedido) => `
+            <div class="item-detalle-dia">
+                <span class="etiqueta-tipo-entrega">Pedido</span>
+                <strong>${escaparHtml(pedido.usuarios?.nombre || '')} ${escaparHtml(pedido.usuarios?.apellido || '')}</strong>
+                ${formatearPrecio(pedido.total)}
+            </div>
+        `),
+        ...(suscripciones || []).map((suscripcion) => `
+            <div class="item-detalle-dia">
+                <span class="etiqueta-tipo-entrega">Suscripción</span>
+                <strong>${escaparHtml(suscripcion.usuarios?.nombre || '')} ${escaparHtml(suscripcion.usuarios?.apellido || '')}</strong>
+                ${escaparHtml(suscripcion.productos?.nombre || '')} x${suscripcion.cantidad}
+            </div>
+        `)
+    ];
+
+    contenido.innerHTML = items.length > 0
+        ? `<div class="lista-detalle-dia">${items.join('')}</div>`
+        : '<p class="estado-productos-panel">No hay entregas programadas para este día.</p>';
+}
+
+document.getElementById('boton-cerrar-modal-dia').addEventListener('click', () => {
+    document.getElementById('modal-detalle-dia').classList.add('oculto');
+});
+
+document.getElementById('btn-alternar-bloqueo-dia').addEventListener('click', async (evento) => {
+    const boton = evento.currentTarget;
+    const estaBloqueado = boton.dataset.bloqueado === '1';
+
+    boton.disabled = true;
+
+    if (estaBloqueado) {
+        await supabaseCliente
+            .from('dias_bloqueados')
+            .delete()
+            .eq('distribuidora_id', distribuidoraActual.id)
+            .eq('fecha', fechaModalDia);
+    } else {
+        await supabaseCliente
+            .from('dias_bloqueados')
+            .upsert({
+                distribuidora_id: distribuidoraActual.id,
+                fecha: fechaModalDia,
+                creado_por: usuarioActualId
+            }, { onConflict: 'distribuidora_id,fecha' });
+    }
+
+    boton.disabled = false;
+    document.getElementById('modal-detalle-dia').classList.add('oculto');
+    await cargarCalendario();
+});
+
+document.getElementById('formulario-cupo').addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+
+    const input = document.getElementById('cupo-diario');
+    const valor = input.value === '' ? null : Number(input.value);
+
+    const { error } = await supabaseCliente
+        .from('distribuidoras')
+        .update({ cupo_diario: valor })
+        .eq('id', distribuidoraActual.id);
+
+    const mensaje = document.getElementById('mensaje-cupo');
+
+    if (error) {
+        mensaje.textContent = 'No pudimos guardar el cupo. Intentá de nuevo.';
+        mensaje.className = 'mensaje-estado error';
+    } else {
+        distribuidoraActual.cupo_diario = valor;
+        mensaje.textContent = 'Cupo guardado.';
+        mensaje.className = 'mensaje-estado exito';
+        cargarCalendario();
+    }
+
+    mensaje.classList.remove('oculto');
+    setTimeout(() => mensaje.classList.add('oculto'), 3200);
+});
+
+document.getElementById('btn-alternar-vista-suscripciones').addEventListener('click', (evento) => {
+        const boton = evento.currentTarget;
+        const vistaCalendario = document.getElementById('vista-calendario-suscripciones');
+        const vistaLista = document.getElementById('vista-lista-suscripciones');
+
+        const mostrandoLista = !vistaLista.classList.contains('oculto');
+
+        vistaCalendario.classList.toggle('oculto', !mostrandoLista);
+        vistaLista.classList.toggle('oculto', mostrandoLista);
+        boton.textContent = mostrandoLista ? 'Ver todas las suscripciones' : 'Ver calendario';
+
+        if (!mostrandoLista && !seccionListaSuscripcionesCargada) {
+            seccionListaSuscripcionesCargada = true;
+            cargarSuscripcionesPanel();
+        }
+    });
+
+    let repartidoresCargados = [];
+
+    function renderizarListaRepartidores(lista, contenedorId, estadoVacioId, conAcciones) {
+        const contenedor = document.getElementById(contenedorId);
+        const estadoVacio = document.getElementById(estadoVacioId);
+
+        contenedor.innerHTML = '';
+
+        if (lista.length === 0) {
+            estadoVacio.textContent = conAcciones
+                ? 'No hay solicitudes pendientes por ahora.'
+                : 'Todavía no tenés repartidores en tu flota.';
+            estadoVacio.classList.remove('oculto');
+            return;
+        }
+
+        estadoVacio.classList.add('oculto');
+        repartidoresCargados = lista;
+
+        lista.forEach((miembro) => {
+            const repartidor = miembro.usuarios || {};
+
+            const acciones = conAcciones
+                ? `<div class="tarjeta-producto-panel-acciones">
                    <button type="button" class="btn btn-secundario btn-chico" data-pausar-repartidor="${miembro.id}">
                        ${miembro.disponible === false ? 'Reactivar' : 'Pausar'}
                    </button>
                </div>`
-            : '';
+                : '';
 
-        const tarjeta = document.createElement('article');
-        tarjeta.className = 'tarjeta-producto-panel';
-        tarjeta.innerHTML = `
+            const tarjeta = document.createElement('article');
+            tarjeta.className = 'tarjeta-producto-panel';
+            tarjeta.innerHTML = `
             <div class="tarjeta-repartidor-cabecera" data-detalle-repartidor="${miembro.id}">
                 <div class="tarjeta-repartidor-foto">
                     ${repartidor.foto_url
-                ? `<img src="${escaparHtml(repartidor.foto_url)}" alt="${escaparHtml(repartidor.nombre)}">`
-                : '<span>Sin foto</span>'}
+                    ? `<img src="${escaparHtml(repartidor.foto_url)}" alt="${escaparHtml(repartidor.nombre)}">`
+                    : '<span>Sin foto</span>'}
                 </div>
                 <div>
                     <h3>${escaparHtml(repartidor.nombre || 'Repartidor')}</h3>
@@ -1140,87 +1387,87 @@ function renderizarListaRepartidores(lista, contenedorId, estadoVacioId, conAcci
             ${acciones}
         `;
 
-        contenedor.appendChild(tarjeta);
-    });
-}
-
-document.getElementById('lista-flota').addEventListener('click', async (evento) => {
-    const boton = evento.target.closest('[data-pausar-repartidor]');
-    if (!boton) return;
-
-    const miembroId = boton.dataset.pausarRepartidor;
-    const miembro = repartidoresCargados.find((item) => item.id === miembroId);
-    if (!miembro) return;
-
-    boton.disabled = true;
-
-    const { error } = await supabaseCliente
-        .from('miembros_distribuidoras')
-        .update({ disponible: !(miembro.disponible === true) })
-        .eq('id', miembroId);
-
-    if (error) {
-        alert('No pudimos actualizar al repartidor. Intentá de nuevo.');
-        boton.disabled = false;
-        return;
+            contenedor.appendChild(tarjeta);
+        });
     }
 
-    await cargarRepartidores();
-});
+    document.getElementById('lista-flota').addEventListener('click', async (evento) => {
+        const boton = evento.target.closest('[data-pausar-repartidor]');
+        if (!boton) return;
 
-async function cargarRepartidores() {
-    const { data: flota, error: errorFlota } = await supabaseCliente
-        .from('miembros_distribuidoras')
-        .select(`
+        const miembroId = boton.dataset.pausarRepartidor;
+        const miembro = repartidoresCargados.find((item) => item.id === miembroId);
+        if (!miembro) return;
+
+        boton.disabled = true;
+
+        const { error } = await supabaseCliente
+            .from('miembros_distribuidoras')
+            .update({ disponible: !(miembro.disponible === true) })
+            .eq('id', miembroId);
+
+        if (error) {
+            alert('No pudimos actualizar al repartidor. Intentá de nuevo.');
+            boton.disabled = false;
+            return;
+        }
+
+        await cargarRepartidores();
+    });
+
+    async function cargarRepartidores() {
+        const { data: flota, error: errorFlota } = await supabaseCliente
+            .from('miembros_distribuidoras')
+            .select(`
             id, usuario_id, disponible,
             usuarios!usuario_id (
                 nombre, telefono, dni, foto_url, tipo_vehiculo,
                 marca_vehiculo, modelo_vehiculo, patente_vehiculo, numero_licencia
             )
         `)
-        .eq('distribuidora_id', distribuidoraActual.id)
-        .eq('rol', 'repartidor')
-        .eq('estado', 'activo')
-        .order('creado_en', { ascending: false });
+            .eq('distribuidora_id', distribuidoraActual.id)
+            .eq('rol', 'repartidor')
+            .eq('estado', 'activo')
+            .order('creado_en', { ascending: false });
 
-    if (errorFlota) {
-        document.getElementById('estado-flota').textContent =
-            'No pudimos cargar tu flota. Recargá la página.';
-        document.getElementById('estado-flota').classList.remove('oculto');
-    } else {
-        renderizarListaRepartidores(flota || [], 'lista-flota', 'estado-flota', true);
-    }
+        if (errorFlota) {
+            document.getElementById('estado-flota').textContent =
+                'No pudimos cargar tu flota. Recargá la página.';
+            document.getElementById('estado-flota').classList.remove('oculto');
+        } else {
+            renderizarListaRepartidores(flota || [], 'lista-flota', 'estado-flota', true);
+        }
 
-    const { data: invitaciones, error: errorInvitaciones } = await supabaseCliente
-        .from('invitaciones_repartidor')
-        .select('id, nombre, email, dni, telefono, marca_vehiculo, modelo_vehiculo, creado_en')
-        .eq('distribuidora_id', distribuidoraActual.id)
-        .eq('estado', 'pendiente')
-        .order('creado_en', { ascending: false });
+        const { data: invitaciones, error: errorInvitaciones } = await supabaseCliente
+            .from('invitaciones_repartidor')
+            .select('id, nombre, email, dni, telefono, marca_vehiculo, modelo_vehiculo, creado_en')
+            .eq('distribuidora_id', distribuidoraActual.id)
+            .eq('estado', 'pendiente')
+            .order('creado_en', { ascending: false });
 
-    if (errorInvitaciones) {
-        document.getElementById('estado-invitaciones').textContent =
-            'No pudimos cargar las invitaciones. Recargá la página.';
-        document.getElementById('estado-invitaciones').classList.remove('oculto');
-        return;
-    }
+        if (errorInvitaciones) {
+            document.getElementById('estado-invitaciones').textContent =
+                'No pudimos cargar las invitaciones. Recargá la página.';
+            document.getElementById('estado-invitaciones').classList.remove('oculto');
+            return;
+        }
 
-    const listaInvitaciones = document.getElementById('lista-invitaciones');
-    const estadoInvitaciones = document.getElementById('estado-invitaciones');
-    listaInvitaciones.innerHTML = '';
+        const listaInvitaciones = document.getElementById('lista-invitaciones');
+        const estadoInvitaciones = document.getElementById('estado-invitaciones');
+        listaInvitaciones.innerHTML = '';
 
-    if (!invitaciones || invitaciones.length === 0) {
-        estadoInvitaciones.textContent = 'No tenés invitaciones esperando respuesta.';
-        estadoInvitaciones.classList.remove('oculto');
-        return;
-    }
+        if (!invitaciones || invitaciones.length === 0) {
+            estadoInvitaciones.textContent = 'No tenés invitaciones esperando respuesta.';
+            estadoInvitaciones.classList.remove('oculto');
+            return;
+        }
 
-    estadoInvitaciones.classList.add('oculto');
+        estadoInvitaciones.classList.add('oculto');
 
-    invitaciones.forEach((invitacion) => {
-        const tarjeta = document.createElement('article');
-        tarjeta.className = 'tarjeta-producto-panel';
-        tarjeta.innerHTML = `
+        invitaciones.forEach((invitacion) => {
+            const tarjeta = document.createElement('article');
+            tarjeta.className = 'tarjeta-producto-panel';
+            tarjeta.innerHTML = `
             <div class="tarjeta-producto-panel-superior">
                 <h3>${escaparHtml(invitacion.nombre)}</h3>
                 <span class="etiqueta-estado-producto pendiente">Esperando registro</span>
@@ -1230,16 +1477,16 @@ async function cargarRepartidores() {
                 ${escaparHtml([invitacion.marca_vehiculo, invitacion.modelo_vehiculo].filter(Boolean).join(' ') || 'Sin vehículo cargado')}
             </p>
         `;
-        listaInvitaciones.appendChild(tarjeta);
-    });
-}
+            listaInvitaciones.appendChild(tarjeta);
+        });
+    }
 
-function abrirDetalleRepartidor(miembro) {
-    const repartidor = miembro.usuarios || {};
+    function abrirDetalleRepartidor(miembro) {
+        const repartidor = miembro.usuarios || {};
 
-    document.getElementById('titulo-modal-repartidor').textContent = repartidor.nombre || 'Repartidor';
+        document.getElementById('titulo-modal-repartidor').textContent = repartidor.nombre || 'Repartidor';
 
-    document.getElementById('detalle-repartidor-contenido').innerHTML = `
+        document.getElementById('detalle-repartidor-contenido').innerHTML = `
         <div class="detalle-repartidor-fila">
             <span>DNI</span>
             <span>${escaparHtml(repartidor.dni || 'Sin cargar')}</span>
@@ -1266,83 +1513,83 @@ function abrirDetalleRepartidor(miembro) {
         </div>
     `;
 
-    document.getElementById('modal-detalle-repartidor').classList.remove('oculto');
-}
-
-
-
-document.getElementById('formulario-invitar-repartidor').addEventListener('submit', async (evento) => {
-    evento.preventDefault();
-
-    const btnInvitar = document.getElementById('btn-invitar-repartidor');
-
-    const datosInvitacion = {
-        distribuidora_id: distribuidoraActual.id,
-        invitado_por: usuarioActualId,
-        nombre: document.getElementById('nombre-repartidor').value.trim(),
-        email: document.getElementById('email-repartidor').value.trim(),
-        dni: document.getElementById('dni-repartidor-invitar').value.trim() || null,
-        telefono: document.getElementById('telefono-repartidor-invitar').value.trim() || null,
-        tipo_vehiculo: document.getElementById('tipo-vehiculo-repartidor-invitar').value,
-        marca_vehiculo: document.getElementById('marca-repartidor-invitar').value.trim() || null,
-        modelo_vehiculo: document.getElementById('modelo-repartidor-invitar').value.trim() || null,
-        patente_vehiculo: document.getElementById('patente-repartidor-invitar').value.trim() || null,
-        numero_licencia: document.getElementById('licencia-repartidor-invitar').value.trim() || null
-    };
-
-    btnInvitar.disabled = true;
-    btnInvitar.textContent = 'Generando...';
-
-    const { error } = await supabaseCliente
-        .from('invitaciones_repartidor')
-        .insert(datosInvitacion);
-
-    btnInvitar.disabled = false;
-    btnInvitar.textContent = 'Generar invitación';
-
-    if (error) {
-        alert('No pudimos generar la invitación. Revisá los datos e intentá de nuevo.');
-        return;
+        document.getElementById('modal-detalle-repartidor').classList.remove('oculto');
     }
 
-    const link = `${window.location.origin}/registro-repartidor.html?email=${encodeURIComponent(datosInvitacion.email)}`;
-    document.getElementById('link-invitacion').value = link;
-    document.getElementById('tarjeta-link-invitacion').classList.remove('oculto');
 
-    document.getElementById('formulario-invitar-repartidor').reset();
-    await cargarRepartidores();
-});
 
-document.getElementById('btn-copiar-link').addEventListener('click', () => {
-    const campoLink = document.getElementById('link-invitacion');
-    campoLink.select();
-    navigator.clipboard.writeText(campoLink.value);
+    document.getElementById('formulario-invitar-repartidor').addEventListener('submit', async (evento) => {
+        evento.preventDefault();
 
-    const boton = document.getElementById('btn-copiar-link');
-    boton.textContent = '¡Copiado!';
-    setTimeout(() => { boton.textContent = 'Copiar'; }, 1500);
-});
+        const btnInvitar = document.getElementById('btn-invitar-repartidor');
 
-document.getElementById('boton-cerrar-modal-repartidor').addEventListener('click', () => {
-    document.getElementById('modal-detalle-repartidor').classList.add('oculto');
-});
+        const datosInvitacion = {
+            distribuidora_id: distribuidoraActual.id,
+            invitado_por: usuarioActualId,
+            nombre: document.getElementById('nombre-repartidor').value.trim(),
+            email: document.getElementById('email-repartidor').value.trim(),
+            dni: document.getElementById('dni-repartidor-invitar').value.trim() || null,
+            telefono: document.getElementById('telefono-repartidor-invitar').value.trim() || null,
+            tipo_vehiculo: document.getElementById('tipo-vehiculo-repartidor-invitar').value,
+            marca_vehiculo: document.getElementById('marca-repartidor-invitar').value.trim() || null,
+            modelo_vehiculo: document.getElementById('modelo-repartidor-invitar').value.trim() || null,
+            patente_vehiculo: document.getElementById('patente-repartidor-invitar').value.trim() || null,
+            numero_licencia: document.getElementById('licencia-repartidor-invitar').value.trim() || null
+        };
 
-document.getElementById('modal-detalle-repartidor').addEventListener('click', (evento) => {
-    if (evento.target.id === 'modal-detalle-repartidor') {
+        btnInvitar.disabled = true;
+        btnInvitar.textContent = 'Generando...';
+
+        const { error } = await supabaseCliente
+            .from('invitaciones_repartidor')
+            .insert(datosInvitacion);
+
+        btnInvitar.disabled = false;
+        btnInvitar.textContent = 'Generar invitación';
+
+        if (error) {
+            alert('No pudimos generar la invitación. Revisá los datos e intentá de nuevo.');
+            return;
+        }
+
+        const link = `${window.location.origin}/registro-repartidor.html?email=${encodeURIComponent(datosInvitacion.email)}`;
+        document.getElementById('link-invitacion').value = link;
+        document.getElementById('tarjeta-link-invitacion').classList.remove('oculto');
+
+        document.getElementById('formulario-invitar-repartidor').reset();
+        await cargarRepartidores();
+    });
+
+    document.getElementById('btn-copiar-link').addEventListener('click', () => {
+        const campoLink = document.getElementById('link-invitacion');
+        campoLink.select();
+        navigator.clipboard.writeText(campoLink.value);
+
+        const boton = document.getElementById('btn-copiar-link');
+        boton.textContent = '¡Copiado!';
+        setTimeout(() => { boton.textContent = 'Copiar'; }, 1500);
+    });
+
+    document.getElementById('boton-cerrar-modal-repartidor').addEventListener('click', () => {
         document.getElementById('modal-detalle-repartidor').classList.add('oculto');
-    }
-});
+    });
 
-document.getElementById('seccion-repartidores').addEventListener('click', (evento) => {
-    const cabecera = evento.target.closest('[data-detalle-repartidor]');
+    document.getElementById('modal-detalle-repartidor').addEventListener('click', (evento) => {
+        if (evento.target.id === 'modal-detalle-repartidor') {
+            document.getElementById('modal-detalle-repartidor').classList.add('oculto');
+        }
+    });
 
-    if (!cabecera) {
-        return;
-    }
+    document.getElementById('seccion-repartidores').addEventListener('click', (evento) => {
+        const cabecera = evento.target.closest('[data-detalle-repartidor]');
 
-    const miembro = repartidoresCargados.find((item) => item.id === cabecera.dataset.detalleRepartidor);
+        if (!cabecera) {
+            return;
+        }
 
-    if (miembro) {
-        abrirDetalleRepartidor(miembro);
-    }
-});
+        const miembro = repartidoresCargados.find((item) => item.id === cabecera.dataset.detalleRepartidor);
+
+        if (miembro) {
+            abrirDetalleRepartidor(miembro);
+        }
+    });
