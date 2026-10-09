@@ -50,7 +50,8 @@ function crearOActualizarGrafico(idCanvas, config) {
 
 // ---------- Ventas por día ----------
 
-async function cargarGraficoVentas(fechaDesde) {
+async function cargarGraficoVentas() {
+    const fechaDesde = fechaDesdeRango(document.getElementById('filtro-ventas').value);
     const { data, error } = await supabaseCliente
         .from('pedidos')
         .select('total, creado_en, estado')
@@ -94,6 +95,7 @@ async function cargarGraficoVentas(fechaDesde) {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: {
                 y: {
@@ -108,7 +110,8 @@ async function cargarGraficoVentas(fechaDesde) {
 
 // ---------- Pedidos por estado ----------
 
-async function cargarGraficoEstados(fechaDesde) {
+async function cargarGraficoEstados() {
+    const fechaDesde = fechaDesdeRango(document.getElementById('filtro-estados').value);
     const { data, error } = await supabaseCliente
         .from('pedidos')
         .select('estado')
@@ -148,6 +151,7 @@ async function cargarGraficoEstados(fechaDesde) {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: { legend: { display: false } },
             scales: { y: { ticks: { precision: 0 } } }
         }
@@ -156,7 +160,8 @@ async function cargarGraficoEstados(fechaDesde) {
 
 // ---------- Productos más vendidos ----------
 
-async function cargarGraficoProductos(fechaDesde) {
+async function cargarGraficoProductos() {
+    const fechaDesde = fechaDesdeRango(document.getElementById('filtro-productos').value);
     const { data, error } = await supabaseCliente
         .from('detalles_pedidos')
         .select('cantidad, productos ( nombre ), pedidos!inner ( distribuidora_id, estado, creado_en )')
@@ -200,6 +205,7 @@ async function cargarGraficoProductos(fechaDesde) {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             indexAxis: 'y',
             plugins: { legend: { display: false } },
             scales: { x: { ticks: { precision: 0 } } }
@@ -209,7 +215,8 @@ async function cargarGraficoProductos(fechaDesde) {
 
 // ---------- Repartidores con más entregas ----------
 
-async function cargarGraficoRepartidores(fechaDesde) {
+async function cargarGraficoRepartidores() {
+    const fechaDesde = fechaDesdeRango(document.getElementById('filtro-repartidores').value);
     const { data, error } = await supabaseCliente
         .from('entregas')
         .select('repartidor_id, usuarios ( nombre, apellido ), pedidos!inner ( distribuidora_id, estado, creado_en )')
@@ -256,6 +263,7 @@ async function cargarGraficoRepartidores(fechaDesde) {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             indexAxis: 'y',
             plugins: { legend: { display: false } },
             scales: { x: { ticks: { precision: 0 } } }
@@ -266,14 +274,11 @@ async function cargarGraficoRepartidores(fechaDesde) {
 async function cargarTodasLasMetricas() {
     mostrarEstadoMetricas('Cargando métricas...');
 
-    const dias = document.getElementById('filtro-rango-metricas').value;
-    const fechaDesde = fechaDesdeRango(dias);
-
     await Promise.all([
-        cargarGraficoVentas(fechaDesde),
-        cargarGraficoEstados(fechaDesde),
-        cargarGraficoProductos(fechaDesde),
-        cargarGraficoRepartidores(fechaDesde)
+        cargarGraficoVentas(),
+        cargarGraficoEstados(),
+        cargarGraficoProductos(),
+        cargarGraficoRepartidores()
     ]);
 
     mostrarEstadoMetricas('');
@@ -321,7 +326,10 @@ document.querySelector('.grilla-metricas').addEventListener('click', (evento) =>
     }
 });
 
-document.getElementById('filtro-rango-metricas').addEventListener('change', cargarTodasLasMetricas);
+document.getElementById('filtro-ventas').addEventListener('change', cargarGraficoVentas);
+document.getElementById('filtro-estados').addEventListener('change', cargarGraficoEstados);
+document.getElementById('filtro-productos').addEventListener('change', cargarGraficoProductos);
+document.getElementById('filtro-repartidores').addEventListener('change', cargarGraficoRepartidores);
 
 // ---------- Inicialización ----------
 
