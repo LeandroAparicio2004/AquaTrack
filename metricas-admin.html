@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <script>
+        (function () {
+            if (localStorage.getItem('aquatrack_tema') === 'oscuro') {
+                document.documentElement.setAttribute('data-tema', 'oscuro');
+            }
+        })();
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Métricas — Admin AquaTrack</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/comunes.css">
+    <link rel="stylesheet" href="css/panel-vendedor.css">
+    <link rel="stylesheet" href="css/metricas-vendedor.css">
+</head>
+
+<body>
+
+    <div class="panel-cargando" id="panel-cargando">
+        <p>Cargando métricas...</p>
+    </div>
+
+    <header class="encabezado panel-encabezado oculto" id="panel-header">
+        <div class="contenedor encabezado-interno">
+            <div class="panel-marca">
+                <span class="logo">AquaTrack</span>
+                <span class="panel-etiqueta">Métricas Admin</span>
+            </div>
+
+            <nav class="panel-nav">
+                <a href="admin.html" class="btn btn-secundario btn-chico">Volver al panel</a>
+                <button type="button" class="btn-tema" id="btn-tema" aria-label="Cambiar tema"></button>
+                <button type="button" class="btn btn-secundario btn-peligro" id="boton-cerrar-sesion">Salir</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="panel-contenido oculto" id="panel-main">
+        <div class="contenedor">
+
+            <div class="panel-encabezado-negocio">
+                <p class="etiqueta-seccion">AquaTrack</p>
+                <h1>Métricas de la plataforma</h1>
+            </div>
+
+            <p class="estado-productos-panel oculto" id="estado-metricas"></p>
+
+            <div class="grilla-metricas">
+
+                <article class="tarjeta-metrica tarjeta-metrica-ancha">
+                    <div class="tarjeta-metrica-encabezado">
+                        <div class="tarjeta-metrica-titulo">
+                            <h3>Ventas totales por día</h3>
+                            <select class="filtro-metrica" id="filtro-ventas">
+                                <option value="7">7 días</option>
+                                <option value="30" selected>30 días</option>
+                                <option value="90">90 días</option>
+                            </select>
+                        </div>
+                        <div class="tarjeta-metrica-acciones">
+                            <button type="button" class="btn btn-secundario btn-chico" data-descargar-png="grafico-ventas" data-nombre="ventas-totales-por-dia">PNG</button>
+                            <button type="button" class="btn btn-secundario btn-chico" data-descargar-excel="ventas">Excel</button>
+                        </div>
+                    </div>
+                    <div class="contenedor-grafico">
+                        <canvas id="grafico-ventas"></canvas>
+                    </div>
+                </article>
+
+                <article class="tarjeta-metrica">
+                    <div class="tarjeta-metrica-encabezado">
+                        <div class="tarjeta-metrica-titulo">
+                            <h3>Pedidos por estado</h3>
+                            <select class="filtro-metrica" id="filtro-estados">
+                                <option value="7">7 días</option>
+                                <option value="30" selected>30 días</option>
+                                <option value="90">90 días</option>
+                            </select>
+                        </div>
+                        <div class="tarjeta-metrica-acciones">
+                            <button type="button" class="btn btn-secundario btn-chico" data-descargar-png="grafico-estados" data-nombre="pedidos-por-estado">PNG</button>
+                            <button type="button" class="btn btn-secundario btn-chico" data-descargar-excel="estados">Excel</button>
+                        </div>
+                    </div>
+                    <div class="contenedor-grafico">
+                        <canvas id="grafico-estados"></canvas>
+                    </div>
+                </article>
+
+                <article class="tarjeta-metrica">
+                    <div class="tarjeta-metrica-encabezado">
+                        <div class="tarjeta-metrica-titulo">
+                            <h3>Pagos pendientes vs confirmados</h3>
+                            <select class="filtro-metrica" id="filtro-pagos">
+                                <option value="7">7 días</option>
+                                <option value="30" selected>30 días</option>
+                                <option value="90">90 días</option>
+                            </select>
+                        </div>
+                        <div class="tarjeta-metrica-acciones">
+                            <button type="button" class="btn btn-secundario btn-chico" data-descargar-png="grafico-pagos" data-nombre="pagos-pendientes-vs-confirmados">PNG</button>
+                            <button type="button" class="btn btn-secundario btn-chico" data-descargar-excel="pagos">Excel</button>
+                        </div>
+                    </div>
+                    <div class="contenedor-grafico">
+                        <canvas id="grafico-pagos"></canvas>
+                    </div>
+                </article>
+
+                <article class="tarjeta-metrica tarjeta-metrica-ancha">
+                    <div class="tarjeta-metrica-encabezado">
+                        <div class="tarjeta-metrica-titulo">
+                            <h3>Comisión retenida</h3>
+                            <select class="filtro-metrica" id="filtro-comision">
+                                <option value="7">7 días</option>
+                                <option value="30" selected>30 días</option>
+                                <option value="90">90 días</option>
+                            </select>
+                        </div>
+                        <div class="tarjeta-metrica-acciones">
+                            <button type="button" class="btn btn-secundario btn-chico" data-descargar-png="grafico-comision" data-nombre="comision-retenida">PNG</button>
+                            <button type="button" class="btn btn-secundario btn-chico" data-descargar-excel="comision">Excel</button>
+                        </div>
+                    </div>
+                    <div class="contenedor-grafico">
+                        <canvas id="grafico-comision"></canvas>
+                    </div>
+                </article>
+
+                <article class="tarjeta-metrica">
+                    <div class="tarjeta-metrica-encabezado">
+                        <div class="tarjeta-metrica-titulo">
+                            <h3>Ranking de distribuidoras</h3>
+                            <select class="filtro-metrica" id="filtro-ranking">
+                                <option value="7">7 días</option>
+                                <option value="30" selected>30 días</option>
+                                <option value="90">90 días</option>
+                            </select>
+                        </div>
+                        <div class="tarjeta-metrica-acciones">
+                            <button type="button" class="btn btn-secundario btn-chico" data-descargar-png="grafico-ranking" data-nombre="ranking-de-distribuidoras">PNG</button>
+                            <button type="button" class="btn btn-secundario btn-chico" data-descargar-excel="ranking">Excel</button>
+                        </div>
+                    </div>
+                    <div class="contenedor-grafico">
+                        <canvas id="grafico-ranking"></canvas>
+                    </div>
+                </article>
+
+                <article class="tarjeta-metrica">
+                    <div class="tarjeta-metrica-encabezado">
+                        <div class="tarjeta-metrica-titulo">
+                            <h3>Usuarios registrados por rol</h3>
+                        </div>
+                        <div class="tarjeta-metrica-acciones">
+                            <button type="button" class="btn btn-secundario btn-chico" data-descargar-png="grafico-usuarios" data-nombre="usuarios-por-rol">PNG</button>
+                            <button type="button" class="btn btn-secundario btn-chico" data-descargar-excel="usuarios">Excel</button>
+                        </div>
+                    </div>
+                    <div class="contenedor-grafico">
+                        <canvas id="grafico-usuarios"></canvas>
+                    </div>
+                </article>
+
+            </div>
+
+        </div>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="js/metricas-admin.js"></script>
+    <script src="js/tema.js"></script>
+</body>
+
+</html>

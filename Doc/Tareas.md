@@ -36,12 +36,18 @@ SCRUM-37 Configurar integracion con OpenSteetMap y OSRM X
 
 Sprint 5 - Paneles y Suscripción 
 SCRUM-16 Consulta de Dashboard Vendedor X
-SCRUM-17 Metricas Comerciales
+SCRUM-17 Metricas Comerciales X
 SCRUM-21 Consulta de Dashboard Cliente X
 SCRUM-25 Programacion de Suscripciones X
-SCRUM-50 Promociones y Combos de Productos
+SCRUM-50 Promociones y Combos de Productos X
 
 Sprint 6 - UX
 SCRUM-46 Modo Claro / Oscuro
 SCRUM-47 Btn Hamburguesa (Cel)
 SCRUM-48 Pop-ups de productos
+
+
+Potential issue detected
+This query includes destructive operations. It may permanently change or remove data, tables, schemas, or other objects.
+
+Run this query only if you intend these changes and understand the risks.
