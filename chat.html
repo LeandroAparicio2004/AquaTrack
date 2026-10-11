@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <script>
+        (function () {
+            if (localStorage.getItem('aquatrack_tema') === 'oscuro') {
+                document.documentElement.setAttribute('data-tema', 'oscuro');
+            }
+        })();
+    </script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mensajes — AquaTrack</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="css/comunes.css">
+    <link rel="stylesheet" href="css/chat.css">
+</head>
+
+<body>
+
+    <div class="panel-cargando" id="chat-cargando">
+        <p>Cargando tus mensajes...</p>
+    </div>
+
+    <div class="pagina-chat oculto" id="chat-contenedor">
+
+        <header class="encabezado-chat">
+            <a href="index.html" class="marca-inicio" aria-label="Ir al inicio de AquaTrack">
+                <span class="logo">AquaTrack</span>
+            </a>
+
+            <div class="encabezado-chat-acciones">
+                <button type="button" class="btn-tema" id="btn-tema" aria-label="Cambiar tema"></button>
+                <button type="button" class="btn btn-secundario btn-peligro" id="boton-cerrar-sesion">Salir</button>
+            </div>
+        </header>
+
+        <main class="cuerpo-chat">
+
+            <aside class="columna-conversaciones">
+                <div class="columna-conversaciones-encabezado">
+                    <h1>Mensajes</h1>
+                    <button type="button" class="btn btn-principal btn-chico" id="btn-nueva-conversacion">+ Nueva</button>
+                </div>
+
+                <p class="estado-chat oculto" id="estado-conversaciones"></p>
+
+                <div class="lista-conversaciones" id="lista-conversaciones"></div>
+            </aside>
+
+            <section class="columna-mensajes">
+                <div class="chat-vacio" id="chat-vacio">
+                    <p>Elegí una conversación de la izquierda, o iniciá una nueva.</p>
+                </div>
+
+                <div class="chat-activo oculto" id="chat-activo">
+                    <div class="chat-activo-encabezado">
+                        <strong id="chat-nombre-contacto">—</strong>
+                        <button type="button" class="btn btn-secundario btn-chico oculto" id="btn-tomar-ticket">Tomar ticket</button>
+                    </div>
+
+                    <div class="lista-mensajes" id="lista-mensajes"></div>
+
+                    <form class="formulario-mensaje" id="formulario-mensaje">
+                        <input type="text" id="input-mensaje" placeholder="Escribí un mensaje..." autocomplete="off" required>
+                        <button type="submit" class="btn btn-principal btn-chico">Enviar</button>
+                    </form>
+                </div>
+            </section>
+
+        </main>
+
+    </div>
+
+    <div class="modal-fondo oculto" id="modal-nueva-conversacion" role="dialog" aria-modal="true">
+        <div class="modal-nueva-conversacion">
+            <button type="button" class="boton-cerrar-modal" id="boton-cerrar-modal-nueva-conversacion"
+                aria-label="Cerrar ventana">×</button>
+
+            <h2>Nueva conversación</h2>
+            <p class="subtitulo-modal-suscripcion">Elegí con quién querés hablar.</p>
+
+            <div id="contenedor-soporte-nueva-conversacion"></div>
+
+            <input type="text" id="buscador-contactos" class="buscador-contactos" placeholder="Buscar...">
+
+            <div class="contenido-modal-nueva-conversacion" id="contenido-modal-nueva-conversacion"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/chat.js"></script>
+    <script src="js/tema.js"></script>
+</body>
+
+</html>
