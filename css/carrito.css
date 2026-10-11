@@ -785,3 +785,14 @@
 .btn-quitar-previa:hover {
   color: var(--color-texto-inicio);
 }
+
+.encabezado-chat-izquierda {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.encabezado-chat-izquierda .btn-tema svg {
+    width: 19px;
+    height: 19px;
+}

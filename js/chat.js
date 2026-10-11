@@ -578,6 +578,14 @@ async function inicializarChat() {
 
 inicializarChat();
 
+document.getElementById('btn-atras').addEventListener('click', () => {
+    if (window.history.length > 1) {
+        window.history.back();
+    } else {
+        window.location.href = 'index.html';
+    }
+});
+
 document.getElementById('boton-cerrar-sesion').addEventListener('click', async () => {
     await supabaseCliente.auth.signOut();
     window.location.href = 'login.html';
