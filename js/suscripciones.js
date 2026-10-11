@@ -35,6 +35,9 @@ const etiquetasEstadoSuscripcion = {
 
 let usuarioIdActual = null;
 let productosPorDistribuidora = [];
+let mesSuscripcionActual = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+let fechaSuscripcionElegida = null;
+let distribuidorasCupo = {};
 
 function fechaMinimaSuscripcion() {
     const hoy = new Date();
@@ -46,7 +49,7 @@ async function cargarDistribuidorasSelect() {
 
     const { data, error } = await supabaseCliente
         .from('distribuidoras')
-        .select('id, nombre')
+        .select('id, nombre, cupo_diario')
         .eq('estado', 'activa')
         .order('nombre');
 
@@ -55,6 +58,8 @@ async function cargarDistribuidorasSelect() {
     }
 
     data.forEach((distribuidora) => {
+        distribuidorasCupo[distribuidora.id] = distribuidora.cupo_diario;
+
         const opcion = document.createElement('option');
         opcion.value = distribuidora.id;
         opcion.textContent = distribuidora.nombre;
@@ -97,14 +102,130 @@ async function cargarProductosSelect(idDistribuidora) {
 
 document.getElementById('distribuidora-suscripcion').addEventListener('change', (evento) => {
     cargarProductosSelect(evento.target.value);
+    iniciarCalendarioSuscripcion(evento.target.value);
+});
+
+function formatearClaveFechaSuscripcion(fecha) {
+    return fecha.toISOString().slice(0, 10);
+}
+
+function etiquetaMesSuscripcion(fecha) {
+    return fecha.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+}
+
+function iniciarCalendarioSuscripcion(idDistribuidora) {
+    fechaSuscripcionElegida = null;
+    document.getElementById('fecha-suscripcion').value = '';
+    document.getElementById('fecha-elegida-suscripcion').classList.add('oculto');
+    mesSuscripcionActual = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+
+    const calendario = document.getElementById('calendario-suscripcion-cliente');
+    const textoAyuda = document.getElementById('texto-sin-distribuidora-fecha');
+
+    if (!idDistribuidora) {
+        calendario.classList.add('oculto');
+        textoAyuda.classList.remove('oculto');
+        return;
+    }
+
+    textoAyuda.classList.add('oculto');
+    calendario.classList.remove('oculto');
+    cargarCalendarioSuscripcion(idDistribuidora);
+}
+
+async function cargarCalendarioSuscripcion(idDistribuidora) {
+    const grilla = document.getElementById('grilla-calendario-suscripcion');
+    grilla.innerHTML = '';
+
+    const primerDiaMes = new Date(mesSuscripcionActual.getFullYear(), mesSuscripcionActual.getMonth(), 1);
+    const ultimoDiaMes = new Date(mesSuscripcionActual.getFullYear(), mesSuscripcionActual.getMonth() + 1, 0);
+
+    const desde = formatearClaveFechaSuscripcion(primerDiaMes);
+    const hasta = formatearClaveFechaSuscripcion(ultimoDiaMes);
+
+    document.getElementById('etiqueta-mes-suscripcion').textContent = etiquetaMesSuscripcion(mesSuscripcionActual);
+
+    const { data, error } = await supabaseCliente.rpc('obtener_disponibilidad_calendario', {
+        p_distribuidora_id: idDistribuidora,
+        p_desde: desde,
+        p_hasta: hasta
+    });
+
+    if (error) {
+        grilla.innerHTML = '<p class="estado-suscripciones">No pudimos cargar el calendario.</p>';
+        return;
+    }
+
+    const mapaDisponibilidad = {};
+    (data || []).forEach((fila) => {
+        mapaDisponibilidad[fila.fecha] = fila;
+    });
+
+    const cupo = distribuidorasCupo[idDistribuidora];
+    const hoyClave = formatearClaveFechaSuscripcion(new Date());
+
+    for (let i = 0; i < primerDiaMes.getDay(); i++) {
+        const celdaVacia = document.createElement('div');
+        celdaVacia.className = 'dia-calendario-cliente dia-vacio-cliente';
+        grilla.appendChild(celdaVacia);
+    }
+
+    for (let dia = 1; dia <= ultimoDiaMes.getDate(); dia++) {
+        const fecha = new Date(mesSuscripcionActual.getFullYear(), mesSuscripcionActual.getMonth(), dia);
+        const clave = formatearClaveFechaSuscripcion(fecha);
+        const info = mapaDisponibilidad[clave] || { cantidad: 0, bloqueado: false };
+        const esPasado = clave < hoyClave;
+        const lleno = !info.bloqueado && cupo != null && info.cantidad >= cupo;
+        const noDisponible = esPasado || info.bloqueado || lleno;
+
+        const celda = document.createElement('div');
+        celda.className = 'dia-calendario-cliente';
+        celda.textContent = dia;
+
+        if (noDisponible) {
+            celda.classList.add('dia-no-disponible');
+        } else {
+            celda.addEventListener('click', () => seleccionarFechaSuscripcion(clave, celda));
+        }
+
+        if (clave === fechaSuscripcionElegida) {
+            celda.classList.add('dia-seleccionado');
+        }
+
+        grilla.appendChild(celda);
+    }
+}
+
+function seleccionarFechaSuscripcion(clave, celda) {
+    fechaSuscripcionElegida = clave;
+    document.getElementById('fecha-suscripcion').value = clave;
+
+    document.querySelectorAll('.dia-calendario-cliente.dia-seleccionado').forEach((elemento) => {
+        elemento.classList.remove('dia-seleccionado');
+    });
+
+    celda.classList.add('dia-seleccionado');
+
+    const fechaElegida = document.getElementById('fecha-elegida-suscripcion');
+    fechaElegida.textContent = `Entrega elegida: ${formatearFecha(clave)}`;
+    fechaElegida.classList.remove('oculto');
+}
+
+document.getElementById('btn-mes-anterior-suscripcion').addEventListener('click', () => {
+    mesSuscripcionActual = new Date(mesSuscripcionActual.getFullYear(), mesSuscripcionActual.getMonth() - 1, 1);
+    cargarCalendarioSuscripcion(document.getElementById('distribuidora-suscripcion').value);
+});
+
+document.getElementById('btn-mes-siguiente-suscripcion').addEventListener('click', () => {
+    mesSuscripcionActual = new Date(mesSuscripcionActual.getFullYear(), mesSuscripcionActual.getMonth() + 1, 1);
+    cargarCalendarioSuscripcion(document.getElementById('distribuidora-suscripcion').value);
 });
 
 function abrirModalSuscripcion() {
     document.getElementById('formulario-suscripcion').reset();
     document.getElementById('producto-suscripcion').innerHTML = '<option value="">Elegí primero una distribuidora</option>';
     document.getElementById('producto-suscripcion').disabled = true;
-    document.getElementById('fecha-suscripcion').min = fechaMinimaSuscripcion();
-    document.getElementById('fecha-suscripcion').value = fechaMinimaSuscripcion();
+    iniciarCalendarioSuscripcion('');
     document.getElementById('mensaje-suscripcion').classList.add('oculto');
     document.getElementById('modal-suscripcion').classList.remove('oculto');
 }
@@ -191,6 +312,51 @@ function mostrarEstadoSuscripciones(texto) {
     estado.classList.remove('oculto');
 }
 
+async function cargarRecordatorioEntrega(listaSuscripciones) {
+    const contenedor = document.getElementById('recordatorio-entrega');
+
+    const activas = (listaSuscripciones || []).filter(
+        (suscripcion) => suscripcion.estado === 'activa' && suscripcion.proxima_entrega
+    );
+
+    if (activas.length === 0) {
+        contenedor.classList.add('oculto');
+        return;
+    }
+
+    const proxima = activas.reduce((masCercana, actual) =>
+        actual.proxima_entrega < masCercana.proxima_entrega ? actual : masCercana
+    );
+
+    const { data: pagoPendiente } = await supabaseCliente
+        .from('pagos_transferencia')
+        .select('id, monto_total, comprobante_url')
+        .eq('cliente_id', usuarioIdActual)
+        .eq('estado', 'pendiente')
+        .order('creado_en', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+    const hayPagoPendiente = Boolean(pagoPendiente && !pagoPendiente.comprobante_url);
+
+    contenedor.classList.remove('oculto');
+    contenedor.classList.toggle('recordatorio-alerta', hayPagoPendiente);
+
+    contenedor.innerHTML = hayPagoPendiente
+        ? `
+            <p class="recordatorio-texto">
+                ⚠️ Tu próxima entrega es el <strong>${formatearFecha(proxima.proxima_entrega)}</strong>
+                y todavía tenés un pago pendiente de <strong>${formatearPrecio(pagoPendiente.monto_total)}</strong>.
+            </p>
+            <a href="historial.html" class="btn btn-secundario btn-chico">Ver y subir comprobante</a>
+        `
+        : `
+            <p class="recordatorio-texto">
+                🚚 Tu próxima entrega es el <strong>${formatearFecha(proxima.proxima_entrega)}</strong>.
+            </p>
+        `;
+}
+
 async function cargarSuscripciones() {
     const lista = document.getElementById('lista-suscripciones');
     const estado = document.getElementById('estado-suscripciones');
@@ -209,6 +375,8 @@ async function cargarSuscripciones() {
         mostrarEstadoSuscripciones('No pudimos cargar tus suscripciones. Probá de nuevo más tarde.');
         return;
     }
+
+    await cargarRecordatorioEntrega(data);
 
     if (!data || data.length === 0) {
         lista.innerHTML = '';

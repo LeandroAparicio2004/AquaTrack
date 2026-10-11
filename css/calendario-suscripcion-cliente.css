@@ -1,0 +1,107 @@
+.texto-ayuda-calendario-suscripcion {
+    font-size: 0.82rem;
+    color: var(--color-texto-suave);
+    margin: 4px 0 8px;
+}
+
+.texto-ayuda-calendario-suscripcion.oculto {
+    display: none;
+}
+
+.calendario-suscripcion-cliente.oculto {
+    display: none;
+}
+
+.calendario-navegacion-cliente {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.calendario-navegacion-cliente .btn-chico {
+    flex: none;
+}
+
+.calendario-navegacion-cliente span {
+    font-weight: 700;
+    text-transform: capitalize;
+}
+
+.calendario-leyenda-cliente {
+    display: flex;
+    gap: 14px;
+    font-size: 0.78rem;
+    color: var(--color-texto-suave);
+    margin-bottom: 8px;
+}
+
+.calendario-leyenda-cliente .leyenda-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.leyenda-punto {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.leyenda-punto.disponible { background: #2ecc71; }
+.leyenda-punto.lleno { background: #e74c3c; }
+
+.grilla-calendario-cabecera-cliente {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--color-texto-suave);
+    margin-bottom: 4px;
+}
+
+.grilla-calendario-cliente {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 4px;
+}
+
+.dia-calendario-cliente {
+    aspect-ratio: 1 / 1;
+    border-radius: 8px;
+    border: 1px solid var(--color-borde);
+    background: var(--color-superficie);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.dia-calendario-cliente.dia-vacio-cliente {
+    visibility: hidden;
+    cursor: default;
+}
+
+.dia-calendario-cliente.dia-no-disponible {
+    opacity: 0.35;
+    cursor: not-allowed;
+    text-decoration: line-through;
+}
+
+.dia-calendario-cliente.dia-seleccionado {
+    background: var(--color-acento);
+    color: #ffffff;
+    border-color: var(--color-acento);
+}
+
+.fecha-elegida-suscripcion {
+    font-size: 0.85rem;
+    margin-top: 8px;
+    font-weight: 600;
+}
+
+.fecha-elegida-suscripcion.oculto {
+    display: none;
+}

@@ -1108,40 +1108,25 @@ async function cargarCalendario() {
     const desde = formatearClaveFecha(primerDiaMes);
     const hasta = formatearClaveFecha(ultimoDiaMes);
 
-    const [{ data: pedidos }, { data: suscripciones }, { data: bloqueados }] = await Promise.all([
-        supabaseCliente
-            .from('pedidos')
-            .select('id, fecha_entrega, estado')
-            .eq('distribuidora_id', distribuidoraActual.id)
-            .neq('estado', 'cancelado')
-            .gte('fecha_entrega', desde)
-            .lte('fecha_entrega', hasta),
-        supabaseCliente
-            .from('suscripciones')
-            .select('id, proxima_entrega, estado')
-            .eq('distribuidora_id', distribuidoraActual.id)
-            .eq('estado', 'activa')
-            .gte('proxima_entrega', desde)
-            .lte('proxima_entrega', hasta),
-        supabaseCliente
-            .from('dias_bloqueados')
-            .select('fecha')
-            .eq('distribuidora_id', distribuidoraActual.id)
-            .gte('fecha', desde)
-            .lte('fecha', hasta)
-    ]);
+    const { data: disponibilidad, error } = await supabaseCliente
+        .rpc('obtener_disponibilidad_calendario', {
+            p_distribuidora_id: distribuidoraActual.id,
+            p_desde: desde,
+            p_hasta: hasta
+        });
+
+    if (error) {
+        grilla.innerHTML = '<p class="estado-productos-panel">No pudimos cargar el calendario. Recargá la página.</p>';
+        return;
+    }
 
     const conteoPorDia = {};
+    const diasBloqueados = new Set();
 
-    (pedidos || []).forEach((pedido) => {
-        conteoPorDia[pedido.fecha_entrega] = (conteoPorDia[pedido.fecha_entrega] || 0) + 1;
+    (disponibilidad || []).forEach((dia) => {
+        conteoPorDia[dia.fecha] = dia.cantidad;
+        if (dia.bloqueado) diasBloqueados.add(dia.fecha);
     });
-
-    (suscripciones || []).forEach((suscripcion) => {
-        conteoPorDia[suscripcion.proxima_entrega] = (conteoPorDia[suscripcion.proxima_entrega] || 0) + 1;
-    });
-
-    const diasBloqueados = new Set((bloqueados || []).map((bloqueo) => bloqueo.fecha));
 
     renderizarCalendario(primerDiaMes, ultimoDiaMes, conteoPorDia, diasBloqueados);
 }
@@ -1222,37 +1207,36 @@ async function abrirModalDia(clave, bloqueado) {
 
     document.getElementById('modal-detalle-dia').classList.remove('oculto');
 
-    const [{ data: pedidos }, { data: suscripciones }] = await Promise.all([
-        supabaseCliente
-            .from('pedidos')
-            .select('id, total, estado, usuarios!pedidos_cliente_id_fkey ( nombre, apellido )')
-            .eq('distribuidora_id', distribuidoraActual.id)
-            .eq('fecha_entrega', clave)
-            .neq('estado', 'cancelado'),
-        supabaseCliente
-            .from('suscripciones')
-            .select('id, cantidad, usuarios ( nombre, apellido ), productos ( nombre )')
-            .eq('distribuidora_id', distribuidoraActual.id)
-            .eq('proxima_entrega', clave)
-            .eq('estado', 'activa')
-    ]);
+    const { data: detalle, error } = await supabaseCliente
+        .rpc('obtener_detalle_dia_calendario', {
+            p_distribuidora_id: distribuidoraActual.id,
+            p_fecha: clave
+        });
 
-    const items = [
-        ...(pedidos || []).map((pedido) => `
-            <div class="item-detalle-dia">
-                <span class="etiqueta-tipo-entrega">Pedido</span>
-                <strong>${escaparHtml(pedido.usuarios?.nombre || '')} ${escaparHtml(pedido.usuarios?.apellido || '')}</strong>
-                ${formatearPrecio(pedido.total)}
-            </div>
-        `),
-        ...(suscripciones || []).map((suscripcion) => `
+    if (error) {
+        contenido.innerHTML = '<p class="estado-productos-panel">No pudimos cargar el detalle de este día.</p>';
+        return;
+    }
+
+    const items = (detalle || []).map((item) => {
+        if (item.tipo === 'pedido') {
+            return `
+                <div class="item-detalle-dia">
+                    <span class="etiqueta-tipo-entrega">Pedido</span>
+                    <strong>${escaparHtml(item.nombre_cliente || '')} ${escaparHtml(item.apellido_cliente || '')}</strong>
+                    ${formatearPrecio(item.total)}
+                </div>
+            `;
+        }
+
+        return `
             <div class="item-detalle-dia">
                 <span class="etiqueta-tipo-entrega">Suscripción</span>
-                <strong>${escaparHtml(suscripcion.usuarios?.nombre || '')} ${escaparHtml(suscripcion.usuarios?.apellido || '')}</strong>
-                ${escaparHtml(suscripcion.productos?.nombre || '')} x${suscripcion.cantidad}
+                <strong>${escaparHtml(item.nombre_cliente || '')} ${escaparHtml(item.apellido_cliente || '')}</strong>
+                ${escaparHtml(item.producto_nombre || '')} x${item.cantidad}
             </div>
-        `)
-    ];
+        `;
+    });
 
     contenido.innerHTML = items.length > 0
         ? `<div class="lista-detalle-dia">${items.join('')}</div>`

@@ -22,6 +22,7 @@
   <link rel="stylesheet" href="css/inicio.css">
   <link rel="stylesheet" href="css/seguimiento.css">
   <link rel="stylesheet" href="css/suscripciones.css">
+  <link rel="stylesheet" href="css/calendario-suscripcion-cliente.css">
 </head>
 
 <body>
@@ -57,6 +58,8 @@
         <p class="etiqueta-seccion">Pedidos automáticos</p>
         <h1>Mis suscripciones</h1>
       </div>
+
+      <div class="recordatorio-entrega oculto" id="recordatorio-entrega"></div>
 
       <button type="button" class="btn btn-principal" id="boton-nueva-suscripcion">+ Nueva suscripción</button>
 
@@ -104,19 +107,43 @@
           </div>
         </div>
 
-        <div class="fila-doble">
-          <div class="campo">
-            <label for="frecuencia-suscripcion">Frecuencia</label>
-            <select id="frecuencia-suscripcion" required>
-              <option value="semanal">Semanal</option>
-              <option value="quincenal">Quincenal</option>
-              <option value="mensual" selected>Mensual</option>
-            </select>
+        <div class="campo">
+          <label for="frecuencia-suscripcion">Frecuencia</label>
+          <select id="frecuencia-suscripcion" required>
+            <option value="semanal">Semanal</option>
+            <option value="quincenal">Quincenal</option>
+            <option value="mensual" selected>Mensual</option>
+          </select>
+        </div>
+
+        <div class="campo">
+          <label>Primera entrega</label>
+          <input type="hidden" id="fecha-suscripcion" required>
+
+          <p class="texto-ayuda-calendario-suscripcion" id="texto-sin-distribuidora-fecha">
+            Elegí primero una distribuidora para ver las fechas disponibles.
+          </p>
+
+          <div class="calendario-suscripcion-cliente oculto" id="calendario-suscripcion-cliente">
+            <div class="calendario-navegacion-cliente">
+              <button type="button" class="btn btn-secundario btn-chico" id="btn-mes-anterior-suscripcion">‹</button>
+              <span id="etiqueta-mes-suscripcion">—</span>
+              <button type="button" class="btn btn-secundario btn-chico" id="btn-mes-siguiente-suscripcion">›</button>
+            </div>
+
+            <div class="calendario-leyenda-cliente">
+              <span class="leyenda-item"><span class="leyenda-punto disponible"></span> Disponible</span>
+              <span class="leyenda-item"><span class="leyenda-punto lleno"></span> Sin cupo</span>
+            </div>
+
+            <div class="grilla-calendario-cabecera-cliente">
+              <span>D</span><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span>
+            </div>
+
+            <div class="grilla-calendario-cliente" id="grilla-calendario-suscripcion"></div>
           </div>
-          <div class="campo">
-            <label for="fecha-suscripcion">Primera entrega</label>
-            <input type="date" id="fecha-suscripcion" required>
-          </div>
+
+          <p class="fecha-elegida-suscripcion oculto" id="fecha-elegida-suscripcion"></p>
         </div>
 
         <div class="campo">
