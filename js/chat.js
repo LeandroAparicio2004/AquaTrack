@@ -203,7 +203,7 @@ function renderizarMensajes(mensajes) {
     const contenedor = document.getElementById('lista-mensajes');
 
     if (mensajes.length === 0) {
-        contenedor.innerHTML = '<p class="estado-chat">Todavía no hay mensajes. ¡Escribí el primero!</p>';
+        contenedor.innerHTML = '<p class="estado-chat">Todavía no hay mensajes. ¡Escribe el primero!</p>';
         return;
     }
 
@@ -407,7 +407,7 @@ document.getElementById('btn-tomar-ticket').addEventListener('click', async (eve
     await cargarConversaciones();
 });
 
-// ---------- Nueva conversación ----------
+// ---------- Nueva conversacion ----------
 
 document.getElementById('btn-nueva-conversacion').addEventListener('click', abrirModalNuevaConversacion);
 document.getElementById('boton-cerrar-modal-nueva-conversacion').addEventListener('click', cerrarModalNuevaConversacion);
@@ -429,7 +429,7 @@ async function abrirModalNuevaConversacion() {
     if (rolActual !== 'admin') {
         contenedorSoporte.innerHTML = `
             <button type="button" class="opcion-nueva-conversacion opcion-soporte" data-soporte="1">
-                💬 Hablar con soporte (Admin)
+                💬 Hablar con soporte
             </button>
         `;
     }
@@ -513,7 +513,7 @@ async function buscarOCrearConversacion(idOtroUsuario) {
         .single();
 
     if (error) {
-        alert('No pudimos iniciar la conversación. Probá de nuevo.');
+        alert('No pudimos iniciar la conversación. Prueba de nuevo.');
         return null;
     }
 
@@ -540,14 +540,14 @@ async function crearTicketSoporte() {
         .single();
 
     if (error) {
-        alert('No pudimos abrir el ticket. Probá de nuevo.');
+        alert('No pudimos abrir el ticket. Prueba de nuevo.');
         return null;
     }
 
     return nueva.id;
 }
 
-// ---------- Inicialización ----------
+// ---------- Inicializacion ----------
 
 async function inicializarChat() {
     const { data: { session } } = await supabaseCliente.auth.getSession();
