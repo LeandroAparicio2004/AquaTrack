@@ -178,6 +178,7 @@ async function verificarSesionNav() {
 
 document.getElementById('boton-cerrar-sesion').addEventListener('click', async () => {
     await supabaseCliente.auth.signOut();
+    localStorage.removeItem('aquatrack_carrito');
     window.location.href = 'login.html';
 });
 

@@ -129,9 +129,18 @@ async function verificarSesionNav() {
 
 document.getElementById('boton-cerrar-sesion').addEventListener('click', async () => {
     await supabaseCliente.auth.signOut();
+    localStorage.removeItem('aquatrack_carrito');
     window.location.href = 'login.html';
 });
 
 configurarFiltrosHistorial();
 cargarHistorial();
 verificarSesionNav();
+
+document.getElementById('btn-atras')?.addEventListener('click', () => {
+    if (window.history.length > 1) {
+        window.history.back();
+    } else {
+        window.location.href = 'index.html';
+    }
+});

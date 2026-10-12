@@ -339,6 +339,7 @@ async function verificarSesion() {
 //logout, vuelve a la pantalla de login
 async function cerrarSesion() {
     await supabaseCliente.auth.signOut();
+    localStorage.removeItem('aquatrack_carrito');
     window.location.href = 'login.html';
 }
 
