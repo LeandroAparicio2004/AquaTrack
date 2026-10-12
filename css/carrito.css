@@ -134,12 +134,27 @@
 }
 
 .item-carrito-quitar {
-  border: 0;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #dc2626;
   background: transparent;
-  color: var(--color-texto-secundario-inicio);
+  color: #dc2626;
   cursor: pointer;
-  font-size: 0.8rem;
-  text-decoration: underline;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.item-carrito-quitar svg {
+  width: 17px;
+  height: 17px;
+}
+
+.item-carrito-quitar:hover {
+  background: #dc2626;
+  color: #fff;
 }
 
 .bloque-carrito h2 {
@@ -786,13 +801,3 @@
   color: var(--color-texto-inicio);
 }
 
-.encabezado-chat-izquierda {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.encabezado-chat-izquierda .btn-tema svg {
-    width: 19px;
-    height: 19px;
-}
