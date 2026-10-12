@@ -574,6 +574,16 @@ async function inicializarChat() {
 
     await cargarConversaciones();
     suscribirseAConversacionesGlobal();
+
+    const parametros = new URLSearchParams(window.location.search);
+    const usuarioDestino = parametros.get('usuario');
+    if (usuarioDestino && usuarioDestino !== usuarioActualId) {
+        const idConversacion = await buscarOCrearConversacion(usuarioDestino);
+        if (idConversacion) {
+            await cargarConversaciones();
+            abrirConversacion(idConversacion);
+        }
+    }
 }
 
 inicializarChat();
@@ -588,5 +598,6 @@ document.getElementById('btn-atras').addEventListener('click', () => {
 
 document.getElementById('boton-cerrar-sesion').addEventListener('click', async () => {
     await supabaseCliente.auth.signOut();
+    localStorage.removeItem('aquatrack_carrito');
     window.location.href = 'login.html';
 });
