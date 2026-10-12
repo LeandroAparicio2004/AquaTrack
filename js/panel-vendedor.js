@@ -168,6 +168,11 @@ function renderizarPedidosPanel() {
                 ${pedido.estado === 'pendiente'
                 ? `<button type="button" class="btn btn-secundario btn-chico btn-peligro" data-cancelar-pedido="${pedido.id}">Cancelar pedido</button>`
                 : ''}
+                <button type="button" class="btn-icono-circular btn-chat-pedido" data-chat-cliente="${pedido.cliente_id}" aria-label="Chatear con el cliente" title="Chatear con el cliente">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                    </svg>
+                </button>
             </div>
         `;
 
@@ -181,7 +186,7 @@ async function cargarPedidosPanel() {
     const { data, error } = await supabaseCliente
         .from('pedidos')
         .select(`
-            id, estado, direccion_calle, direccion_numero, direccion_ciudad, total, metodo_pago,
+            id, estado, direccion_calle, direccion_numero, direccion_ciudad, total, metodo_pago, cliente_id,
             usuarios!pedidos_cliente_id_fkey ( nombre, apellido ),
             detalles_pedidos ( cantidad, productos ( nombre ) )
         `)
@@ -228,6 +233,12 @@ document.getElementById('lista-pedidos-panel').addEventListener('click', async (
     });
 
     await cargarPedidosPanel();
+});
+
+document.getElementById('lista-pedidos-panel').addEventListener('click', (evento) => {
+    const botonChat = evento.target.closest('[data-chat-cliente]');
+    if (!botonChat) return;
+    window.location.href = `chat.html?usuario=${botonChat.dataset.chatCliente}`;
 });
 
 const etiquetasFrecuenciaPanel = {
@@ -477,6 +488,8 @@ function renderizarTablero() {
         columna.dataset.zonaDrop = 'repartidor';
         columna.dataset.repartidorId = miembro.usuario_id;
 
+        const repartidorEnRuta = entregasDelRepartidor.some((entrega) => entrega.estado === 'en_camino');
+
         columna.innerHTML = `
             <div class="columna-tablero-titulo">
                 <span>${escaparHtml(miembro.usuarios?.nombre || '')} ${escaparHtml(miembro.usuarios?.apellido || '')}</span>
@@ -484,6 +497,7 @@ function renderizarTablero() {
                     ${seleccionadosEnColumna > 0 ? seleccionadosEnColumna + ' sel.' : entregasDelRepartidor.length}
                 </span>
             </div>
+            ${repartidorEnRuta ? '<p class="aviso-repartidor-en-ruta">En ruta, no le puedes asignar pedidos ahora mismo</p>' : ''}
             <div class="zona-drop">
                 ${entregasDelRepartidor.map((entrega) => {
             const puedeMoverse = entrega.estado === 'asignada';
@@ -573,6 +587,17 @@ async function moverPedidoEnTablero(datos, idRepartidorDestino, idRuta, orden) {
 }
 
 async function moverGrupoEnTablero(items, idRepartidorDestino) {
+    if (idRepartidorDestino) {
+        const repartidorEnRuta = entregasTablero.some(
+            (entrega) => entrega.repartidor_id === idRepartidorDestino && entrega.estado === 'en_camino'
+        );
+
+        if (repartidorEnRuta) {
+            alert('Este repartidor ya salió a repartir. No podés asignarle más pedidos hasta que vuelva.');
+            return;
+        }
+    }
+
     let idRuta = null;
 
     if (items.length > 1 && idRepartidorDestino) {
@@ -1087,6 +1112,7 @@ document.getElementById('formulario-perfil').addEventListener('submit', async (e
 
 document.getElementById('boton-cerrar-sesion').addEventListener('click', async () => {
     await supabaseCliente.auth.signOut();
+    localStorage.removeItem('aquatrack_carrito');
     window.location.href = 'login.html';
 });
 
