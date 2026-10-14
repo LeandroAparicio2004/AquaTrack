@@ -815,6 +815,7 @@ let seccionPedidosCargada = false;
 let seccionTableroCargada = false;
 let seccionSuscripcionesCargada = false;
 let seccionListaSuscripcionesCargada = false;
+let seccionPublicidadCargada = false;
 let mesCalendarioActual = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 let suscripcionesDelPanel = [];
 let pedidosSinAsignar = [];
@@ -853,6 +854,11 @@ pestanas.forEach((pestana) => {
         if (pestana.dataset.pestana === 'suscripciones' && !seccionSuscripcionesCargada) {
             seccionSuscripcionesCargada = true;
             cargarCalendario();
+        }
+
+        if (pestana.dataset.pestana === 'publicidad' && !seccionPublicidadCargada) {
+            seccionPublicidadCargada = true;
+            cargarAnunciosPanel();
         }
     });
 });
@@ -1328,60 +1334,60 @@ document.getElementById('formulario-cupo').addEventListener('submit', async (eve
 });
 
 document.getElementById('btn-alternar-vista-suscripciones').addEventListener('click', (evento) => {
-        const boton = evento.currentTarget;
-        const vistaCalendario = document.getElementById('vista-calendario-suscripciones');
-        const vistaLista = document.getElementById('vista-lista-suscripciones');
+    const boton = evento.currentTarget;
+    const vistaCalendario = document.getElementById('vista-calendario-suscripciones');
+    const vistaLista = document.getElementById('vista-lista-suscripciones');
 
-        const mostrandoLista = !vistaLista.classList.contains('oculto');
+    const mostrandoLista = !vistaLista.classList.contains('oculto');
 
-        vistaCalendario.classList.toggle('oculto', !mostrandoLista);
-        vistaLista.classList.toggle('oculto', mostrandoLista);
-        boton.textContent = mostrandoLista ? 'Ver todas las suscripciones' : 'Ver calendario';
+    vistaCalendario.classList.toggle('oculto', !mostrandoLista);
+    vistaLista.classList.toggle('oculto', mostrandoLista);
+    boton.textContent = mostrandoLista ? 'Ver todas las suscripciones' : 'Ver calendario';
 
-        if (!mostrandoLista && !seccionListaSuscripcionesCargada) {
-            seccionListaSuscripcionesCargada = true;
-            cargarSuscripcionesPanel();
-        }
-    });
+    if (!mostrandoLista && !seccionListaSuscripcionesCargada) {
+        seccionListaSuscripcionesCargada = true;
+        cargarSuscripcionesPanel();
+    }
+});
 
-    let repartidoresCargados = [];
+let repartidoresCargados = [];
 
-    function renderizarListaRepartidores(lista, contenedorId, estadoVacioId, conAcciones) {
-        const contenedor = document.getElementById(contenedorId);
-        const estadoVacio = document.getElementById(estadoVacioId);
+function renderizarListaRepartidores(lista, contenedorId, estadoVacioId, conAcciones) {
+    const contenedor = document.getElementById(contenedorId);
+    const estadoVacio = document.getElementById(estadoVacioId);
 
-        contenedor.innerHTML = '';
+    contenedor.innerHTML = '';
 
-        if (lista.length === 0) {
-            estadoVacio.textContent = conAcciones
-                ? 'No hay solicitudes pendientes por ahora.'
-                : 'Todavía no tenés repartidores en tu flota.';
-            estadoVacio.classList.remove('oculto');
-            return;
-        }
+    if (lista.length === 0) {
+        estadoVacio.textContent = conAcciones
+            ? 'No hay solicitudes pendientes por ahora.'
+            : 'Todavía no tenés repartidores en tu flota.';
+        estadoVacio.classList.remove('oculto');
+        return;
+    }
 
-        estadoVacio.classList.add('oculto');
-        repartidoresCargados = lista;
+    estadoVacio.classList.add('oculto');
+    repartidoresCargados = lista;
 
-        lista.forEach((miembro) => {
-            const repartidor = miembro.usuarios || {};
+    lista.forEach((miembro) => {
+        const repartidor = miembro.usuarios || {};
 
-            const acciones = conAcciones
-                ? `<div class="tarjeta-producto-panel-acciones">
+        const acciones = conAcciones
+            ? `<div class="tarjeta-producto-panel-acciones">
                    <button type="button" class="btn btn-secundario btn-chico" data-pausar-repartidor="${miembro.id}">
                        ${miembro.disponible === false ? 'Reactivar' : 'Pausar'}
                    </button>
                </div>`
-                : '';
+            : '';
 
-            const tarjeta = document.createElement('article');
-            tarjeta.className = 'tarjeta-producto-panel';
-            tarjeta.innerHTML = `
+        const tarjeta = document.createElement('article');
+        tarjeta.className = 'tarjeta-producto-panel';
+        tarjeta.innerHTML = `
             <div class="tarjeta-repartidor-cabecera" data-detalle-repartidor="${miembro.id}">
                 <div class="tarjeta-repartidor-foto">
                     ${repartidor.foto_url
-                    ? `<img src="${escaparHtml(repartidor.foto_url)}" alt="${escaparHtml(repartidor.nombre)}">`
-                    : '<span>Sin foto</span>'}
+                ? `<img src="${escaparHtml(repartidor.foto_url)}" alt="${escaparHtml(repartidor.nombre)}">`
+                : '<span>Sin foto</span>'}
                 </div>
                 <div>
                     <h3>${escaparHtml(repartidor.nombre || 'Repartidor')}</h3>
@@ -1397,87 +1403,87 @@ document.getElementById('btn-alternar-vista-suscripciones').addEventListener('cl
             ${acciones}
         `;
 
-            contenedor.appendChild(tarjeta);
-        });
+        contenedor.appendChild(tarjeta);
+    });
+}
+
+document.getElementById('lista-flota').addEventListener('click', async (evento) => {
+    const boton = evento.target.closest('[data-pausar-repartidor]');
+    if (!boton) return;
+
+    const miembroId = boton.dataset.pausarRepartidor;
+    const miembro = repartidoresCargados.find((item) => item.id === miembroId);
+    if (!miembro) return;
+
+    boton.disabled = true;
+
+    const { error } = await supabaseCliente
+        .from('miembros_distribuidoras')
+        .update({ disponible: !(miembro.disponible === true) })
+        .eq('id', miembroId);
+
+    if (error) {
+        alert('No pudimos actualizar al repartidor. Intentá de nuevo.');
+        boton.disabled = false;
+        return;
     }
 
-    document.getElementById('lista-flota').addEventListener('click', async (evento) => {
-        const boton = evento.target.closest('[data-pausar-repartidor]');
-        if (!boton) return;
+    await cargarRepartidores();
+});
 
-        const miembroId = boton.dataset.pausarRepartidor;
-        const miembro = repartidoresCargados.find((item) => item.id === miembroId);
-        if (!miembro) return;
-
-        boton.disabled = true;
-
-        const { error } = await supabaseCliente
-            .from('miembros_distribuidoras')
-            .update({ disponible: !(miembro.disponible === true) })
-            .eq('id', miembroId);
-
-        if (error) {
-            alert('No pudimos actualizar al repartidor. Intentá de nuevo.');
-            boton.disabled = false;
-            return;
-        }
-
-        await cargarRepartidores();
-    });
-
-    async function cargarRepartidores() {
-        const { data: flota, error: errorFlota } = await supabaseCliente
-            .from('miembros_distribuidoras')
-            .select(`
+async function cargarRepartidores() {
+    const { data: flota, error: errorFlota } = await supabaseCliente
+        .from('miembros_distribuidoras')
+        .select(`
             id, usuario_id, disponible,
             usuarios!usuario_id (
                 nombre, telefono, dni, foto_url, tipo_vehiculo,
                 marca_vehiculo, modelo_vehiculo, patente_vehiculo, numero_licencia
             )
         `)
-            .eq('distribuidora_id', distribuidoraActual.id)
-            .eq('rol', 'repartidor')
-            .eq('estado', 'activo')
-            .order('creado_en', { ascending: false });
+        .eq('distribuidora_id', distribuidoraActual.id)
+        .eq('rol', 'repartidor')
+        .eq('estado', 'activo')
+        .order('creado_en', { ascending: false });
 
-        if (errorFlota) {
-            document.getElementById('estado-flota').textContent =
-                'No pudimos cargar tu flota. Recargá la página.';
-            document.getElementById('estado-flota').classList.remove('oculto');
-        } else {
-            renderizarListaRepartidores(flota || [], 'lista-flota', 'estado-flota', true);
-        }
+    if (errorFlota) {
+        document.getElementById('estado-flota').textContent =
+            'No pudimos cargar tu flota. Recargá la página.';
+        document.getElementById('estado-flota').classList.remove('oculto');
+    } else {
+        renderizarListaRepartidores(flota || [], 'lista-flota', 'estado-flota', true);
+    }
 
-        const { data: invitaciones, error: errorInvitaciones } = await supabaseCliente
-            .from('invitaciones_repartidor')
-            .select('id, nombre, email, dni, telefono, marca_vehiculo, modelo_vehiculo, creado_en')
-            .eq('distribuidora_id', distribuidoraActual.id)
-            .eq('estado', 'pendiente')
-            .order('creado_en', { ascending: false });
+    const { data: invitaciones, error: errorInvitaciones } = await supabaseCliente
+        .from('invitaciones_repartidor')
+        .select('id, nombre, email, dni, telefono, marca_vehiculo, modelo_vehiculo, creado_en')
+        .eq('distribuidora_id', distribuidoraActual.id)
+        .eq('estado', 'pendiente')
+        .order('creado_en', { ascending: false });
 
-        if (errorInvitaciones) {
-            document.getElementById('estado-invitaciones').textContent =
-                'No pudimos cargar las invitaciones. Recargá la página.';
-            document.getElementById('estado-invitaciones').classList.remove('oculto');
-            return;
-        }
+    if (errorInvitaciones) {
+        document.getElementById('estado-invitaciones').textContent =
+            'No pudimos cargar las invitaciones. Recargá la página.';
+        document.getElementById('estado-invitaciones').classList.remove('oculto');
+        return;
+    }
 
-        const listaInvitaciones = document.getElementById('lista-invitaciones');
-        const estadoInvitaciones = document.getElementById('estado-invitaciones');
-        listaInvitaciones.innerHTML = '';
+    const listaInvitaciones = document.getElementById('lista-invitaciones');
+    const estadoInvitaciones = document.getElementById('estado-invitaciones');
+    listaInvitaciones.innerHTML = '';
 
-        if (!invitaciones || invitaciones.length === 0) {
-            estadoInvitaciones.textContent = 'No tenés invitaciones esperando respuesta.';
-            estadoInvitaciones.classList.remove('oculto');
-            return;
-        }
+    if (!invitaciones || invitaciones.length === 0) {
+        estadoInvitaciones.textContent = 'No tenés invitaciones esperando respuesta.';
+        estadoInvitaciones.classList.remove('oculto');
+        return;
+    }
 
-        estadoInvitaciones.classList.add('oculto');
+    estadoInvitaciones.classList.add('oculto');
 
-        invitaciones.forEach((invitacion) => {
-            const tarjeta = document.createElement('article');
-            tarjeta.className = 'tarjeta-producto-panel';
-            tarjeta.innerHTML = `
+    invitaciones.forEach((invitacion) => {
+        const tarjeta = document.createElement('article');
+        tarjeta.className = 'tarjeta-producto-panel';
+        tarjeta.innerHTML = `
             <div class="tarjeta-producto-panel-superior">
                 <h3>${escaparHtml(invitacion.nombre)}</h3>
                 <span class="etiqueta-estado-producto pendiente">Esperando registro</span>
@@ -1487,16 +1493,16 @@ document.getElementById('btn-alternar-vista-suscripciones').addEventListener('cl
                 ${escaparHtml([invitacion.marca_vehiculo, invitacion.modelo_vehiculo].filter(Boolean).join(' ') || 'Sin vehículo cargado')}
             </p>
         `;
-            listaInvitaciones.appendChild(tarjeta);
-        });
-    }
+        listaInvitaciones.appendChild(tarjeta);
+    });
+}
 
-    function abrirDetalleRepartidor(miembro) {
-        const repartidor = miembro.usuarios || {};
+function abrirDetalleRepartidor(miembro) {
+    const repartidor = miembro.usuarios || {};
 
-        document.getElementById('titulo-modal-repartidor').textContent = repartidor.nombre || 'Repartidor';
+    document.getElementById('titulo-modal-repartidor').textContent = repartidor.nombre || 'Repartidor';
 
-        document.getElementById('detalle-repartidor-contenido').innerHTML = `
+    document.getElementById('detalle-repartidor-contenido').innerHTML = `
         <div class="detalle-repartidor-fila">
             <span>DNI</span>
             <span>${escaparHtml(repartidor.dni || 'Sin cargar')}</span>
@@ -1523,83 +1529,317 @@ document.getElementById('btn-alternar-vista-suscripciones').addEventListener('cl
         </div>
     `;
 
-        document.getElementById('modal-detalle-repartidor').classList.remove('oculto');
+    document.getElementById('modal-detalle-repartidor').classList.remove('oculto');
+}
+
+
+
+document.getElementById('formulario-invitar-repartidor').addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+
+    const btnInvitar = document.getElementById('btn-invitar-repartidor');
+
+    const datosInvitacion = {
+        distribuidora_id: distribuidoraActual.id,
+        invitado_por: usuarioActualId,
+        nombre: document.getElementById('nombre-repartidor').value.trim(),
+        email: document.getElementById('email-repartidor').value.trim(),
+        dni: document.getElementById('dni-repartidor-invitar').value.trim() || null,
+        telefono: document.getElementById('telefono-repartidor-invitar').value.trim() || null,
+        tipo_vehiculo: document.getElementById('tipo-vehiculo-repartidor-invitar').value,
+        marca_vehiculo: document.getElementById('marca-repartidor-invitar').value.trim() || null,
+        modelo_vehiculo: document.getElementById('modelo-repartidor-invitar').value.trim() || null,
+        patente_vehiculo: document.getElementById('patente-repartidor-invitar').value.trim() || null,
+        numero_licencia: document.getElementById('licencia-repartidor-invitar').value.trim() || null
+    };
+
+    btnInvitar.disabled = true;
+    btnInvitar.textContent = 'Generando...';
+
+    const { error } = await supabaseCliente
+        .from('invitaciones_repartidor')
+        .insert(datosInvitacion);
+
+    btnInvitar.disabled = false;
+    btnInvitar.textContent = 'Generar invitación';
+
+    if (error) {
+        alert('No pudimos generar la invitación. Revisá los datos e intentá de nuevo.');
+        return;
     }
 
+    const link = `${window.location.origin}/registro-repartidor.html?email=${encodeURIComponent(datosInvitacion.email)}`;
+    document.getElementById('link-invitacion').value = link;
+    document.getElementById('tarjeta-link-invitacion').classList.remove('oculto');
 
+    document.getElementById('formulario-invitar-repartidor').reset();
+    await cargarRepartidores();
+});
 
-    document.getElementById('formulario-invitar-repartidor').addEventListener('submit', async (evento) => {
-        evento.preventDefault();
+document.getElementById('btn-copiar-link').addEventListener('click', () => {
+    const campoLink = document.getElementById('link-invitacion');
+    campoLink.select();
+    navigator.clipboard.writeText(campoLink.value);
 
-        const btnInvitar = document.getElementById('btn-invitar-repartidor');
+    const boton = document.getElementById('btn-copiar-link');
+    boton.textContent = '¡Copiado!';
+    setTimeout(() => { boton.textContent = 'Copiar'; }, 1500);
+});
 
-        const datosInvitacion = {
-            distribuidora_id: distribuidoraActual.id,
-            invitado_por: usuarioActualId,
-            nombre: document.getElementById('nombre-repartidor').value.trim(),
-            email: document.getElementById('email-repartidor').value.trim(),
-            dni: document.getElementById('dni-repartidor-invitar').value.trim() || null,
-            telefono: document.getElementById('telefono-repartidor-invitar').value.trim() || null,
-            tipo_vehiculo: document.getElementById('tipo-vehiculo-repartidor-invitar').value,
-            marca_vehiculo: document.getElementById('marca-repartidor-invitar').value.trim() || null,
-            modelo_vehiculo: document.getElementById('modelo-repartidor-invitar').value.trim() || null,
-            patente_vehiculo: document.getElementById('patente-repartidor-invitar').value.trim() || null,
-            numero_licencia: document.getElementById('licencia-repartidor-invitar').value.trim() || null
-        };
+document.getElementById('boton-cerrar-modal-repartidor').addEventListener('click', () => {
+    document.getElementById('modal-detalle-repartidor').classList.add('oculto');
+});
 
-        btnInvitar.disabled = true;
-        btnInvitar.textContent = 'Generando...';
-
-        const { error } = await supabaseCliente
-            .from('invitaciones_repartidor')
-            .insert(datosInvitacion);
-
-        btnInvitar.disabled = false;
-        btnInvitar.textContent = 'Generar invitación';
-
-        if (error) {
-            alert('No pudimos generar la invitación. Revisá los datos e intentá de nuevo.');
-            return;
-        }
-
-        const link = `${window.location.origin}/registro-repartidor.html?email=${encodeURIComponent(datosInvitacion.email)}`;
-        document.getElementById('link-invitacion').value = link;
-        document.getElementById('tarjeta-link-invitacion').classList.remove('oculto');
-
-        document.getElementById('formulario-invitar-repartidor').reset();
-        await cargarRepartidores();
-    });
-
-    document.getElementById('btn-copiar-link').addEventListener('click', () => {
-        const campoLink = document.getElementById('link-invitacion');
-        campoLink.select();
-        navigator.clipboard.writeText(campoLink.value);
-
-        const boton = document.getElementById('btn-copiar-link');
-        boton.textContent = '¡Copiado!';
-        setTimeout(() => { boton.textContent = 'Copiar'; }, 1500);
-    });
-
-    document.getElementById('boton-cerrar-modal-repartidor').addEventListener('click', () => {
+document.getElementById('modal-detalle-repartidor').addEventListener('click', (evento) => {
+    if (evento.target.id === 'modal-detalle-repartidor') {
         document.getElementById('modal-detalle-repartidor').classList.add('oculto');
+    }
+});
+
+document.getElementById('seccion-repartidores').addEventListener('click', (evento) => {
+    const cabecera = evento.target.closest('[data-detalle-repartidor]');
+
+    if (!cabecera) {
+        return;
+    }
+
+    const miembro = repartidoresCargados.find((item) => item.id === cabecera.dataset.detalleRepartidor);
+
+    if (miembro) {
+        abrirDetalleRepartidor(miembro);
+    }
+});
+
+// ---------- Publicidad ----------
+
+let anunciosDelPanel = [];
+let configuracionPagoAnuncio = null;
+let anuncioEnCreacion = null;
+let archivoImagenAnuncio = null;
+
+const etiquetasEstadoAnuncio = {
+    pendiente_pago: 'Esperando pago',
+    pendiente_aprobacion: 'En revisión',
+    activo: 'Activo',
+    rechazado: 'Rechazado',
+    vencido: 'Vencido'
+};
+
+function claseEstadoAnuncio(estado) {
+    if (estado === 'activo') return 'activo';
+    if (estado === 'rechazado') return 'rechazada';
+    if (estado === 'vencido') return 'inactivo';
+    return 'pendiente';
+}
+
+async function cargarAnunciosPanel() {
+    const estadoVacio = document.getElementById('estado-publicidad');
+    const lista = document.getElementById('lista-anuncios-panel');
+
+    const { data, error } = await supabaseCliente
+        .from('anuncios')
+        .select('id, titulo, descripcion, imagen_url, monto, estado, creado_en')
+        .eq('distribuidora_id', distribuidoraActual.id)
+        .order('creado_en', { ascending: false });
+
+    if (error) {
+        estadoVacio.textContent = 'No pudimos cargar tus anuncios. Recargá la página.';
+        estadoVacio.classList.remove('oculto');
+        return;
+    }
+
+    anunciosDelPanel = data || [];
+    lista.innerHTML = '';
+
+    if (anunciosDelPanel.length === 0) {
+        estadoVacio.textContent = 'Todavía no creaste ningún anuncio.';
+        estadoVacio.classList.remove('oculto');
+        return;
+    }
+
+    estadoVacio.classList.add('oculto');
+
+    anunciosDelPanel.forEach((anuncio) => {
+        const tarjeta = document.createElement('article');
+        tarjeta.className = 'tarjeta-producto-panel';
+        tarjeta.innerHTML = `
+            <div class="tarjeta-producto-panel-superior">
+                <h3>${escaparHtml(anuncio.titulo)}</h3>
+                <span class="etiqueta-estado-producto ${claseEstadoAnuncio(anuncio.estado)}">
+                    ${etiquetasEstadoAnuncio[anuncio.estado] || anuncio.estado}
+                </span>
+            </div>
+            ${anuncio.descripcion ? `<p class="tarjeta-producto-panel-descripcion">${escaparHtml(anuncio.descripcion)}</p>` : ''}
+            <p class="tarjeta-producto-panel-descripcion">Monto: ${formatearPrecio(anuncio.monto)}</p>
+        `;
+        lista.appendChild(tarjeta);
     });
+}
 
-    document.getElementById('modal-detalle-repartidor').addEventListener('click', (evento) => {
-        if (evento.target.id === 'modal-detalle-repartidor') {
-            document.getElementById('modal-detalle-repartidor').classList.add('oculto');
-        }
+async function cargarConfiguracionPagoAnuncio() {
+    if (configuracionPagoAnuncio) return configuracionPagoAnuncio;
+
+    const { data } = await supabaseCliente
+        .from('configuracion_plataforma')
+        .select('alias, cbu, titular_cuenta, precio_anuncio')
+        .single();
+
+    configuracionPagoAnuncio = data;
+    return data;
+}
+
+function llenarSelectProductosAnuncio() {
+    const select = document.getElementById('producto-anuncio');
+    select.innerHTML = '<option value="">Destacar solo la distribuidora</option>';
+
+    productosDelPanel.forEach((producto) => {
+        const opcion = document.createElement('option');
+        opcion.value = producto.id;
+        opcion.textContent = producto.nombre;
+        select.appendChild(opcion);
     });
+}
 
-    document.getElementById('seccion-repartidores').addEventListener('click', (evento) => {
-        const cabecera = evento.target.closest('[data-detalle-repartidor]');
+const modalAnuncio = document.getElementById('modal-anuncio');
+const formularioAnuncioDatos = document.getElementById('formulario-anuncio-datos');
+const pasoPagoAnuncio = document.getElementById('paso-pago-anuncio');
+const vistaFotoAnuncio = document.getElementById('vista-foto-anuncio');
 
-        if (!cabecera) {
-            return;
-        }
+document.getElementById('btn-crear-anuncio').addEventListener('click', async () => {
+    formularioAnuncioDatos.reset();
+    formularioAnuncioDatos.classList.remove('oculto');
+    pasoPagoAnuncio.classList.add('oculto');
+    vistaFotoAnuncio.innerHTML = '<span>Sin imagen</span>';
+    archivoImagenAnuncio = null;
+    anuncioEnCreacion = null;
 
-        const miembro = repartidoresCargados.find((item) => item.id === cabecera.dataset.detalleRepartidor);
+    llenarSelectProductosAnuncio();
 
-        if (miembro) {
-            abrirDetalleRepartidor(miembro);
-        }
-    });
+    const configuracion = await cargarConfiguracionPagoAnuncio();
+    document.getElementById('precio-anuncio-texto').textContent =
+        `El anuncio cuesta ${formatearPrecio(configuracion?.precio_anuncio || 0)}.`;
+
+    modalAnuncio.classList.remove('oculto');
+});
+
+document.getElementById('boton-cerrar-modal-anuncio').addEventListener('click', () => {
+    modalAnuncio.classList.add('oculto');
+});
+
+document.getElementById('imagen-anuncio').addEventListener('change', (evento) => {
+    const archivo = evento.target.files[0];
+    if (!archivo) return;
+
+    archivoImagenAnuncio = archivo;
+    vistaFotoAnuncio.innerHTML = `<img src="${URL.createObjectURL(archivo)}" alt="Imagen del anuncio">`;
+});
+
+formularioAnuncioDatos.addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+
+    if (!archivoImagenAnuncio) {
+        alert('Subí una imagen para el anuncio.');
+        return;
+    }
+
+    const btnGuardar = document.getElementById('btn-guardar-anuncio');
+    btnGuardar.disabled = true;
+
+    try {
+        const rutaImagen = `${distribuidoraActual.id}/${crypto.randomUUID()}-${archivoImagenAnuncio.name}`;
+
+        const { error: errorSubida } = await supabaseCliente.storage
+            .from('anuncios-imagenes')
+            .upload(rutaImagen, archivoImagenAnuncio);
+
+        if (errorSubida) throw new Error('No pudimos subir la imagen.');
+
+        const { data: urlData } = supabaseCliente.storage
+            .from('anuncios-imagenes')
+            .getPublicUrl(rutaImagen);
+
+        const configuracion = await cargarConfiguracionPagoAnuncio();
+
+        const { data: anuncioCreado, error: errorInsert } = await supabaseCliente
+            .from('anuncios')
+            .insert({
+                distribuidora_id: distribuidoraActual.id,
+                producto_id: document.getElementById('producto-anuncio').value || null,
+                titulo: document.getElementById('titulo-anuncio').value.trim(),
+                descripcion: document.getElementById('descripcion-anuncio').value.trim(),
+                imagen_url: urlData.publicUrl,
+                monto: configuracion?.precio_anuncio || 0,
+                creado_por: usuarioActualId
+            })
+            .select('id')
+            .single();
+
+        if (errorInsert) throw new Error('No pudimos crear el anuncio.');
+
+        anuncioEnCreacion = anuncioCreado.id;
+
+        document.getElementById('monto-anuncio-texto').textContent = formatearPrecio(configuracion?.precio_anuncio || 0);
+        document.getElementById('alias-anuncio').textContent = configuracion?.alias || '—';
+        document.getElementById('cbu-anuncio').textContent = configuracion?.cbu || '—';
+        document.getElementById('titular-anuncio').textContent = configuracion?.titular_cuenta || '—';
+
+        formularioAnuncioDatos.classList.add('oculto');
+        pasoPagoAnuncio.classList.remove('oculto');
+    } catch (errorCreacion) {
+        alert(errorCreacion.message || 'Ocurrió un error. Intentá de nuevo.');
+    } finally {
+        btnGuardar.disabled = false;
+    }
+});
+
+document.getElementById('btn-enviar-comprobante-anuncio').addEventListener('click', async () => {
+    const inputComprobante = document.getElementById('comprobante-anuncio');
+    const archivo = inputComprobante.files[0];
+    const mensaje = document.getElementById('mensaje-anuncio');
+
+    if (!archivo) {
+        mensaje.textContent = 'Subí el comprobante de la transferencia.';
+        mensaje.className = 'mensaje-estado error';
+        mensaje.classList.remove('oculto');
+        return;
+    }
+
+    const btn = document.getElementById('btn-enviar-comprobante-anuncio');
+    btn.disabled = true;
+
+    try {
+        const rutaComprobante = `${distribuidoraActual.id}/${crypto.randomUUID()}-${archivo.name}`;
+
+        const { error: errorSubida } = await supabaseCliente.storage
+            .from('anuncios-imagenes')
+            .upload(rutaComprobante, archivo);
+
+        if (errorSubida) throw new Error('No pudimos subir el comprobante.');
+
+        const { data: urlData } = supabaseCliente.storage
+            .from('anuncios-imagenes')
+            .getPublicUrl(rutaComprobante);
+
+        const { error: errorUpdate } = await supabaseCliente
+            .from('anuncios')
+            .update({ comprobante_url: urlData.publicUrl, estado: 'pendiente_aprobacion' })
+            .eq('id', anuncioEnCreacion);
+
+        if (errorUpdate) throw new Error('No pudimos enviar el comprobante.');
+
+        mensaje.textContent = '¡Comprobante enviado! El admin lo va a revisar.';
+        mensaje.className = 'mensaje-estado exito';
+        mensaje.classList.remove('oculto');
+
+        setTimeout(() => {
+            modalAnuncio.classList.add('oculto');
+            cargarAnunciosPanel();
+        }, 1200);
+    } catch (errorEnvio) {
+        mensaje.textContent = errorEnvio.message || 'Ocurrió un error. Intentá de nuevo.';
+        mensaje.className = 'mensaje-estado error';
+        mensaje.classList.remove('oculto');
+    } finally {
+        btn.disabled = false;
+    }
+});

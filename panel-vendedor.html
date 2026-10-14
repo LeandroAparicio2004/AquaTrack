@@ -37,8 +37,11 @@
             <nav class="panel-nav">
                 <a href="metricas-vendedor.html" class="btn btn-secundario btn-chico">Ver métricas</a>
                 <a href="chat.html" class="btn-icono-circular" aria-label="Mensajes" title="Mensajes">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z">
+                        </path>
                     </svg>
                 </a>
                 <button type="button" class="btn-tema" id="btn-tema" aria-label="Cambiar tema"></button>
@@ -79,6 +82,8 @@
                     aria-selected="false">Suscripciones</button>
                 <button type="button" class="panel-pestana" data-pestana="perfil" role="tab"
                     aria-selected="false">Perfil del negocio</button>
+                <button type="button" class="panel-pestana" data-pestana="publicidad" role="tab"
+                    aria-selected="false">Publicidad</button>
             </div>
 
             <section class="panel-seccion" id="seccion-productos" role="tabpanel">
@@ -203,7 +208,8 @@
             <section class="panel-seccion oculto" id="seccion-suscripciones" role="tabpanel">
                 <div class="panel-seccion-encabezado">
                     <h2>Suscripciones</h2>
-                    <button type="button" class="btn btn-secundario btn-chico" id="btn-alternar-vista-suscripciones">Ver todas las suscripciones</button>
+                    <button type="button" class="btn btn-secundario btn-chico" id="btn-alternar-vista-suscripciones">Ver
+                        todas las suscripciones</button>
                 </div>
 
                 <div id="vista-calendario-suscripciones">
@@ -216,9 +222,11 @@
                     <p class="mensaje-estado oculto" id="mensaje-cupo"></p>
 
                     <div class="calendario-navegacion">
-                        <button type="button" class="btn btn-secundario btn-chico" id="btn-mes-anterior">‹ Anterior</button>
+                        <button type="button" class="btn btn-secundario btn-chico" id="btn-mes-anterior">‹
+                            Anterior</button>
                         <h3 id="etiqueta-mes-calendario">—</h3>
-                        <button type="button" class="btn btn-secundario btn-chico" id="btn-mes-siguiente">Siguiente ›</button>
+                        <button type="button" class="btn btn-secundario btn-chico" id="btn-mes-siguiente">Siguiente
+                            ›</button>
                     </div>
 
                     <div class="calendario-leyenda">
@@ -322,7 +330,8 @@
 
                             <div class="campo oculto" id="campo-cbu">
                                 <label for="cbu-transferencia">CBU</label>
-                                <input type="text" id="cbu-transferencia" placeholder="0000003100000000000000" maxlength="22">
+                                <input type="text" id="cbu-transferencia" placeholder="0000003100000000000000"
+                                    maxlength="22">
                             </div>
 
                             <div class="campo oculto" id="campo-titular">
@@ -338,6 +347,17 @@
 
                     </div>
                 </form>
+            </section>
+
+            <section class="panel-seccion oculto" id="seccion-publicidad" role="tabpanel">
+                <div class="panel-seccion-encabezado">
+                    <h2>Publicidad</h2>
+                    <button type="button" class="btn btn-principal" id="btn-crear-anuncio">+ Crear anuncio</button>
+                </div>
+
+                <p class="estado-productos-panel oculto" id="estado-publicidad"></p>
+
+                <div class="grilla-productos-panel" id="lista-anuncios-panel"></div>
             </section>
 
         </div>
@@ -379,7 +399,8 @@
 
                 <div class="campo oculto" id="campo-incluye-combo">
                     <label for="incluye-combo-producto">¿Qué incluye el combo?</label>
-                    <textarea id="incluye-combo-producto" rows="2" placeholder="Ej: 2 bidones de 20L + 1 dispenser"></textarea>
+                    <textarea id="incluye-combo-producto" rows="2"
+                        placeholder="Ej: 2 bidones de 20L + 1 dispenser"></textarea>
                 </div>
 
                 <div class="fila-doble" id="fila-litros-precio">
@@ -399,14 +420,7 @@
                         Descuento por envase devuelto
                     </label>
 
-                    <input
-                        type="number"
-                        id="descuento-envase-producto"
-                        min="0"
-                        step="1"
-                        value="0"
-                        required
-                    >
+                    <input type="number" id="descuento-envase-producto" min="0" step="1" value="0" required>
 
                     <small>
                         Monto que se descuenta por cada envase vacío devuelto.
@@ -441,6 +455,65 @@
             <button type="button" class="btn btn-secundario btn-ancho oculto" id="btn-alternar-bloqueo-dia"></button>
 
             <div id="detalle-dia-contenido"></div>
+        </div>
+    </div>
+
+    <div class="modal-fondo oculto" id="modal-anuncio" role="dialog" aria-modal="true">
+        <div class="modal-producto">
+            <button type="button" class="boton-cerrar-modal" id="boton-cerrar-modal-anuncio"
+                aria-label="Cerrar ventana">×</button>
+
+            <h2 id="titulo-modal-anuncio">Crear anuncio</h2>
+
+            <form id="formulario-anuncio-datos" novalidate>
+                <div class="campo">
+                    <label for="producto-anuncio">Producto a destacar (opcional)</label>
+                    <select id="producto-anuncio">
+                        <option value="">Destacar solo la distribuidora</option>
+                    </select>
+                </div>
+
+                <div class="campo">
+                    <label for="titulo-anuncio">Título</label>
+                    <input type="text" id="titulo-anuncio" required placeholder="¡Envío gratis esta semana!">
+                </div>
+
+                <div class="campo">
+                    <label for="descripcion-anuncio">Descripción</label>
+                    <textarea id="descripcion-anuncio" rows="2"
+                        placeholder="Contales a tus clientes la promo..."></textarea>
+                </div>
+
+                <div class="campo-foto-producto">
+                    <div class="vista-foto-producto" id="vista-foto-anuncio">
+                        <span>Sin imagen</span>
+                    </div>
+                    <label class="btn btn-secundario btn-chico" for="imagen-anuncio">Subir imagen</label>
+                    <input type="file" id="imagen-anuncio" accept="image/*" hidden required>
+                </div>
+
+                <p id="precio-anuncio-texto" class="mensaje-estado"></p>
+
+                <button type="submit" class="btn btn-principal btn-ancho" id="btn-guardar-anuncio">Continuar al
+                    pago</button>
+            </form>
+
+            <div class="oculto" id="paso-pago-anuncio">
+                <p>Transferí <strong id="monto-anuncio-texto"></strong> a:</p>
+                <p>Alias: <strong id="alias-anuncio"></strong></p>
+                <p>CBU: <strong id="cbu-anuncio"></strong></p>
+                <p>Titular: <strong id="titular-anuncio"></strong></p>
+
+                <div class="campo">
+                    <label for="comprobante-anuncio">Comprobante de la transferencia</label>
+                    <input type="file" id="comprobante-anuncio" accept="image/*,.pdf" required>
+                </div>
+
+                <p class="mensaje-estado oculto" id="mensaje-anuncio"></p>
+
+                <button type="button" class="btn btn-principal btn-ancho" id="btn-enviar-comprobante-anuncio">Enviar
+                    comprobante</button>
+            </div>
         </div>
     </div>
 
