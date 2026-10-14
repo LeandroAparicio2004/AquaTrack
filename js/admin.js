@@ -469,6 +469,11 @@ document.getElementById('boton-cerrar-sesion').addEventListener('click', async (
 
 // ---------- Publicidad (admin) ----------
 
+function formatearFechaAdmin(valor) {
+    if (!valor) return '—';
+    return new Date(valor).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
 async function cargarPublicidadAdmin() {
     const lista = document.getElementById('lista-publicidad-admin');
     const estadoVacio = document.getElementById('estado-publicidad-admin');
@@ -476,10 +481,11 @@ async function cargarPublicidadAdmin() {
     const { data, error } = await supabaseCliente
         .from('anuncios')
         .select(`
-            id, titulo, descripcion, imagen_url, monto, comprobante_url, estado, creado_en,
+            id, titulo, descripcion, imagen_url, monto, comprobante_url, estado, creado_en, fecha_fin,
             distribuidoras ( nombre )
         `)
-        .eq('estado', 'pendiente_aprobacion')
+        .in('estado', ['pendiente_aprobacion', 'activo'])
+        .order('estado', { ascending: true })
         .order('creado_en', { ascending: true });
 
     lista.innerHTML = '';
@@ -491,7 +497,7 @@ async function cargarPublicidadAdmin() {
     }
 
     if (!data || data.length === 0) {
-        estadoVacio.textContent = 'No hay anuncios pendientes de aprobación.';
+        estadoVacio.textContent = 'No hay anuncios pendientes ni activos.';
         estadoVacio.classList.remove('oculto');
         return;
     }
@@ -502,23 +508,34 @@ async function cargarPublicidadAdmin() {
         const tarjeta = document.createElement('article');
         tarjeta.className = 'tarjeta-producto-panel';
 
+        const esPendiente = anuncio.estado === 'pendiente_aprobacion';
+
         const comprobante = anuncio.comprobante_url
             ? `<a href="${escaparHtml(anuncio.comprobante_url)}" target="_blank" rel="noopener" class="enlace-comprobante-pago">Ver comprobante</a>`
             : '<span class="texto-sin-comprobante">Sin comprobante.</span>';
 
+        const acciones = esPendiente
+            ? `
+                <button type="button" class="btn btn-principal btn-chico" data-aprobar-anuncio="${anuncio.id}">Aprobar</button>
+                <button type="button" class="btn btn-secundario btn-chico btn-peligro" data-rechazar-anuncio="${anuncio.id}">Rechazar</button>
+            `
+            : `
+                <button type="button" class="btn btn-secundario btn-chico btn-peligro" data-desactivar-anuncio="${anuncio.id}">Desactivar</button>
+            `;
+
         tarjeta.innerHTML = `
             <div class="tarjeta-producto-panel-superior">
                 <h3>${escaparHtml(anuncio.titulo)}</h3>
-                <span class="etiqueta-estado-producto pendiente">En revisión</span>
+                <span class="etiqueta-estado-producto ${esPendiente ? 'pendiente' : 'activo'}">
+                    ${esPendiente ? 'En revisión' : 'Activo'}
+                </span>
             </div>
             <p class="tarjeta-producto-panel-descripcion">${escaparHtml(anuncio.distribuidoras?.nombre || 'Distribuidora')}</p>
             ${anuncio.descripcion ? `<p class="tarjeta-producto-panel-descripcion">${escaparHtml(anuncio.descripcion)}</p>` : ''}
             <p class="tarjeta-producto-panel-descripcion">Monto: ${formatearPrecioAdmin(anuncio.monto)}</p>
+            ${!esPendiente ? `<p class="tarjeta-producto-panel-descripcion">Vence: ${formatearFechaAdmin(anuncio.fecha_fin)}</p>` : ''}
             <p class="tarjeta-producto-panel-descripcion">${comprobante}</p>
-            <div class="tarjeta-producto-panel-acciones">
-                <button type="button" class="btn btn-principal btn-chico" data-aprobar-anuncio="${anuncio.id}">Aprobar</button>
-                <button type="button" class="btn btn-secundario btn-chico btn-peligro" data-rechazar-anuncio="${anuncio.id}">Rechazar</button>
-            </div>
+            <div class="tarjeta-producto-panel-acciones">${acciones}</div>
         `;
 
         lista.appendChild(tarjeta);
@@ -532,12 +549,17 @@ document.getElementById('lista-publicidad-admin').addEventListener('click', asyn
     if (botonAprobar) {
         botonAprobar.disabled = true;
 
+        const ahora = new Date();
+        const vencimiento = new Date(ahora);
+        vencimiento.setMonth(vencimiento.getMonth() + 1);
+
         const { error } = await supabaseCliente
             .from('anuncios')
             .update({
                 estado: 'activo',
                 aprobado_por: usuarioActualId,
-                aprobado_en: new Date().toISOString()
+                aprobado_en: ahora.toISOString(),
+                fecha_fin: vencimiento.toISOString()
             })
             .eq('id', botonAprobar.dataset.aprobarAnuncio);
 

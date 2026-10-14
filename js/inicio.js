@@ -348,3 +348,82 @@ botonCerrarSesion.addEventListener('click', cerrarSesion);
 actualizarCantidadCarrito();
 cargarDestacados();
 verificarSesion();
+
+
+// ---------- Popup de anuncios ----------
+
+let anunciosPopup = [];
+let indiceAnuncioPopup = 0;
+
+function nombreDistribuidoraAnuncio(anuncio) {
+    return anuncio.distribuidoras?.nombre || 'Distribuidora';
+}
+
+function tituloBusquedaAnuncio(anuncio) {
+    return anuncio.productos?.nombre || nombreDistribuidoraAnuncio(anuncio);
+}
+
+function renderizarAnuncioPopup() {
+    const anuncio = anunciosPopup[indiceAnuncioPopup];
+    if (!anuncio) return;
+
+    document.getElementById('anuncio-popup-imagen').innerHTML = anuncio.imagen_url
+        ? `<img src="${escaparHtml(anuncio.imagen_url)}" alt="${escaparHtml(anuncio.titulo)}">`
+        : '';
+
+    document.getElementById('anuncio-popup-distribuidora').textContent = nombreDistribuidoraAnuncio(anuncio);
+    document.getElementById('anuncio-popup-titulo').textContent = anuncio.titulo;
+    document.getElementById('anuncio-popup-descripcion').textContent = anuncio.descripcion || '';
+
+    const cta = document.getElementById('anuncio-popup-cta');
+    cta.textContent = anuncio.producto_id ? 'Ver producto' : 'Ver distribuidora';
+    cta.href = `productos.html?buscar=${encodeURIComponent(tituloBusquedaAnuncio(anuncio))}`;
+
+    const paginas = document.getElementById('anuncio-popup-paginas');
+    paginas.innerHTML = '';
+
+    if (anunciosPopup.length > 1) {
+        anunciosPopup.forEach((_, indice) => {
+            const punto = document.createElement('button');
+            punto.type = 'button';
+            punto.className = `punto-anuncio-popup ${indice === indiceAnuncioPopup ? 'activo' : ''}`;
+            punto.addEventListener('click', () => {
+                indiceAnuncioPopup = indice;
+                renderizarAnuncioPopup();
+            });
+            paginas.appendChild(punto);
+        });
+    }
+}
+
+async function cargarAnuncioPopup() {
+    const { data, error } = await supabaseCliente
+        .from('anuncios')
+        .select('id, titulo, descripcion, imagen_url, producto_id, productos ( nombre ), distribuidoras ( nombre )')
+        .eq('estado', 'activo')
+        .order('creado_en', { ascending: false })
+        .limit(5);
+
+    if (error || !data || data.length === 0) return;
+
+    anunciosPopup = data;
+    indiceAnuncioPopup = 0;
+    renderizarAnuncioPopup();
+
+    document.getElementById('modal-anuncio-popup').classList.remove('oculto');
+    document.body.classList.add('sin-desplazamiento');
+}
+
+document.getElementById('btn-cerrar-anuncio-popup').addEventListener('click', () => {
+    document.getElementById('modal-anuncio-popup').classList.add('oculto');
+    document.body.classList.remove('sin-desplazamiento');
+});
+
+document.getElementById('modal-anuncio-popup').addEventListener('click', (evento) => {
+    if (evento.target.id === 'modal-anuncio-popup') {
+        evento.currentTarget.classList.add('oculto');
+        document.body.classList.remove('sin-desplazamiento');
+    }
+});
+
+cargarAnuncioPopup();

@@ -782,7 +782,8 @@ body {
 }
 
 .modal-producto input,
-.modal-producto textarea {
+.modal-producto textarea,
+.modal-producto select {
     width: 100%;
     padding: 11px 13px;
     border: 1px solid var(--color-borde-panel);
@@ -1369,4 +1370,29 @@ body {
 
 .btn-copiar-telefono.copiado {
   color: #22c55e;
+}
+
+#formulario-anuncio-datos.oculto,
+#paso-pago-anuncio.oculto {
+  display: none;
+}
+
+#paso-pago-anuncio p {
+  margin: 0 0 6px;
+  color: var(--color-texto-secundario);
+}
+
+#paso-pago-anuncio {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+#paso-pago-anuncio .campo {
+  margin-top: 10px;
+  margin-bottom: 6px;
+}
+
+#paso-pago-anuncio button {
+  margin-top: 10px;
 }

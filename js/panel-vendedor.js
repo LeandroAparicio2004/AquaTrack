@@ -808,7 +808,8 @@ const secciones = {
     asignar: document.getElementById('seccion-asignar'),
     repartidores: document.getElementById('seccion-repartidores'),
     suscripciones: document.getElementById('seccion-suscripciones'),
-    perfil: document.getElementById('seccion-perfil')
+    perfil: document.getElementById('seccion-perfil'),
+    publicidad: document.getElementById('seccion-publicidad')
 };
 let seccionRepartidoresCargada = false;
 let seccionPedidosCargada = false;
@@ -1638,7 +1639,7 @@ async function cargarAnunciosPanel() {
 
     const { data, error } = await supabaseCliente
         .from('anuncios')
-        .select('id, titulo, descripcion, imagen_url, monto, estado, creado_en')
+        .select('id, titulo, descripcion, imagen_url, monto, estado, creado_en, fecha_fin')
         .eq('distribuidora_id', distribuidoraActual.id)
         .order('creado_en', { ascending: false });
 
@@ -1671,6 +1672,9 @@ async function cargarAnunciosPanel() {
             </div>
             ${anuncio.descripcion ? `<p class="tarjeta-producto-panel-descripcion">${escaparHtml(anuncio.descripcion)}</p>` : ''}
             <p class="tarjeta-producto-panel-descripcion">Monto: ${formatearPrecio(anuncio.monto)}</p>
+            ${anuncio.estado === 'activo' && anuncio.fecha_fin
+                ? `<p class="tarjeta-producto-panel-descripcion">Se vuelve a cobrar el: ${formatearFechaPanel(anuncio.fecha_fin.slice(0, 10))}</p>`
+                : ''}
         `;
         lista.appendChild(tarjeta);
     });
@@ -1681,11 +1685,18 @@ async function cargarConfiguracionPagoAnuncio() {
 
     const { data } = await supabaseCliente
         .from('configuracion_plataforma')
-        .select('alias, cbu, titular_cuenta, precio_anuncio')
+        .select('alias, cbu, titular_cuenta, precio_anuncio_producto, precio_anuncio_distribuidora')
         .single();
 
     configuracionPagoAnuncio = data;
     return data;
+}
+
+function precioAnuncioSegunSeleccion(configuracion) {
+    const hayProducto = document.getElementById('producto-anuncio').value !== '';
+    return hayProducto
+        ? (configuracion?.precio_anuncio_producto || 0)
+        : (configuracion?.precio_anuncio_distribuidora || 0);
 }
 
 function llenarSelectProductosAnuncio() {
@@ -1717,9 +1728,15 @@ document.getElementById('btn-crear-anuncio').addEventListener('click', async () 
 
     const configuracion = await cargarConfiguracionPagoAnuncio();
     document.getElementById('precio-anuncio-texto').textContent =
-        `El anuncio cuesta ${formatearPrecio(configuracion?.precio_anuncio || 0)}.`;
+        `Este anuncio cuesta ${formatearPrecio(precioAnuncioSegunSeleccion(configuracion))}.`;
 
     modalAnuncio.classList.remove('oculto');
+});
+
+document.getElementById('producto-anuncio').addEventListener('change', () => {
+    if (!configuracionPagoAnuncio) return;
+    document.getElementById('precio-anuncio-texto').textContent =
+        `Este anuncio cuesta ${formatearPrecio(precioAnuncioSegunSeleccion(configuracionPagoAnuncio))}.`;
 });
 
 document.getElementById('boton-cerrar-modal-anuncio').addEventListener('click', () => {
@@ -1759,6 +1776,7 @@ formularioAnuncioDatos.addEventListener('submit', async (evento) => {
             .getPublicUrl(rutaImagen);
 
         const configuracion = await cargarConfiguracionPagoAnuncio();
+        const montoAnuncio = precioAnuncioSegunSeleccion(configuracion);
 
         const { data: anuncioCreado, error: errorInsert } = await supabaseCliente
             .from('anuncios')
@@ -1768,7 +1786,7 @@ formularioAnuncioDatos.addEventListener('submit', async (evento) => {
                 titulo: document.getElementById('titulo-anuncio').value.trim(),
                 descripcion: document.getElementById('descripcion-anuncio').value.trim(),
                 imagen_url: urlData.publicUrl,
-                monto: configuracion?.precio_anuncio || 0,
+                monto: montoAnuncio,
                 creado_por: usuarioActualId
             })
             .select('id')
@@ -1778,7 +1796,7 @@ formularioAnuncioDatos.addEventListener('submit', async (evento) => {
 
         anuncioEnCreacion = anuncioCreado.id;
 
-        document.getElementById('monto-anuncio-texto').textContent = formatearPrecio(configuracion?.precio_anuncio || 0);
+        document.getElementById('monto-anuncio-texto').textContent = formatearPrecio(montoAnuncio);
         document.getElementById('alias-anuncio').textContent = configuracion?.alias || '—';
         document.getElementById('cbu-anuncio').textContent = configuracion?.cbu || '—';
         document.getElementById('titular-anuncio').textContent = configuracion?.titular_cuenta || '—';
@@ -1790,6 +1808,11 @@ formularioAnuncioDatos.addEventListener('submit', async (evento) => {
     } finally {
         btnGuardar.disabled = false;
     }
+});
+
+document.getElementById('comprobante-anuncio').addEventListener('change', (evento) => {
+    const archivo = evento.target.files[0];
+    document.getElementById('nombre-archivo-comprobante-anuncio').textContent = archivo ? archivo.name : '';
 });
 
 document.getElementById('btn-enviar-comprobante-anuncio').addEventListener('click', async () => {

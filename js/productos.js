@@ -390,7 +390,6 @@ document.addEventListener('keydown', (evento) => {
     }
 });
 
-// revisa si hay una sesion activa y muestra el bloque de nav correspondiente
 async function verificarSesion() {
     const {
         data: { session }
@@ -400,7 +399,6 @@ async function verificarSesion() {
     navUsuario.classList.toggle('oculto', !session);
 }
 
-// logout, vuelve a la pantalla de login
 async function cerrarSesion() {
     await supabaseCliente.auth.signOut();
     localStorage.removeItem('aquatrack_carrito');
@@ -410,5 +408,12 @@ async function cerrarSesion() {
 botonCerrarSesion.addEventListener('click', cerrarSesion);
 
 actualizarCantidadCarrito();
-cargarProductos();
+cargarProductos().then(() => {
+    const parametros = new URLSearchParams(window.location.search);
+    const busqueda = parametros.get('buscar');
+    if (busqueda) {
+        buscadorProductos.value = busqueda;
+        renderizarProductos();
+    }
+});
 verificarSesion();

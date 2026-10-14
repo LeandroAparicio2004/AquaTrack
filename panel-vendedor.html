@@ -504,9 +504,10 @@
                 <p>CBU: <strong id="cbu-anuncio"></strong></p>
                 <p>Titular: <strong id="titular-anuncio"></strong></p>
 
-                <div class="campo">
-                    <label for="comprobante-anuncio">Comprobante de la transferencia</label>
-                    <input type="file" id="comprobante-anuncio" accept="image/*,.pdf" required>
+                <div class="campo-foto-producto">
+                    <label class="btn btn-secundario btn-chico" for="comprobante-anuncio">Subir comprobante</label>
+                    <input type="file" id="comprobante-anuncio" accept="image/*,.pdf" hidden required>
+                    <span id="nombre-archivo-comprobante-anuncio" class="texto-sin-comprobante"></span>
                 </div>
 
                 <p class="mensaje-estado oculto" id="mensaje-anuncio"></p>

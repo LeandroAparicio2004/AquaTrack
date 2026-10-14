@@ -928,3 +928,83 @@ body.sin-desplazamiento {
     opacity: 0.85;
     margin: 0.25rem 0 0.5rem;
 }
+
+.tarjeta-anuncio-popup {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  background: var(--color-fondo);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.anuncio-popup-imagen {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: var(--color-superficie);
+  overflow: hidden;
+}
+
+.anuncio-popup-imagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.anuncio-popup-contenido {
+  padding: 20px 24px 24px;
+  text-align: center;
+}
+
+.anuncio-popup-distribuidora {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-acento);
+  margin-bottom: 6px;
+}
+
+.anuncio-popup-contenido h2 {
+  font-size: 1.4rem;
+  margin: 0 0 8px;
+  color: var(--color-texto-inicio);
+}
+
+.anuncio-popup-contenido p {
+  color: var(--color-texto-secundario-inicio);
+  margin: 0 0 18px;
+  font-size: 0.95rem;
+}
+
+.anuncio-popup-paginas {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding-bottom: 18px;
+}
+
+.punto-anuncio-popup {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-superficie);
+  cursor: pointer;
+  padding: 0;
+}
+
+.punto-anuncio-popup.activo {
+  background: var(--color-acento);
+  width: 18px;
+  border-radius: 4px;
+}
+
+#modal-anuncio-popup .boton-cerrar-modal {
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  z-index: 2;
+}
