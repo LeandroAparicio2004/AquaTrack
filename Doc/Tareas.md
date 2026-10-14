@@ -26,12 +26,12 @@ SCRUM-22 Realizacion de Pedido X
 SCRUM-23 Visualizacion de codigo de confirmacion X
 SCRUM-14 Validación de Recepción X 
 
-Sprint 4 - Entregas y Seguimiento 
+Sprint 4 - Entregas y Seguimiento (cerrado)
 SCRUM-12 Gestion de Entregas X
 SCRUM-13 Visualizacion de Ruta Optimizadas X
 SCRUM-24 Seguimiento en Vivo X
-SCRUM-26 Comunicacion con Repartidor 
-SCRUM-36 Configurar Supabase Realtime (msj)
+SCRUM-26 Comunicacion con Repartidor X
+SCRUM-36 Configurar Supabase Realtime (msj) X
 SCRUM-37 Configurar integracion con OpenSteetMap y OSRM X
 
 Sprint 5 - Paneles y Suscripción 
@@ -45,3 +45,31 @@ Sprint 6 - UX
 SCRUM-46 Modo Claro / Oscuro
 SCRUM-47 Btn Hamburguesa (Cel)
 SCRUM-48 Pop-ups de productos
+
+Liquidacion 
+Hoja de ruta 
+Re revisar logica de negocio
+Desgloce de pagos, INSISTENCIA
+Todo mov monetario debe ser avisado en un resumen (excel)
+TRANSPARENCIA TOTAL EN LOS PAGOS.
+
+Aviso de msj{
+    Campana en pagina
+    Aviso x Gmail
+}
+
+Transferencia{
+    Avisa x gmail q [persona] realizo un pago
+    Debe de dar un desgloce de todos los pagos realizado: Monto / Nombre
+}
+
+Logic negocio{
+    Re revisar panel de Suscripciones
+}
+
+Yo{
+    Revisar: msj recordatorio de fecha de envio de prod (Panel-suscripciones)
+    Suscripciones: se realizan de forma semanal, es decir, en toda la semana solo puede haber cierta cantidad de suscripciones.
+    Cargar autom a un repartidor o mas, las suscripciones (PRIORIDAD TOTAL).
+
+}

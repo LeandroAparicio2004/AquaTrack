@@ -313,8 +313,6 @@ async function cargarPagosTransferencia() {
     }
 }
 
-
-
 async function marcarDistribuidoraPagada(idPago, idDistribuidora, monto, boton) {
     boton.disabled = true;
     boton.textContent = 'Guardando...';
