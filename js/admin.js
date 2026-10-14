@@ -392,10 +392,13 @@ const pestanas = document.querySelectorAll('.panel-pestana');
 const secciones = {
     pendientes: document.getElementById('seccion-pendientes'),
     todas: document.getElementById('seccion-todas'),
-    pagos: document.getElementById('seccion-pagos')
+    pagos: document.getElementById('seccion-pagos'),
+    publicidad: document.getElementById('seccion-publicidad-admin')
 };
 let seccionTodasCargada = false;
 let seccionPagosCargada = false;
+let seccionPublicidadAdminCargada = false;
+let usuarioActualId = null;
 
 pestanas.forEach((pestana) => {
     pestana.addEventListener('click', () => {
@@ -420,6 +423,11 @@ pestanas.forEach((pestana) => {
             seccionPagosCargada = true;
             cargarPagosTransferencia();
         }
+
+        if (pestana.dataset.pestana === 'publicidad' && !seccionPublicidadAdminCargada) {
+            seccionPublicidadAdminCargada = true;
+            cargarPublicidadAdmin();
+        }
     });
 });
 
@@ -430,6 +438,8 @@ async function inicializarPanel() {
         window.location.href = 'login.html';
         return;
     }
+
+    usuarioActualId = session.user.id;
 
     const { data: perfil } = await supabaseCliente
         .from('usuarios')
@@ -455,4 +465,111 @@ document.getElementById('boton-cerrar-sesion').addEventListener('click', async (
     await supabaseCliente.auth.signOut();
     localStorage.removeItem('aquatrack_carrito');
     window.location.href = 'login.html';
+});
+
+// ---------- Publicidad (admin) ----------
+
+async function cargarPublicidadAdmin() {
+    const lista = document.getElementById('lista-publicidad-admin');
+    const estadoVacio = document.getElementById('estado-publicidad-admin');
+
+    const { data, error } = await supabaseCliente
+        .from('anuncios')
+        .select(`
+            id, titulo, descripcion, imagen_url, monto, comprobante_url, estado, creado_en,
+            distribuidoras ( nombre )
+        `)
+        .eq('estado', 'pendiente_aprobacion')
+        .order('creado_en', { ascending: true });
+
+    lista.innerHTML = '';
+
+    if (error) {
+        estadoVacio.textContent = 'No pudimos cargar los anuncios. Recargá la página.';
+        estadoVacio.classList.remove('oculto');
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        estadoVacio.textContent = 'No hay anuncios pendientes de aprobación.';
+        estadoVacio.classList.remove('oculto');
+        return;
+    }
+
+    estadoVacio.classList.add('oculto');
+
+    data.forEach((anuncio) => {
+        const tarjeta = document.createElement('article');
+        tarjeta.className = 'tarjeta-producto-panel';
+
+        const comprobante = anuncio.comprobante_url
+            ? `<a href="${escaparHtml(anuncio.comprobante_url)}" target="_blank" rel="noopener" class="enlace-comprobante-pago">Ver comprobante</a>`
+            : '<span class="texto-sin-comprobante">Sin comprobante.</span>';
+
+        tarjeta.innerHTML = `
+            <div class="tarjeta-producto-panel-superior">
+                <h3>${escaparHtml(anuncio.titulo)}</h3>
+                <span class="etiqueta-estado-producto pendiente">En revisión</span>
+            </div>
+            <p class="tarjeta-producto-panel-descripcion">${escaparHtml(anuncio.distribuidoras?.nombre || 'Distribuidora')}</p>
+            ${anuncio.descripcion ? `<p class="tarjeta-producto-panel-descripcion">${escaparHtml(anuncio.descripcion)}</p>` : ''}
+            <p class="tarjeta-producto-panel-descripcion">Monto: ${formatearPrecioAdmin(anuncio.monto)}</p>
+            <p class="tarjeta-producto-panel-descripcion">${comprobante}</p>
+            <div class="tarjeta-producto-panel-acciones">
+                <button type="button" class="btn btn-principal btn-chico" data-aprobar-anuncio="${anuncio.id}">Aprobar</button>
+                <button type="button" class="btn btn-secundario btn-chico btn-peligro" data-rechazar-anuncio="${anuncio.id}">Rechazar</button>
+            </div>
+        `;
+
+        lista.appendChild(tarjeta);
+    });
+}
+
+document.getElementById('lista-publicidad-admin').addEventListener('click', async (evento) => {
+    const botonAprobar = evento.target.closest('[data-aprobar-anuncio]');
+    const botonRechazar = evento.target.closest('[data-rechazar-anuncio]');
+
+    if (botonAprobar) {
+        botonAprobar.disabled = true;
+
+        const { error } = await supabaseCliente
+            .from('anuncios')
+            .update({
+                estado: 'activo',
+                aprobado_por: usuarioActualId,
+                aprobado_en: new Date().toISOString()
+            })
+            .eq('id', botonAprobar.dataset.aprobarAnuncio);
+
+        if (error) {
+            alert('No pudimos aprobar el anuncio. Intentá de nuevo.');
+            botonAprobar.disabled = false;
+            return;
+        }
+
+        await cargarPublicidadAdmin();
+    }
+
+    if (botonRechazar) {
+        if (!confirm('¿Seguro que querés rechazar este anuncio?')) return;
+
+        botonRechazar.disabled = true;
+
+        const { error } = await supabaseCliente
+            .from('anuncios')
+            .update({
+                estado: 'rechazado',
+                aprobado_por: usuarioActualId,
+                aprobado_en: new Date().toISOString()
+            })
+            .eq('id', botonRechazar.dataset.rechazarAnuncio);
+
+        if (error) {
+            alert('No pudimos rechazar el anuncio. Intentá de nuevo.');
+            botonRechazar.disabled = false;
+            return;
+        }
+
+        await cargarPublicidadAdmin();
+    }
 });
