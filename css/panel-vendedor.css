@@ -1344,3 +1344,29 @@ body {
   border: 1px solid rgba(245, 158, 11, 0.35);
   border-radius: 8px;
 }
+
+.fila-telefono-repartidor {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-copiar-telefono {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  color: var(--color-texto-secundario);
+  cursor: pointer;
+}
+
+.btn-copiar-telefono svg {
+  width: 14px;
+  height: 14px;
+}
+
+.btn-copiar-telefono.copiado {
+  color: #22c55e;
+}

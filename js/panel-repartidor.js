@@ -36,7 +36,7 @@ async function cargarMisEntregas() {
         .select(`
             id, estado, asignada_en,
             pedidos (
-                id, direccion_calle, direccion_numero, direccion_ciudad, direccion_referencia,
+                id, cliente_id, direccion_calle, direccion_numero, direccion_ciudad, direccion_referencia,
                 latitud, longitud, total, metodo_pago,
                 usuarios!pedidos_cliente_id_fkey ( nombre, apellido, telefono, dni ),
                 detalles_pedidos ( cantidad, productos ( nombre ) )
@@ -101,7 +101,17 @@ async function cargarMisEntregas() {
                     </span>
                 </div>
                 ${pedido.usuarios?.dni ? `<p class="tarjeta-producto-panel-descripcion">DNI: ${escaparHtml(pedido.usuarios.dni)}</p>` : ''}
-                ${pedido.usuarios?.telefono ? `<p class="tarjeta-producto-panel-descripcion">Tel: ${escaparHtml(pedido.usuarios.telefono)}</p>` : ''}
+                ${pedido.usuarios?.telefono ? `
+                    <p class="tarjeta-producto-panel-descripcion fila-telefono-repartidor">
+                        Tel: ${escaparHtml(pedido.usuarios.telefono)}
+                        <button type="button" class="btn-copiar-telefono" data-copiar-telefono="${escaparHtml(pedido.usuarios.telefono)}" aria-label="Copiar teléfono" title="Copiar teléfono">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="9" y="9" width="11" height="11" rx="2"></rect>
+                                <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path>
+                            </svg>
+                        </button>
+                    </p>
+                ` : ''}
                 <p class="tarjeta-producto-panel-descripcion">
                     ${escaparHtml(pedido.direccion_calle)} ${escaparHtml(pedido.direccion_numero || '')},
                     ${escaparHtml(pedido.direccion_ciudad)}
@@ -115,11 +125,16 @@ async function cargarMisEntregas() {
                     <span>${pedido.metodo_pago === 'transferencia' ? 'Transferencia' : 'Efectivo'}</span>
                     <strong>${formatearPrecio(pedido.total)}</strong>
                 </div>
-                ${entrega.estado === 'en_camino'
-                ? `<div class="tarjeta-producto-panel-acciones">
-                       <button type="button" class="btn btn-principal btn-chico" data-confirmar-entrega="${entrega.id}">Confirmar entrega</button>
-                   </div>`
+                <div class="tarjeta-producto-panel-acciones">
+                    ${entrega.estado === 'en_camino'
+                ? `<button type="button" class="btn btn-principal btn-chico" data-confirmar-entrega="${entrega.id}">Confirmar entrega</button>`
                 : ''}
+                    <button type="button" class="btn-icono-circular" data-chat-cliente="${pedido.cliente_id}" aria-label="Chatear con el cliente" title="Chatear con el cliente">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
         `;
 
@@ -631,4 +646,21 @@ document.getElementById('boton-cerrar-sesion').addEventListener('click', async (
     await supabaseCliente.auth.signOut();
     localStorage.removeItem('aquatrack_carrito');
     window.location.href = 'login.html';
+});
+
+
+document.getElementById('lista-entregas-repartidor').addEventListener('click', (evento) => {
+    const botonChat = evento.target.closest('[data-chat-cliente]');
+    if (botonChat) {
+        window.location.href = `chat.html?usuario=${botonChat.dataset.chatCliente}`;
+        return;
+    }
+
+    const botonCopiar = evento.target.closest('[data-copiar-telefono]');
+    if (botonCopiar) {
+        navigator.clipboard.writeText(botonCopiar.dataset.copiarTelefono).then(() => {
+            botonCopiar.classList.add('copiado');
+            setTimeout(() => botonCopiar.classList.remove('copiado'), 1200);
+        });
+    }
 });
