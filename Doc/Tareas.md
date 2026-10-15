@@ -73,3 +73,42 @@ Yo{
     Cargar autom a un repartidor o mas, las suscripciones (PRIORIDAD TOTAL).
 
 }
+
+
+Nuevas Tareas:
+
+**Tareas cortas (para YA)**
+- D1: Dar destino real a los 6 links del footer de index.html (DESPUES)
+- D2: Crear 'terminos.html (hoy da 404 desde registro.html) (DESPUES)
+- D3: Página 404 propia (DESPUES)
+- Fix: vaciar el carrito al desloguear (TERMINADO)
+- Probar el botón "Desactivar" anuncio 
+- Verificar botón volver atrás, cerrar grupo de entrega y ver métricas (TERMINADO)
+- T2: Corregir clases CSS en panel-vendedor.js (entregado → activo, cancelado → rechazada) (TERMINADO?)
+- T1: Unificar asignado / asignada entre pedidos y entregas
+- B4: Mensaje recordatorio de la fecha de envío en el panel de suscripciones
+- E1: Popups de publicidad con rotación automática al siguiente anuncio cada pocos segundos (cada imagen con su propio link)
+
+**Tareas medias**
+- D10: @media para mobile en los 6 CSS (DESPUES)
+- D5: Búsqueda de productos por texto (Terminado?)
+- D6: Perfil de cliente editable
+- D8: Verificación de email en el registro
+- D9: Stock de productos
+- D4: Reseñas y calificación a vendedor y repartidor
+- C1: Campana de avisos dentro de la página
+- C2: Aviso por Gmail de mensajes nuevos
+- C3: Hoja de ruta del repartidor
+- A5: Aviso por Gmail de pagos y transferencias, con desglose (monto y nombre)
+- B2: Cupo semanal de suscripciones
+- B5: Unificar la lógica de "pago pendiente" entre carrito.js y suscripciones.js
+- T3: Estandarizar el manejo de errores
+- D7: "Repetir pedido" y favoritos
+
+**Tareas largas**
+- B1: Asignar automáticamente las suscripciones a uno o más repartidores (prioridad total)
+- B3: Re-revisar el panel de Suscripciones (lógica y UI)
+- A1: Re-revisar la lógica de negocio completa
+- A2: Desglose de pagos con transparencia total (monto, nombre, comisión)
+- A3: Liquidación a vendedores y repartidores
+- A4: Resumen en Excel de todo movimiento monetario

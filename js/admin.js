@@ -545,6 +545,27 @@ async function cargarPublicidadAdmin() {
 document.getElementById('lista-publicidad-admin').addEventListener('click', async (evento) => {
     const botonAprobar = evento.target.closest('[data-aprobar-anuncio]');
     const botonRechazar = evento.target.closest('[data-rechazar-anuncio]');
+    const botonDesactivar = evento.target.closest('[data-desactivar-anuncio]');
+
+    if (botonDesactivar) {
+        if (!confirm('¿Seguro que querés desactivar este anuncio? Dejará de mostrarse a los clientes.')) return;
+
+        botonDesactivar.disabled = true;
+
+        const { error } = await supabaseCliente
+            .from('anuncios')
+            .update({ estado: 'vencido' })
+            .eq('id', botonDesactivar.dataset.desactivarAnuncio);
+
+        if (error) {
+            alert('No pudimos desactivar el anuncio. Intentá de nuevo.');
+            botonDesactivar.disabled = false;
+            return;
+        }
+
+        await cargarPublicidadAdmin();
+        return;
+    }
 
     if (botonAprobar) {
         botonAprobar.disabled = true;
