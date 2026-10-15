@@ -116,3 +116,5 @@ Nuevas Tareas:
 - A2: Desglose de pagos con transparencia total (monto, nombre, comisión)
 - A3: Liquidación a vendedores y repartidores
 - A4: Resumen en Excel de todo movimiento monetario
+
+Revisar la altura {Mapa} 

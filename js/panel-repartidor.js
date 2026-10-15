@@ -619,7 +619,9 @@ async function inicializarPanel() {
 
 const seccionesRepartidor = {
     entregas: document.getElementById('seccion-entregas'),
-    perfil: document.getElementById('seccion-perfil')
+    perfil: document.getElementById('seccion-perfil'),
+    publicidad: document.getElementById('seccion-publicidad'),
+    cobros: document.getElementById('seccion-cobros')
 };
 
 document.querySelectorAll('.panel-pestana').forEach((pestana) => {

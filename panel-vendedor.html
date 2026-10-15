@@ -84,6 +84,8 @@
                     aria-selected="false">Perfil del negocio</button>
                 <button type="button" class="panel-pestana" data-pestana="publicidad" role="tab"
                     aria-selected="false">Publicidad</button>
+                <button type="button" class="panel-pestana" data-pestana="cobros" role="tab"
+                    aria-selected="false">Cobros</button>
             </div>
 
             <section class="panel-seccion" id="seccion-productos" role="tabpanel">
@@ -349,6 +351,34 @@
                 </form>
             </section>
 
+            <section class="panel-seccion oculto" id="seccion-cobros" role="tabpanel">
+                <div class="panel-seccion-encabezado">
+                    <h2>Cobros</h2>
+                    <button type="button" class="btn btn-secundario" id="btn-exportar-cobros">Descargar Excel</button>
+                </div>
+
+                <div class="resumen-cobros" id="resumen-cobros"></div>
+
+                <p class="estado-productos-panel oculto" id="estado-cobros"></p>
+
+                <div class="contenedor-tabla-cobros">
+                    <table class="tabla-cobros">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Pedidos</th>
+                                <th>Monto bruto</th>
+                                <th>Comisión</th>
+                                <th>Monto neto</th>
+                                <th>Estado</th>
+                                <th>Comprobante</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-cobros"></tbody>
+                    </table>
+                </div>
+            </section>
+
             <section class="panel-seccion oculto" id="seccion-publicidad" role="tabpanel">
                 <div class="panel-seccion-encabezado">
                     <h2>Publicidad</h2>
@@ -519,6 +549,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="js/supabase-config.js"></script>
     <script src="js/panel-vendedor.js"></script>
     <script src="js/tema.js"></script>

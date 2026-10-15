@@ -1333,66 +1333,143 @@ body {
 }
 
 .aviso-repartidor-en-ruta {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 0 10px 10px;
-  padding: 8px 10px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 10px 10px;
+    padding: 8px 10px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #f59e0b;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.35);
+    border-radius: 8px;
 }
 
 .fila-telefono-repartidor {
-  display: flex;
-  align-items: center;
-  gap: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
 }
 
 .btn-copiar-telefono {
-  width: 24px;
-  height: 24px;
-  display: grid;
-  place-items: center;
-  border: none;
-  background: transparent;
-  color: var(--color-texto-secundario);
-  cursor: pointer;
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border: none;
+    background: transparent;
+    color: var(--color-texto-secundario);
+    cursor: pointer;
 }
 
 .btn-copiar-telefono svg {
-  width: 14px;
-  height: 14px;
+    width: 14px;
+    height: 14px;
 }
 
 .btn-copiar-telefono.copiado {
-  color: #22c55e;
+    color: #22c55e;
 }
 
 #formulario-anuncio-datos.oculto,
 #paso-pago-anuncio.oculto {
-  display: none;
+    display: none;
 }
 
 #paso-pago-anuncio p {
-  margin: 0 0 6px;
-  color: var(--color-texto-secundario);
+    margin: 0 0 6px;
+    color: var(--color-texto-secundario);
 }
 
 #paso-pago-anuncio {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 #paso-pago-anuncio .campo {
-  margin-top: 10px;
-  margin-bottom: 6px;
+    margin-top: 10px;
+    margin-bottom: 6px;
 }
 
 #paso-pago-anuncio button {
-  margin-top: 10px;
+    margin-top: 10px;
+}
+
+.resumen-cobros {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.tarjeta-resumen-cobro {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 16px;
+    background: var(--color-superficie);
+    border-radius: 12px;
+}
+
+.tarjeta-resumen-cobro span {
+    font-size: 13px;
+    color: var(--color-texto-secundario);
+}
+
+.tarjeta-resumen-cobro strong {
+    font-size: 20px;
+    color: var(--color-texto);
+}
+
+.contenedor-tabla-cobros {
+    overflow-x: auto;
+}
+
+.tabla-cobros {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.tabla-cobros th,
+.tabla-cobros td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--color-superficie);
+    white-space: nowrap;
+}
+
+.tabla-cobros th {
+    color: var(--color-texto-secundario);
+    font-weight: 600;
+}
+
+.filtros-movimientos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.filtros-movimientos label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 13px;
+    color: var(--color-texto-secundario);
+}
+
+.filtros-movimientos input[type="date"] {
+    padding: 8px 10px;
+    border: 1px solid var(--color-superficie);
+    border-radius: 8px;
+    background: var(--color-fondo);
+    color: var(--color-texto);
+}
+
+.filtros-movimientos .btn {
+    width: auto;
 }

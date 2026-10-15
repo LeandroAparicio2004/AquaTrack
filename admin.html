@@ -60,6 +60,8 @@
                     aria-selected="false">Todas las distribuidoras</button>
                 <button type="button" class="panel-pestana" data-pestana="pagos" role="tab"
                     aria-selected="false">Pagos por transferencia</button>
+                <button type="button" class="panel-pestana" data-pestana="movimientos" role="tab"
+                    aria-selected="false">Movimientos</button>
                 <button type="button" class="panel-pestana" data-pestana="publicidad" role="tab"
                     aria-selected="false">Publicidad</button>
             </div>
@@ -79,6 +81,40 @@
                 <div class="lista-pagos-transferencia" id="lista-pagos-transferencia"></div>
             </section>
 
+            <section class="panel-seccion oculto" id="seccion-movimientos" role="tabpanel">
+                <div class="panel-seccion-encabezado">
+                    <h2>Movimientos de dinero</h2>
+                    <button type="button" class="btn btn-secundario" id="btn-exportar-movimientos">Descargar Excel</button>
+                </div>
+
+                <div class="filtros-movimientos">
+                    <label>Desde <input type="date" id="movimientos-desde"></label>
+                    <label>Hasta <input type="date" id="movimientos-hasta"></label>
+                    <button type="button" class="btn btn-secundario btn-chico" id="btn-filtrar-movimientos">Filtrar</button>
+                </div>
+
+                <div class="resumen-cobros" id="resumen-movimientos"></div>
+
+                <p class="estado-productos-panel oculto" id="estado-movimientos"></p>
+
+                <div class="contenedor-tabla-cobros">
+                    <table class="tabla-cobros">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Distribuidora</th>
+                                <th>Monto bruto</th>
+                                <th>Comisión</th>
+                                <th>Neto a rendir</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-movimientos"></tbody>
+                    </table>
+                </div>
+            </section>
+
             <section class="panel-seccion oculto" id="seccion-publicidad-admin" role="tabpanel">
                 <p class="estado-productos-panel oculto" id="estado-publicidad-admin"></p>
                 <div class="grilla-productos-panel" id="lista-publicidad-admin"></div>
@@ -87,6 +123,7 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="js/supabase-config.js"></script>
     <script src="js/admin.js"></script>
     <script src="js/tema.js"></script>

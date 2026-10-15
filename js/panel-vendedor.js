@@ -809,7 +809,8 @@ const secciones = {
     repartidores: document.getElementById('seccion-repartidores'),
     suscripciones: document.getElementById('seccion-suscripciones'),
     perfil: document.getElementById('seccion-perfil'),
-    publicidad: document.getElementById('seccion-publicidad')
+    publicidad: document.getElementById('seccion-publicidad'),
+    cobros: document.getElementById('seccion-cobros')
 };
 let seccionRepartidoresCargada = false;
 let seccionPedidosCargada = false;
@@ -857,11 +858,104 @@ pestanas.forEach((pestana) => {
             cargarCalendario();
         }
 
+        if (pestana.dataset.pestana === 'cobros') {
+            cargarCobros();
+        }
+
         if (pestana.dataset.pestana === 'publicidad' && !seccionPublicidadCargada) {
             seccionPublicidadCargada = true;
             cargarAnunciosPanel();
         }
     });
+});
+
+let cobrosCargados = [];
+
+function formatearFechaCobro(valor) {
+    return new Date(valor).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function renderizarCobros() {
+    const cuerpo = document.getElementById('lista-cobros');
+    const resumen = document.getElementById('resumen-cobros');
+    const estado = document.getElementById('estado-cobros');
+
+    if (cobrosCargados.length === 0) {
+        cuerpo.innerHTML = '';
+        resumen.innerHTML = '';
+        estado.textContent = 'Todavía no tenés cobros por transferencia.';
+        estado.classList.remove('oculto');
+        return;
+    }
+
+    estado.classList.add('oculto');
+
+    const sumar = (filas) => filas.reduce((total, fila) => total + Number(fila.neto || 0), 0);
+    const totalPagado = sumar(cobrosCargados.filter((c) => c.pagado));
+    const totalPendiente = sumar(cobrosCargados.filter((c) => !c.pagado));
+    const totalComision = cobrosCargados.reduce((total, c) => total + Number(c.comision || 0), 0);
+
+    resumen.innerHTML = `
+        <div class="tarjeta-resumen-cobro"><span>Ya cobrado</span><strong>${formatearPrecio(totalPagado)}</strong></div>
+        <div class="tarjeta-resumen-cobro"><span>Pendiente de pago</span><strong>${formatearPrecio(totalPendiente)}</strong></div>
+        <div class="tarjeta-resumen-cobro"><span>Comisión AquaTrack</span><strong>${formatearPrecio(totalComision)}</strong></div>
+    `;
+
+    cuerpo.innerHTML = cobrosCargados.map((cobro) => `
+        <tr>
+            <td>${formatearFechaCobro(cobro.fecha)}</td>
+            <td>${cobro.cantidad_pedidos}</td>
+            <td>${formatearPrecio(cobro.bruto)}</td>
+            <td>${formatearPrecio(cobro.comision)} (${Number(cobro.comision_porcentaje)}%)</td>
+            <td><strong>${formatearPrecio(cobro.neto)}</strong></td>
+            <td>${cobro.pagado
+                ? `<span class="etiqueta-estado-producto activo">Pagado el ${formatearFechaCobro(cobro.pagado_en)}</span>`
+                : '<span class="etiqueta-estado-producto pendiente">Pendiente</span>'}</td>
+            <td>${cobro.comprobante_liquidacion_url
+                ? `<a href="${escaparHtml(cobro.comprobante_liquidacion_url)}" target="_blank" rel="noopener">Ver comprobante</a>`
+                : '—'}</td>
+        </tr>
+    `).join('');
+}
+
+async function cargarCobros() {
+    const estado = document.getElementById('estado-cobros');
+
+    const { data, error } = await supabaseCliente.rpc('obtener_cobros_distribuidora', {
+        p_distribuidora_id: distribuidoraActual.id
+    });
+
+    if (error) {
+        estado.textContent = 'No pudimos cargar los cobros. Recargá la página.';
+        estado.classList.remove('oculto');
+        return;
+    }
+
+    cobrosCargados = data || [];
+    renderizarCobros();
+}
+
+document.getElementById('btn-exportar-cobros').addEventListener('click', () => {
+    if (cobrosCargados.length === 0) {
+        alert('No hay cobros para exportar.');
+        return;
+    }
+
+    const filas = cobrosCargados.map((cobro) => ({
+        'Fecha': formatearFechaCobro(cobro.fecha),
+        'Pedidos': cobro.cantidad_pedidos,
+        'Monto bruto': Number(cobro.bruto),
+        'Comisión (%)': Number(cobro.comision_porcentaje),
+        'Comisión ($)': Number(cobro.comision),
+        'Monto neto': Number(cobro.neto),
+        'Estado': cobro.pagado ? 'Pagado' : 'Pendiente',
+        'Fecha de pago': cobro.pagado_en ? formatearFechaCobro(cobro.pagado_en) : ''
+    }));
+
+    const hoja = XLSX.utils.json_to_sheet(filas);
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, 'Cobros');
+    XLSX.writeFile(libro, `aquatrack-cobros-${distribuidoraActual.nombre}.xlsx`);
 });
 
 const modalProducto = document.getElementById('modal-producto');

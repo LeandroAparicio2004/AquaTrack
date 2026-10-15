@@ -169,13 +169,25 @@ function crearTarjetaPago(pago) {
     const desglose = (pago.desglose || []).map((item) => {
         const estaPagada = Boolean(item.liquidacion?.pagado);
 
-        const accionPago = estaPagada
-            ? `<span class="etiqueta-pagada-distribuidora">
+        let accionPago;
+
+        if (estaPagada) {
+            const enlaceComprobanteLiquidacion = item.liquidacion?.comprobante_url
+                ? `<a href="${escaparHtml(item.liquidacion.comprobante_url)}" target="_blank" rel="noopener" class="enlace-comprobante-pago">Ver comprobante</a>`
+                : '';
+
+            accionPago = `<span class="etiqueta-pagada-distribuidora">
                  ✓ Pagada el ${escaparHtml(new Date(item.liquidacion.pagado_en).toLocaleDateString('es-AR'))}
-               </span>`
-            : `<button type="button" class="btn btn-secundario btn-chico" data-marcar-pagada="${pago.id}" data-distribuidora="${item.distribuidora_id}" data-monto="${item.monto}">
-                 Marcar como pagada
+               </span>${enlaceComprobanteLiquidacion}`;
+        } else if (!pago.comprobante_url) {
+            accionPago = `<button type="button" class="btn btn-secundario btn-chico" disabled>
+                 Esperando comprobante del cliente
                </button>`;
+        } else {
+            accionPago = `<button type="button" class="btn btn-secundario btn-chico" data-marcar-pagada="${pago.id}" data-distribuidora="${item.distribuidora_id}" data-monto="${item.monto}">
+                 Adjuntar comprobante y pagar
+               </button>`;
+        }
 
         return `
         <div class="fila-desglose-pago">
@@ -260,7 +272,15 @@ async function cargarPagosTransferencia() {
 
     estadoVacio.classList.add('oculto');
 
+    const { data: movimientosNombres } = await supabaseCliente.rpc('obtener_movimientos_admin', {
+        p_desde: null,
+        p_hasta: null
+    });
+    const mapaClientes = new Map((movimientosNombres || []).map((mov) => [mov.pago_id, mov.cliente]));
+
     for (const pago of data) {
+        pago.usuarios = { nombre: mapaClientes.get(pago.id) || '', apellido: '' };
+
         const { data: pedidosDelPago } = await supabaseCliente
             .from('pedidos')
             .select('total, distribuidoras ( id, nombre, alias, cbu, titular_cuenta )')
@@ -297,7 +317,7 @@ async function cargarPagosTransferencia() {
 
         const { data: liquidaciones } = await supabaseCliente
             .from('liquidaciones_distribuidora')
-            .select('distribuidora_id, pagado, pagado_en')
+            .select('distribuidora_id, pagado, pagado_en, comprobante_url')
             .eq('pago_transferencia_id', pago.id);
 
         const mapaLiquidaciones = new Map(
@@ -313,8 +333,29 @@ async function cargarPagosTransferencia() {
     }
 }
 
-async function marcarDistribuidoraPagada(idPago, idDistribuidora, monto, boton) {
+async function marcarDistribuidoraPagada(idPago, idDistribuidora, monto, boton, archivo) {
     boton.disabled = true;
+    boton.textContent = 'Subiendo comprobante...';
+
+    const extension = (archivo.name.split('.').pop() || 'jpg').toLowerCase();
+    const ruta = `${idPago}/${idDistribuidora}-${Date.now()}.${extension}`;
+
+    const { error: errorSubida } = await supabaseCliente.storage
+        .from('comprobantes-liquidacion')
+        .upload(ruta, archivo);
+
+    if (errorSubida) {
+        console.error('Error al subir comprobante:', errorSubida);
+        alert('No pudimos subir el comprobante. Intentá de nuevo.');
+        boton.disabled = false;
+        boton.textContent = 'Adjuntar comprobante y pagar';
+        return;
+    }
+
+    const { data: urlPublica } = supabaseCliente.storage
+        .from('comprobantes-liquidacion')
+        .getPublicUrl(ruta);
+
     boton.textContent = 'Guardando...';
 
     const {
@@ -327,6 +368,7 @@ async function marcarDistribuidoraPagada(idPago, idDistribuidora, monto, boton) 
             pago_transferencia_id: idPago,
             distribuidora_id: idDistribuidora,
             monto: monto,
+            comprobante_url: urlPublica.publicUrl,
             pagado: true,
             pagado_por: session?.user?.id || null,
             pagado_en: new Date().toISOString()
@@ -336,7 +378,7 @@ async function marcarDistribuidoraPagada(idPago, idDistribuidora, monto, boton) 
         console.error('Error al marcar distribuidora como pagada:', error);
         alert('No pudimos guardar el pago a la distribuidora. Intentá de nuevo.');
         boton.disabled = false;
-        boton.textContent = 'Marcar como pagada';
+        boton.textContent = 'Adjuntar comprobante y pagar';
         return;
     }
 
@@ -373,19 +415,131 @@ document.getElementById('lista-pagos-transferencia')?.addEventListener('click', 
     const botonMarcarPagada = evento.target.closest('[data-marcar-pagada]');
 
     if (botonMarcarPagada) {
-        const confirmado = confirm(
-            '¿Confirmás que ya le transferiste a esta distribuidora lo que le corresponde?'
-        );
+        const entradaArchivo = document.createElement('input');
+        entradaArchivo.type = 'file';
+        entradaArchivo.accept = 'image/*,application/pdf';
 
-        if (confirmado) {
-            marcarDistribuidoraPagada(
-                botonMarcarPagada.dataset.marcarPagada,
-                botonMarcarPagada.dataset.distribuidora,
-                botonMarcarPagada.dataset.monto,
-                botonMarcarPagada
+        entradaArchivo.addEventListener('change', () => {
+            const archivo = entradaArchivo.files[0];
+
+            if (!archivo) {
+                return;
+            }
+
+            const confirmado = confirm(
+                '¿Confirmás que ya le transferiste a esta distribuidora lo que le corresponde y que este es el comprobante?'
             );
-        }
+
+            if (confirmado) {
+                marcarDistribuidoraPagada(
+                    botonMarcarPagada.dataset.marcarPagada,
+                    botonMarcarPagada.dataset.distribuidora,
+                    botonMarcarPagada.dataset.monto,
+                    botonMarcarPagada,
+                    archivo
+                );
+            }
+        });
+
+        entradaArchivo.click();
     }
+});
+
+let movimientosCargados = [];
+
+function formatearFechaMovimiento(valor) {
+    return new Date(valor).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function textoEstadoMovimiento(mov) {
+    if (/^cancel/i.test(mov.estado_pago)) return 'Cancelado';
+    if (mov.pagado) return `Pagado el ${formatearFechaMovimiento(mov.pagado_en)}`;
+    if (!mov.tiene_comprobante) return 'Sin comprobante';
+    return 'Pendiente de pago a la distribuidora';
+}
+
+function renderizarMovimientos() {
+    const cuerpo = document.getElementById('lista-movimientos');
+    const resumen = document.getElementById('resumen-movimientos');
+    const estado = document.getElementById('estado-movimientos');
+
+    if (movimientosCargados.length === 0) {
+        cuerpo.innerHTML = '';
+        resumen.innerHTML = '';
+        estado.textContent = 'No hay movimientos en este período.';
+        estado.classList.remove('oculto');
+        return;
+    }
+
+    estado.classList.add('oculto');
+
+    const vigentes = movimientosCargados.filter((mov) => !/^cancel/i.test(mov.estado_pago) && mov.tiene_comprobante);
+    const suma = (filas, campo) => filas.reduce((total, fila) => total + Number(fila[campo] || 0), 0);
+
+    resumen.innerHTML = `
+        <div class="tarjeta-resumen-cobro"><span>Total transferido</span><strong>${formatearPrecioAdmin(suma(vigentes, 'bruto'))}</strong></div>
+        <div class="tarjeta-resumen-cobro"><span>Comisión AquaTrack</span><strong>${formatearPrecioAdmin(suma(vigentes, 'comision'))}</strong></div>
+        <div class="tarjeta-resumen-cobro"><span>Rendido a distribuidoras</span><strong>${formatearPrecioAdmin(suma(vigentes.filter((m) => m.pagado), 'neto'))}</strong></div>
+        <div class="tarjeta-resumen-cobro"><span>Pendiente de rendir</span><strong>${formatearPrecioAdmin(suma(vigentes.filter((m) => !m.pagado && m.tiene_comprobante), 'neto'))}</strong></div>
+    `;
+
+    cuerpo.innerHTML = movimientosCargados.map((mov) => `
+        <tr>
+            <td>${formatearFechaMovimiento(mov.fecha)}</td>
+            <td>${escaparHtml(mov.cliente || 'Cliente')}</td>
+            <td>${escaparHtml(mov.distribuidora)}</td>
+            <td>${formatearPrecioAdmin(mov.bruto)}</td>
+            <td>${formatearPrecioAdmin(mov.comision)} (${Number(mov.comision_porcentaje)}%)</td>
+            <td><strong>${formatearPrecioAdmin(mov.neto)}</strong></td>
+            <td>${escaparHtml(textoEstadoMovimiento(mov))}</td>
+        </tr>
+    `).join('');
+}
+
+async function cargarMovimientos() {
+    const estado = document.getElementById('estado-movimientos');
+    const desde = document.getElementById('movimientos-desde').value || null;
+    const hasta = document.getElementById('movimientos-hasta').value || null;
+
+    const { data, error } = await supabaseCliente.rpc('obtener_movimientos_admin', {
+        p_desde: desde,
+        p_hasta: hasta
+    });
+
+    if (error) {
+        estado.textContent = 'No pudimos cargar los movimientos. Recargá la página.';
+        estado.classList.remove('oculto');
+        return;
+    }
+
+    movimientosCargados = data || [];
+    renderizarMovimientos();
+}
+
+document.getElementById('btn-filtrar-movimientos').addEventListener('click', cargarMovimientos);
+
+document.getElementById('btn-exportar-movimientos').addEventListener('click', () => {
+    if (movimientosCargados.length === 0) {
+        alert('No hay movimientos para exportar.');
+        return;
+    }
+
+    const filas = movimientosCargados.map((mov) => ({
+        'Fecha': formatearFechaMovimiento(mov.fecha),
+        'Cliente': mov.cliente,
+        'Distribuidora': mov.distribuidora,
+        'Pedidos': mov.cantidad_pedidos,
+        'Monto bruto': Number(mov.bruto),
+        'Comisión (%)': Number(mov.comision_porcentaje),
+        'Comisión ($)': Number(mov.comision),
+        'Neto a rendir': Number(mov.neto),
+        'Estado': textoEstadoMovimiento(mov)
+    }));
+
+    const hoja = XLSX.utils.json_to_sheet(filas);
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, 'Movimientos');
+    XLSX.writeFile(libro, 'aquatrack-movimientos.xlsx');
 });
 
 const pestanas = document.querySelectorAll('.panel-pestana');
@@ -393,6 +547,7 @@ const secciones = {
     pendientes: document.getElementById('seccion-pendientes'),
     todas: document.getElementById('seccion-todas'),
     pagos: document.getElementById('seccion-pagos'),
+    movimientos: document.getElementById('seccion-movimientos'),
     publicidad: document.getElementById('seccion-publicidad-admin')
 };
 let seccionTodasCargada = false;
@@ -422,6 +577,10 @@ pestanas.forEach((pestana) => {
         if (pestana.dataset.pestana === 'pagos' && !seccionPagosCargada) {
             seccionPagosCargada = true;
             cargarPagosTransferencia();
+        }
+
+        if (pestana.dataset.pestana === 'movimientos') {
+            cargarMovimientos();
         }
 
         if (pestana.dataset.pestana === 'publicidad' && !seccionPublicidadAdminCargada) {
