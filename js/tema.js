@@ -34,3 +34,7 @@ document.querySelectorAll('.btn-tema').forEach((boton) => {
         aplicarTema(temaActual() === 'oscuro' ? 'claro' : 'oscuro');
     });
 });
+
+const scriptCampana = document.createElement('script');
+scriptCampana.src = 'js/campana.js';
+document.body.appendChild(scriptCampana);

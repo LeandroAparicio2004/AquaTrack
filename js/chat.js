@@ -34,6 +34,19 @@ function formatearFechaCorta(valor) {
 
 // ---------- Conversaciones ----------
 
+let nombresNegocio = new Map();
+
+async function cargarNombresNegocio() {
+    const ids = [...new Set(
+        conversacionesCache.flatMap((c) => [c.usuario_a_id, c.usuario_b_id]).filter(Boolean)
+    )];
+
+    if (ids.length === 0) return;
+
+    const { data } = await supabaseCliente.rpc('nombres_negocio_para_chat', { ids });
+    nombresNegocio = new Map((data || []).map((fila) => [fila.usuario_id, fila.distribuidora_nombre]));
+}
+
 async function cargarConversaciones() {
     const estadoVacio = document.getElementById('estado-conversaciones');
 
@@ -53,6 +66,7 @@ async function cargarConversaciones() {
     }
 
     conversacionesCache = data || [];
+    await cargarNombresNegocio();
     await cargarUltimosMensajesYNoLeidos();
     renderizarListaConversaciones();
 }
@@ -103,9 +117,10 @@ function obtenerOtroParticipante(conversacion) {
 
     const soyA = conversacion.usuario_a_id === usuarioActualId;
     const otro = soyA ? conversacion.usuario_b : conversacion.usuario_a;
+    const otroId = soyA ? conversacion.usuario_b_id : conversacion.usuario_a_id;
 
     return {
-        nombre: `${otro?.nombre || ''} ${otro?.apellido || ''}`.trim() || 'Usuario',
+        nombre: nombresNegocio.get(otroId) || `${otro?.nombre || ''} ${otro?.apellido || ''}`.trim() || 'Usuario',
         esTicket: false,
         sinAsignar: false
     };

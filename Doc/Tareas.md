@@ -101,7 +101,7 @@ Nuevas Tareas:
 - C3: Hoja de ruta del repartidor
 - A5: Aviso por Gmail de pagos y transferencias, con desglose (monto y nombre)
   
-- B2: Cupo semanal de suscripciones {
+- B2: Cupo semanal de suscripciones - Terminado {
   se usa solo el cupo máximo por día, que el vendedor configura en su panel. El calendario muestra Disponible / Lleno / Bloqueado. Límite semanal lo considero inutil. La capacidad semanal es el cupo diario por los días de atención.
   }
 
@@ -110,7 +110,7 @@ Nuevas Tareas:
 - D7: "Repetir pedido" y favoritos
 
 **Tareas largas**
-- B1: Asignar automáticamente las suscripciones a uno o más repartidores (prioridad total)
+- B1: Asignar automáticamente las suscripciones a uno o más repartidores (prioridad total) - Terminado
 - B3: Re-revisar el panel de Suscripciones (lógica y UI)
 - A1: Re-revisar la lógica de negocio completa
 - A2: Desglose de pagos con transparencia total (monto, nombre, comisión)
