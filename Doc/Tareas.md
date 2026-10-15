@@ -100,7 +100,11 @@ Nuevas Tareas:
 - C2: Aviso por Gmail de mensajes nuevos
 - C3: Hoja de ruta del repartidor
 - A5: Aviso por Gmail de pagos y transferencias, con desglose (monto y nombre)
-- B2: Cupo semanal de suscripciones
+  
+- B2: Cupo semanal de suscripciones {
+  se usa solo el cupo máximo por día, que el vendedor configura en su panel. El calendario muestra Disponible / Lleno / Bloqueado. Límite semanal lo considero inutil. La capacidad semanal es el cupo diario por los días de atención.
+  }
+
 - B5: Unificar la lógica de "pago pendiente" entre carrito.js y suscripciones.js
 - T3: Estandarizar el manejo de errores
 - D7: "Repetir pedido" y favoritos
