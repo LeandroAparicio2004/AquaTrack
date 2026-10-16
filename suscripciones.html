@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="css/seguimiento.css">
   <link rel="stylesheet" href="css/suscripciones.css">
   <link rel="stylesheet" href="css/calendario-suscripcion-cliente.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 
 <body>
@@ -162,11 +163,23 @@
           <p class="fecha-elegida-suscripcion oculto" id="fecha-elegida-suscripcion"></p>
         </div>
 
-        <div class="campo">
-          <label for="calle-suscripcion">Calle y número</label>
-          <div class="fila-doble">
-            <input type="text" id="calle-suscripcion" placeholder="Av. Siempre Viva" required>
-            <input type="text" id="numero-suscripcion" placeholder="Número">
+        <div class="campo campo-direccion-mapa">
+          <label for="buscador-direccion-suscripcion">Buscá tu dirección</label>
+          <input type="text" id="buscador-direccion-suscripcion" placeholder="Ej: Piedra Blanca" autocomplete="off">
+          <div id="sugerencias-direccion-suscripcion" class="sugerencias-direccion oculto" role="listbox"></div>
+          <p id="estado-direccion-suscripcion" class="estado-direccion-mapa" aria-live="polite"></p>
+        </div>
+
+        <div id="mapa-direccion-suscripcion" class="mapa-direccion"></div>
+
+        <div class="fila-doble">
+          <div class="campo">
+            <label for="calle-suscripcion">Calle</label>
+            <input type="text" id="calle-suscripcion" required>
+          </div>
+          <div class="campo">
+            <label for="numero-suscripcion">Número de casa</label>
+            <input type="text" id="numero-suscripcion">
           </div>
         </div>
 
@@ -177,14 +190,17 @@
           </div>
           <div class="campo">
             <label for="provincia-suscripcion">Provincia</label>
-            <input type="text" id="provincia-suscripcion">
+            <input type="text" id="provincia-suscripcion" value="Catamarca">
           </div>
         </div>
 
         <div class="campo">
           <label for="referencia-suscripcion">Referencia (opcional)</label>
-          <input type="text" id="referencia-suscripcion" placeholder="Casa con portón negro">
+          <input type="text" id="referencia-suscripcion" placeholder="Entre calles, color de casa...">
         </div>
+
+        <input type="hidden" id="latitud-suscripcion">
+        <input type="hidden" id="longitud-suscripcion">
 
         <div class="campo">
           <label>Método de pago</label>
@@ -208,6 +224,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="js/supabase-config.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="js/suscripciones.js"></script>
   <script src="js/tema.js"></script>
 </body>

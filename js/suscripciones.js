@@ -221,13 +221,158 @@ document.getElementById('btn-mes-siguiente-suscripcion').addEventListener('click
     cargarCalendarioSuscripcion(document.getElementById('distribuidora-suscripcion').value);
 });
 
+let mapaSuscripcion = null;
+let marcadorSuscripcion = null;
+let temporizadorDireccionSuscripcion = null;
+let resultadosDireccionSuscripcion = [];
+
+function textoDireccionSuscripcion(resultado) {
+    const p = resultado.properties || {};
+    const calle = [p.street, p.housenumber].filter(Boolean).join(' ');
+    const localidad = p.city || p.town || p.village || p.county || '';
+
+    return [calle || p.name, localidad, p.state || '']
+        .filter(Boolean)
+        .filter((valor, indice, lista) => lista.indexOf(valor) === indice)
+        .join(', ');
+}
+
+function colocarMarcadorSuscripcion(latitud, longitud) {
+    if (!mapaSuscripcion) {
+        return;
+    }
+
+    if (marcadorSuscripcion) {
+        marcadorSuscripcion.setLatLng([latitud, longitud]);
+    } else {
+        marcadorSuscripcion = L.marker([latitud, longitud]).addTo(mapaSuscripcion);
+    }
+
+    mapaSuscripcion.setView([latitud, longitud], 15);
+    document.getElementById('latitud-suscripcion').value = latitud;
+    document.getElementById('longitud-suscripcion').value = longitud;
+}
+
+function iniciarMapaSuscripcion() {
+    if (!window.L) {
+        return;
+    }
+
+    if (!mapaSuscripcion) {
+        mapaSuscripcion = L.map('mapa-direccion-suscripcion').setView([-28.4696, -65.7795], 11);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(mapaSuscripcion);
+
+        mapaSuscripcion.on('click', (evento) => {
+            colocarMarcadorSuscripcion(evento.latlng.lat, evento.latlng.lng);
+        });
+    }
+
+    if (marcadorSuscripcion) {
+        mapaSuscripcion.removeLayer(marcadorSuscripcion);
+        marcadorSuscripcion = null;
+    }
+
+    mapaSuscripcion.setView([-28.4696, -65.7795], 11);
+    setTimeout(() => mapaSuscripcion.invalidateSize(), 150);
+}
+
+async function buscarDireccionSuscripcion(texto) {
+    const busqueda = texto.trim();
+    const contenedor = document.getElementById('sugerencias-direccion-suscripcion');
+
+    if (busqueda.length < 3) {
+        resultadosDireccionSuscripcion = [];
+        contenedor.classList.add('oculto');
+        return;
+    }
+
+    try {
+        const parametros = new URLSearchParams({
+            q: `${busqueda}, Catamarca, Argentina`,
+            limit: '5',
+            lat: '-28.4696',
+            lon: '-65.7795'
+        });
+
+        const respuesta = await fetch(`https://photon.komoot.io/api/?${parametros}`);
+
+        if (!respuesta.ok) {
+            throw new Error('No se pudo buscar la dirección.');
+        }
+
+        const datos = await respuesta.json();
+        resultadosDireccionSuscripcion = datos.features || [];
+
+        contenedor.innerHTML = resultadosDireccionSuscripcion.length === 0
+            ? '<p class="sin-sugerencias-direccion">No encontramos esa ubicación.</p>'
+            : resultadosDireccionSuscripcion.map((resultado, indice) => `
+                <button type="button" class="opcion-direccion" data-indice-direccion="${indice}">
+                    ${escaparHtml(textoDireccionSuscripcion(resultado))}
+                </button>
+            `).join('');
+
+        contenedor.classList.remove('oculto');
+    } catch (error) {
+        resultadosDireccionSuscripcion = [];
+        contenedor.classList.add('oculto');
+    }
+}
+
+function seleccionarDireccionSuscripcion(resultado) {
+    const p = resultado.properties || {};
+    const coordenadas = resultado.geometry?.coordinates || [];
+    const textoCompleto = textoDireccionSuscripcion(resultado);
+
+    document.getElementById('buscador-direccion-suscripcion').value = textoCompleto;
+    document.getElementById('calle-suscripcion').value = p.street || '';
+    document.getElementById('numero-suscripcion').value = p.housenumber || '';
+    document.getElementById('ciudad-suscripcion').value = p.city || p.town || p.village || p.county || '';
+    document.getElementById('provincia-suscripcion').value = p.state || 'Catamarca';
+    document.getElementById('sugerencias-direccion-suscripcion').classList.add('oculto');
+    document.getElementById('estado-direccion-suscripcion').textContent =
+        'Ubicación seleccionada. Revisá calle y número.';
+
+    colocarMarcadorSuscripcion(coordenadas[1], coordenadas[0]);
+}
+
+document.getElementById('buscador-direccion-suscripcion').addEventListener('input', (evento) => {
+    clearTimeout(temporizadorDireccionSuscripcion);
+    document.getElementById('latitud-suscripcion').value = '';
+    document.getElementById('longitud-suscripcion').value = '';
+
+    temporizadorDireccionSuscripcion = setTimeout(() => {
+        buscarDireccionSuscripcion(evento.target.value);
+    }, 500);
+});
+
+document.getElementById('sugerencias-direccion-suscripcion').addEventListener('click', (evento) => {
+    const opcion = evento.target.closest('[data-indice-direccion]');
+
+    if (!opcion) {
+        return;
+    }
+
+    const resultado = resultadosDireccionSuscripcion[Number(opcion.dataset.indiceDireccion)];
+
+    if (resultado) {
+        seleccionarDireccionSuscripcion(resultado);
+    }
+});
+
 function abrirModalSuscripcion() {
     document.getElementById('formulario-suscripcion').reset();
     document.getElementById('producto-suscripcion').innerHTML = '<option value="">Elegí primero una distribuidora</option>';
     document.getElementById('producto-suscripcion').disabled = true;
     iniciarCalendarioSuscripcion('');
     document.getElementById('mensaje-suscripcion').classList.add('oculto');
+    document.getElementById('estado-direccion-suscripcion').textContent = '';
+    document.getElementById('sugerencias-direccion-suscripcion').classList.add('oculto');
     document.getElementById('modal-suscripcion').classList.remove('oculto');
+    iniciarMapaSuscripcion();
 }
 
 function cerrarModalSuscripcion() {
@@ -266,6 +411,14 @@ document.getElementById('formulario-suscripcion').addEventListener('submit', asy
         return;
     }
 
+    const latitud = document.getElementById('latitud-suscripcion').value;
+    const longitud = document.getElementById('longitud-suscripcion').value;
+
+    if (!latitud || !longitud) {
+        mostrarMensajeSuscripcion('Elegí tu ubicación: buscala o tocá el mapa.', 'error');
+        return;
+    }
+
     botonGuardar.disabled = true;
     botonGuardar.textContent = 'Creando...';
 
@@ -286,6 +439,8 @@ document.getElementById('formulario-suscripcion').addEventListener('submit', asy
             direccion_ciudad: ciudad,
             direccion_provincia: provincia || null,
             direccion_referencia: referencia || null,
+            latitud: Number(latitud),
+            longitud: Number(longitud),
             metodo_pago: metodoPago
         });
 
