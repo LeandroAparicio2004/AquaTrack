@@ -81,31 +81,31 @@ Nuevas Tareas:
 - D1: Dar destino real a los 6 links del footer de index.html (DESPUES)
 - D2: Crear 'terminos.html (hoy da 404 desde registro.html) (DESPUES)
 - D3: Página 404 propia (DESPUES)
-- Fix: vaciar el carrito al desloguear (TERMINADO)
-- Probar el botón "Desactivar" anuncio 
-- Verificar botón volver atrás, cerrar grupo de entrega y ver métricas (TERMINADO)
-- T2: Corregir clases CSS en panel-vendedor.js (entregado → activo, cancelado → rechazada) (TERMINADO?)
+- Fix: vaciar el carrito al desloguear -TERMINADO
+- Probar el botón "Desactivar" anuncio - Terminado 
+- Verificar botón volver atrás, cerrar grupo de entrega y ver métricas - TERMINADO
+- T2: Corregir clases CSS en panel-vendedor.js (entregado → activo, cancelado → rechazada) - TERMINADO
 - T1: Unificar asignado / asignada entre pedidos y entregas
-- B4: Mensaje recordatorio de la fecha de envío en el panel de suscripciones
+- B4: Mensaje recordatorio de la fecha de envío en el panel de suscripciones - Terminado
 - E1: Popups de publicidad con rotación automática al siguiente anuncio cada pocos segundos (cada imagen con su propio link)
 
 **Tareas medias**
 - D10: @media para mobile en los 6 CSS (DESPUES)
-- D5: Búsqueda de productos por texto (Terminado?)
+- D5: Búsqueda de productos por texto - Terminado
 - D6: Perfil de cliente editable
 - D8: Verificación de email en el registro
 - D9: Stock de productos
 - D4: Reseñas y calificación a vendedor y repartidor
-- C1: Campana de avisos dentro de la página
+- C1: Campana de avisos dentro de la página - Terminado
 - C2: Aviso por Gmail de mensajes nuevos
-- C3: Hoja de ruta del repartidor
+- C3: Hoja de ruta del repartidor - Terminado
 - A5: Aviso por Gmail de pagos y transferencias, con desglose (monto y nombre)
   
 - B2: Cupo semanal de suscripciones - Terminado {
   se usa solo el cupo máximo por día, que el vendedor configura en su panel. El calendario muestra Disponible / Lleno / Bloqueado. Límite semanal lo considero inutil. La capacidad semanal es el cupo diario por los días de atención.
   }
 
-- B5: Unificar la lógica de "pago pendiente" entre carrito.js y suscripciones.js
+- B5: Unificar la lógica de "pago pendiente" entre carrito.js y suscripciones.js - Terminado
 - T3: Estandarizar el manejo de errores
 - D7: "Repetir pedido" y favoritos
 
@@ -113,8 +113,8 @@ Nuevas Tareas:
 - B1: Asignar automáticamente las suscripciones a uno o más repartidores (prioridad total) - Terminado
 - B3: Re-revisar el panel de Suscripciones (lógica y UI)
 - A1: Re-revisar la lógica de negocio completa
-- A2: Desglose de pagos con transparencia total (monto, nombre, comisión)
-- A3: Liquidación a vendedores y repartidores
-- A4: Resumen en Excel de todo movimiento monetario
+- A2: Desglose de pagos con transparencia total (monto, nombre, comisión) - Terminado
+- A3: Liquidación a vendedores y repartidores - Terminado
+- A4: Resumen en Excel de todo movimiento monetario - Terminado
 
 Revisar la altura {Mapa} 

@@ -249,6 +249,27 @@
     </div>
   </div>
 
+  <div class="modal-fondo oculto" id="modal-renovar" role="dialog" aria-modal="true"
+    aria-labelledby="titulo-modal-renovar">
+    <div class="modal-suscripcion modal-renovar-contenido">
+      <button type="button" class="boton-cerrar-modal" id="boton-cerrar-modal-renovar"
+        aria-label="Cerrar ventana">×</button>
+
+      <h2 id="titulo-modal-renovar">Renovar suscripción</h2>
+      <p class="subtitulo-modal-suscripcion">Elegí cuántos meses querés pagar por adelantado.</p>
+
+      <div class="opciones-meses-renovar" id="opciones-meses-renovar">
+        <button type="button" class="opcion-mes-renovar seleccionada" data-meses="1">1 mes</button>
+        <button type="button" class="opcion-mes-renovar" data-meses="2">2 meses</button>
+        <button type="button" class="opcion-mes-renovar" data-meses="3">3 meses</button>
+      </div>
+
+      <p class="mensaje-estado oculto" id="mensaje-renovar"></p>
+
+      <button type="button" class="btn btn-principal" id="boton-confirmar-renovar">Continuar al pago</button>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="js/supabase-config.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

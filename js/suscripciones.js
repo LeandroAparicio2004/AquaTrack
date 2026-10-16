@@ -718,6 +718,10 @@ async function cargarRecordatorioEntrega(listaSuscripciones) {
 
     const hayPagoPendiente = Boolean(pagoPendiente && !pagoPendiente.comprobante_url);
 
+    if (hayPagoPendiente) {
+        localStorage.setItem('aquatrack_pago_pendiente', pagoPendiente.id);
+    }
+
     contenedor.classList.remove('oculto');
     contenedor.classList.toggle('recordatorio-alerta', hayPagoPendiente);
 
@@ -727,7 +731,7 @@ async function cargarRecordatorioEntrega(listaSuscripciones) {
                 ⚠️ Tu próxima entrega es el <strong>${formatearFecha(proxima.proxima_entrega)}</strong>
                 y todavía tenés un pago pendiente de <strong>${formatearPrecio(pagoPendiente.monto_total)}</strong>.
             </p>
-            <a href="historial.html" class="btn btn-secundario btn-chico">Ver y subir comprobante</a>
+            <a href="carrito.html" class="btn btn-secundario btn-chico">Ver y subir comprobante</a>
         `
         : `
             <p class="recordatorio-texto">
@@ -744,6 +748,7 @@ async function cargarSuscripciones() {
         .from('suscripciones')
         .select(`
             id, cantidad, envases_devueltos, frecuencia, fecha_inicio, proxima_entrega, estado, ultimo_pedido_id,
+            metodo_pago, pagada_hasta,
             distribuidoras ( nombre ),
             productos ( nombre, capacidad_litros, precio )
         `)
@@ -769,13 +774,22 @@ async function cargarSuscripciones() {
         const producto = suscripcion.productos;
         const totalEstimado = (Number(producto?.precio) || 0) * suscripcion.cantidad;
 
-        const acciones = suscripcion.estado === 'activa'
-            ? `<button type="button" class="boton-pausar-suscripcion" data-pausar="${suscripcion.id}">Pausar</button>
-               <button type="button" class="boton-cancelar-suscripcion" data-cancelar="${suscripcion.id}">Cancelar</button>`
-            : suscripcion.estado === 'pausada'
-                ? `<button type="button" class="boton-reactivar-suscripcion" data-reactivar="${suscripcion.id}">Reactivar</button>
+        const esTransferencia = suscripcion.metodo_pago === 'transferencia';
+
+        const accionesTransferencia = `
+
+            <button type="button" class="boton-reactivar-suscripcion" data-renovar="${suscripcion.id}">Renovar</button>
+            <button type="button" class="boton-cancelar-suscripcion" data-cancelar="${suscripcion.id}">Cancelar</button>`;
+
+        const acciones = esTransferencia && suscripcion.estado !== 'cancelada'
+            ? accionesTransferencia
+            : suscripcion.estado === 'activa'
+                ? `<button type="button" class="boton-pausar-suscripcion" data-pausar="${suscripcion.id}">Pausar</button>
                    <button type="button" class="boton-cancelar-suscripcion" data-cancelar="${suscripcion.id}">Cancelar</button>`
-                : '';
+                : suscripcion.estado === 'pausada'
+                    ? `<button type="button" class="boton-reactivar-suscripcion" data-reactivar="${suscripcion.id}">Reactivar</button>
+                       <button type="button" class="boton-cancelar-suscripcion" data-cancelar="${suscripcion.id}">Cancelar</button>`
+                    : '';
 
         return `
             <div class="tarjeta-suscripcion">
@@ -783,6 +797,9 @@ async function cargarSuscripciones() {
                     <h3>${escaparHtml(producto?.nombre || 'Producto')} (${producto?.capacidad_litros || '?'}L) x${suscripcion.cantidad}</h3>
                     <p>${escaparHtml(suscripcion.distribuidoras?.nombre || 'AquaTrack')} — ${etiquetasFrecuencia[suscripcion.frecuencia] || suscripcion.frecuencia}</p>
                     <p>Estimado por entrega: ${formatearPrecio(totalEstimado)}</p>
+                    ${suscripcion.metodo_pago === 'transferencia' && suscripcion.pagada_hasta
+                ? `<p>Entregas pagas hasta: ${formatearFecha(suscripcion.pagada_hasta)}</p>`
+                : ''}
                     ${suscripcion.estado !== 'cancelada'
                 ? `<p>Próxima entrega: ${formatearFecha(suscripcion.proxima_entrega)}</p>`
                 : `<p>Cancelada</p>`}
@@ -804,6 +821,20 @@ document.getElementById('lista-suscripciones').addEventListener('click', async (
     const botonPausar = evento.target.closest('[data-pausar]');
     const botonReactivar = evento.target.closest('[data-reactivar]');
     const botonCancelar = evento.target.closest('[data-cancelar]');
+    const botonRenovar = evento.target.closest('[data-renovar]');
+
+    if (botonRenovar) {
+        suscripcionARenovar = botonRenovar.dataset.renovar;
+        mesesRenovar = 1;
+
+        document.querySelectorAll('.opcion-mes-renovar').forEach((opcion) => {
+            opcion.classList.toggle('seleccionada', opcion.dataset.meses === '1');
+        });
+
+        document.getElementById('mensaje-renovar').classList.add('oculto');
+        document.getElementById('modal-renovar').classList.remove('oculto');
+        return;
+    }
 
     if (botonPausar) {
         await supabaseCliente
@@ -849,6 +880,51 @@ document.getElementById('lista-suscripciones').addEventListener('click', async (
 
         await cargarSuscripciones();
     }
+});
+
+let suscripcionARenovar = null;
+let mesesRenovar = 1;
+
+document.getElementById('opciones-meses-renovar').addEventListener('click', (evento) => {
+    const opcion = evento.target.closest('[data-meses]');
+
+    if (!opcion) {
+        return;
+    }
+
+    mesesRenovar = Number(opcion.dataset.meses);
+
+    document.querySelectorAll('.opcion-mes-renovar').forEach((boton) => {
+        boton.classList.toggle('seleccionada', boton === opcion);
+    });
+});
+
+document.getElementById('boton-cerrar-modal-renovar').addEventListener('click', () => {
+    document.getElementById('modal-renovar').classList.add('oculto');
+});
+
+document.getElementById('boton-confirmar-renovar').addEventListener('click', async () => {
+    const boton = document.getElementById('boton-confirmar-renovar');
+    const mensaje = document.getElementById('mensaje-renovar');
+
+    boton.disabled = true;
+    boton.textContent = 'Preparando pago...';
+
+    const { data: idPago, error } = await supabaseCliente.rpc('renovar_suscripcion_transferencia', {
+        p_suscripcion_id: suscripcionARenovar,
+        p_meses: mesesRenovar
+    });
+
+    if (error || !idPago) {
+        mensaje.textContent = error?.message || 'No pudimos renovar la suscripción. Probá de nuevo.';
+        mensaje.className = 'mensaje-estado error';
+        boton.disabled = false;
+        boton.textContent = 'Continuar al pago';
+        return;
+    }
+
+    localStorage.setItem('aquatrack_pago_pendiente', idPago);
+    window.location.href = 'carrito.html';
 });
 
 async function verificarSesionNav() {
