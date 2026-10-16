@@ -99,6 +99,9 @@
       </p>
 
       <form id="formulario-suscripcion" novalidate>
+        <p class="indicador-paso-suscripcion" id="indicador-paso-suscripcion">Paso 1 de 3 · Plan</p>
+
+        <div class="paso-suscripcion" data-paso-suscripcion="1">
         <div class="campo">
           <label for="distribuidora-suscripcion">Distribuidora</label>
           <select id="distribuidora-suscripcion" required>
@@ -151,6 +154,7 @@
             <div class="calendario-leyenda-cliente">
               <span class="leyenda-item"><span class="leyenda-punto disponible"></span> Disponible</span>
               <span class="leyenda-item"><span class="leyenda-punto lleno"></span> Sin cupo</span>
+              <span class="leyenda-item"><span class="leyenda-punto entrega"></span> Tus entregas</span>
             </div>
 
             <div class="grilla-calendario-cabecera-cliente">
@@ -163,6 +167,9 @@
           <p class="fecha-elegida-suscripcion oculto" id="fecha-elegida-suscripcion"></p>
         </div>
 
+        </div>
+
+        <div class="paso-suscripcion oculto" data-paso-suscripcion="2">
         <div class="campo campo-direccion-mapa">
           <label for="buscador-direccion-suscripcion">Buscá tu dirección</label>
           <input type="text" id="buscador-direccion-suscripcion" placeholder="Ej: Piedra Blanca" autocomplete="off">
@@ -202,6 +209,11 @@
         <input type="hidden" id="latitud-suscripcion">
         <input type="hidden" id="longitud-suscripcion">
 
+        </div>
+
+        <div class="paso-suscripcion oculto" data-paso-suscripcion="3">
+        <div class="resumen-suscripcion" id="resumen-suscripcion"></div>
+
         <div class="campo">
           <label>Método de pago</label>
 
@@ -211,13 +223,28 @@
           </label>
           <label class="opcion-pago-suscripcion">
             <input type="radio" name="metodo-pago-suscripcion" value="transferencia">
-            Transferencia por cada pedido
+            Transferencia (pagás por adelantado)
           </label>
+        </div>
+
+        <div class="campo" id="campo-meses-suscripcion" style="display: none;">
+          <label for="meses-suscripcion">Meses a pagar por adelantado</label>
+          <select id="meses-suscripcion">
+            <option value="1">1 mes</option>
+            <option value="2">2 meses</option>
+            <option value="3">3 meses</option>
+          </select>
+        </div>
+
         </div>
 
         <p class="mensaje-estado oculto" id="mensaje-suscripcion"></p>
 
-        <button type="submit" class="btn btn-principal" id="boton-guardar-suscripcion">Crear suscripción</button>
+        <div class="botones-paso-suscripcion">
+          <button type="button" class="btn btn-secundario oculto" id="boton-paso-anterior">Atrás</button>
+          <button type="button" class="btn btn-principal" id="boton-paso-siguiente">Siguiente</button>
+          <button type="submit" class="btn btn-principal oculto" id="boton-guardar-suscripcion">Crear suscripción</button>
+        </div>
       </form>
     </div>
   </div>

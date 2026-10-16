@@ -1535,7 +1535,53 @@ body {
 }
 
 #rutas-lista-repartidores.oculto,
-#rutas-detalle.oculto { display: none; }
+#rutas-detalle.oculto {
+    display: none;
+}
 
 .filtros-movimientos .btn.btn-chico,
-.encabezado-detalle-ruta .btn.btn-chico { width: auto !important; flex: 0 0 auto !important; }
+.encabezado-detalle-ruta .btn.btn-chico {
+    width: auto !important;
+    flex: 0 0 auto !important;
+}
+
+.formulario-limites {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 1rem 1.5rem;
+  margin: 1.25rem 0;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--color-borde);
+  border-radius: 10px;
+  background: var(--color-superficie);
+}
+
+.campo-limite {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.campo-limite label {
+  color: var(--color-texto-suave);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.campo-limite input {
+  width: 190px;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--color-borde);
+  border-radius: 8px;
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  font-size: 0.9rem;
+}
+
+.formulario-limites .btn {
+  flex: none;
+  width: auto;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.9rem;
+}

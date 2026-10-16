@@ -217,14 +217,21 @@
                 </div>
 
                 <div id="vista-calendario-suscripciones">
-                    <form id="formulario-cupo" class="formulario-cupo-diario">
-                        <label for="cupo-diario">Cupo máximo por día</label>
-                        <input type="number" id="cupo-diario" min="0" step="1" placeholder="Sin límite">
-                        <button type="submit" class="btn btn-secundario btn-chico">Guardar</button>
+                    <form id="formulario-cupo" class="formulario-limites">
+                        <div class="campo-limite">
+                            <label for="cupo-diario">Cupo de entregas por día</label>
+                            <input type="number" id="cupo-diario" min="0" step="1" placeholder="Sin límite">
+                        </div>
+
+                        <div class="campo-limite">
+                            <label for="max-bidones">Máximo de bidones por pedido</label>
+                            <input type="number" id="max-bidones" min="1" step="1" placeholder="Sin límite">
+                        </div>
+
+                        <button type="submit" class="btn btn-secundario">Guardar límites</button>
                     </form>
 
                     <p class="mensaje-estado oculto" id="mensaje-cupo"></p>
-
                     <div class="calendario-navegacion">
                         <button type="button" class="btn btn-secundario btn-chico" id="btn-mes-anterior">‹
                             Anterior</button>
@@ -353,64 +360,67 @@
                 </form>
             </section>
 
-                    <section class="panel-seccion oculto" id="seccion-rutas" role="tabpanel">
-                        <div class="panel-seccion-encabezado">
-                            <h2>Hojas de ruta</h2>
-                            <button type="button" class="btn btn-secundario" id="btn-exportar-rutas" style="display: none;">Descargar
-                                Excel</button>
-                        </div>
-                    
-                        <div id="rutas-vista-lista">
-                            <div class="filtros-movimientos">
-                                <label>Desde <input type="date" id="rutas-desde"></label>
-                                <label>Hasta <input type="date" id="rutas-hasta"></label>
-                                <button type="button" class="btn btn-secundario btn-chico" id="btn-filtrar-rutas">Filtrar</button>
-                            </div>
-                    
-                            <p class="estado-productos-panel oculto" id="estado-rutas"></p>
-                    
-                            <div class="contenedor-tabla-cobros">
-                                <table class="tabla-cobros">
-                                    <thead>
-                                        <tr>
-                                            <th>Ruta finalizada</th>
-                                            <th>Repartidor</th>
-                                            <th>Entregas</th>
-                                            <th>Monto</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="lista-rutas"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    
-                        <div id="rutas-vista-detalle" style="display: none;">
-                            <div class="encabezado-detalle-ruta">
-                                <button type="button" class="btn btn-secundario btn-chico" id="btn-volver-rutas">← Volver</button>
-                                <h3 id="rutas-titulo-detalle"></h3>
-                            </div>
-                    
-                            <div class="resumen-cobros" id="resumen-rutas"></div>
-                    
-                            <div class="contenedor-tabla-cobros">
-                                <table class="tabla-cobros">
-                                    <thead>
-                                        <tr>
-                                            <th>Parada</th>
-                                            <th>Hora</th>
-                                            <th>Cliente</th>
-                                            <th>Dirección</th>
-                                            <th>Productos</th>
-                                            <th>Total</th>
-                                            <th>Pago</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="detalle-ruta"></tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </section>
+            <section class="panel-seccion oculto" id="seccion-rutas" role="tabpanel">
+                <div class="panel-seccion-encabezado">
+                    <h2>Hojas de ruta</h2>
+                    <button type="button" class="btn btn-secundario" id="btn-exportar-rutas"
+                        style="display: none;">Descargar
+                        Excel</button>
+                </div>
+
+                <div id="rutas-vista-lista">
+                    <div class="filtros-movimientos">
+                        <label>Desde <input type="date" id="rutas-desde"></label>
+                        <label>Hasta <input type="date" id="rutas-hasta"></label>
+                        <button type="button" class="btn btn-secundario btn-chico"
+                            id="btn-filtrar-rutas">Filtrar</button>
+                    </div>
+
+                    <p class="estado-productos-panel oculto" id="estado-rutas"></p>
+
+                    <div class="contenedor-tabla-cobros">
+                        <table class="tabla-cobros">
+                            <thead>
+                                <tr>
+                                    <th>Ruta finalizada</th>
+                                    <th>Repartidor</th>
+                                    <th>Entregas</th>
+                                    <th>Monto</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-rutas"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="rutas-vista-detalle" style="display: none;">
+                    <div class="encabezado-detalle-ruta">
+                        <button type="button" class="btn btn-secundario btn-chico" id="btn-volver-rutas">←
+                            Volver</button>
+                        <h3 id="rutas-titulo-detalle"></h3>
+                    </div>
+
+                    <div class="resumen-cobros" id="resumen-rutas"></div>
+
+                    <div class="contenedor-tabla-cobros">
+                        <table class="tabla-cobros">
+                            <thead>
+                                <tr>
+                                    <th>Parada</th>
+                                    <th>Hora</th>
+                                    <th>Cliente</th>
+                                    <th>Dirección</th>
+                                    <th>Productos</th>
+                                    <th>Total</th>
+                                    <th>Pago</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detalle-ruta"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
 
             <section class="panel-seccion oculto" id="seccion-cobros" role="tabpanel">
                 <div class="panel-seccion-encabezado">

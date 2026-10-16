@@ -744,7 +744,7 @@ async function inicializarPanel() {
         .select(`
             distribuidoras (
                 id, nombre, descripcion, estado, calle, numero, ciudad, provincia,
-                acepta_efectivo, acepta_transferencia, alias, cbu, titular_cuenta, foto_url, cupo_diario
+                acepta_efectivo, acepta_transferencia, alias, cbu, titular_cuenta, foto_url, cupo_diario, max_bidones_por_pedido
             )
         `)
         .eq('usuario_id', session.user.id)
@@ -770,6 +770,7 @@ async function inicializarPanel() {
     cargarProductosPanel();
     precargarFormularioPerfil();
     document.getElementById('cupo-diario').value = distribuidoraActual.cupo_diario ?? '';
+    document.getElementById('max-bidones').value = distribuidoraActual.max_bidones_por_pedido ?? '';
 }
 
 function precargarFormularioPerfil() {
@@ -1409,12 +1410,14 @@ document.getElementById('btn-alternar-bloqueo-dia').addEventListener('click', as
 document.getElementById('formulario-cupo').addEventListener('submit', async (evento) => {
     evento.preventDefault();
 
-    const input = document.getElementById('cupo-diario');
-    const valor = input.value === '' ? null : Number(input.value);
+    const valorCupo = document.getElementById('cupo-diario').value;
+    const valorMaximo = document.getElementById('max-bidones').value;
+    const valor = valorCupo === '' ? null : Number(valorCupo);
+    const maximo = valorMaximo === '' ? null : Number(valorMaximo);
 
     const { error } = await supabaseCliente
         .from('distribuidoras')
-        .update({ cupo_diario: valor })
+        .update({ cupo_diario: valor, max_bidones_por_pedido: maximo })
         .eq('id', distribuidoraActual.id);
 
     const mensaje = document.getElementById('mensaje-cupo');
@@ -1424,7 +1427,8 @@ document.getElementById('formulario-cupo').addEventListener('submit', async (eve
         mensaje.className = 'mensaje-estado error';
     } else {
         distribuidoraActual.cupo_diario = valor;
-        mensaje.textContent = 'Cupo guardado.';
+        distribuidoraActual.max_bidones_por_pedido = maximo;
+        mensaje.textContent = 'Límites guardados.';
         mensaje.className = 'mensaje-estado exito';
         cargarCalendario();
     }

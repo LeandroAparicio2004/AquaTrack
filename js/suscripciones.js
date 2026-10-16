@@ -38,6 +38,38 @@ let productosPorDistribuidora = [];
 let mesSuscripcionActual = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 let fechaSuscripcionElegida = null;
 let distribuidorasCupo = {};
+let pasoSuscripcion = 1;
+let distribuidorasMaximo = {};
+
+function sumarPeriodoSuscripcion(clave, frecuencia) {
+    const [anio, mes, dia] = clave.split('-').map(Number);
+
+    if (frecuencia === 'semanal' || frecuencia === 'quincenal') {
+        return formatearClaveFechaSuscripcion(
+            new Date(anio, mes - 1, dia + (frecuencia === 'semanal' ? 7 : 14))
+        );
+    }
+
+    const ultimoDiaProximoMes = new Date(anio, mes + 1, 0).getDate();
+    return formatearClaveFechaSuscripcion(new Date(anio, mes, Math.min(dia, ultimoDiaProximoMes)));
+}
+
+function calcularFechasEntrega(inicio, frecuencia, hastaClave) {
+    const fechas = [];
+
+    if (!inicio) {
+        return fechas;
+    }
+
+    let actual = inicio;
+
+    while (actual <= hastaClave && fechas.length < 400) {
+        fechas.push(actual);
+        actual = sumarPeriodoSuscripcion(actual, frecuencia);
+    }
+
+    return fechas;
+}
 
 function fechaMinimaSuscripcion() {
     const hoy = new Date();
@@ -49,7 +81,7 @@ async function cargarDistribuidorasSelect() {
 
     const { data, error } = await supabaseCliente
         .from('distribuidoras')
-        .select('id, nombre, cupo_diario')
+        .select('id, nombre, cupo_diario, max_bidones_por_pedido')
         .eq('estado', 'activa')
         .order('nombre');
 
@@ -59,6 +91,7 @@ async function cargarDistribuidorasSelect() {
 
     data.forEach((distribuidora) => {
         distribuidorasCupo[distribuidora.id] = distribuidora.cupo_diario;
+        distribuidorasMaximo[distribuidora.id] = distribuidora.max_bidones_por_pedido;
 
         const opcion = document.createElement('option');
         opcion.value = distribuidora.id;
@@ -142,6 +175,13 @@ async function cargarCalendarioSuscripcion(idDistribuidora) {
 
     const desde = formatearClaveFechaSuscripcion(primerDiaMes);
     const hasta = formatearClaveFechaSuscripcion(ultimoDiaMes);
+    const fechasEntrega = new Set(
+        calcularFechasEntrega(
+            fechaSuscripcionElegida,
+            document.getElementById('frecuencia-suscripcion').value,
+            hasta
+        )
+    );
 
     document.getElementById('etiqueta-mes-suscripcion').textContent = etiquetaMesSuscripcion(mesSuscripcionActual);
 
@@ -190,6 +230,8 @@ async function cargarCalendarioSuscripcion(idDistribuidora) {
 
         if (clave === fechaSuscripcionElegida) {
             celda.classList.add('dia-seleccionado');
+        } else if (fechasEntrega.has(clave)) {
+            celda.classList.add('dia-entrega-suscripcion');
         }
 
         grilla.appendChild(celda);
@@ -209,7 +251,17 @@ function seleccionarFechaSuscripcion(clave, celda) {
     const fechaElegida = document.getElementById('fecha-elegida-suscripcion');
     fechaElegida.textContent = `Entrega elegida: ${formatearFecha(clave)}`;
     fechaElegida.classList.remove('oculto');
+
+    cargarCalendarioSuscripcion(document.getElementById('distribuidora-suscripcion').value);
 }
+
+document.getElementById('frecuencia-suscripcion').addEventListener('change', () => {
+    const idDistribuidora = document.getElementById('distribuidora-suscripcion').value;
+
+    if (idDistribuidora) {
+        cargarCalendarioSuscripcion(idDistribuidora);
+    }
+});
 
 document.getElementById('btn-mes-anterior-suscripcion').addEventListener('click', () => {
     mesSuscripcionActual = new Date(mesSuscripcionActual.getFullYear(), mesSuscripcionActual.getMonth() - 1, 1);
@@ -363,6 +415,140 @@ document.getElementById('sugerencias-direccion-suscripcion').addEventListener('c
     }
 });
 
+const titulosPasoSuscripcion = { 1: 'Plan', 2: 'Entrega', 3: 'Pago' };
+
+function irAPasoSuscripcion(numero) {
+    pasoSuscripcion = numero;
+
+    document.querySelectorAll('[data-paso-suscripcion]').forEach((elemento) => {
+        elemento.classList.toggle('oculto', Number(elemento.dataset.pasoSuscripcion) !== numero);
+    });
+
+    document.getElementById('indicador-paso-suscripcion').textContent =
+        `Paso ${numero} de 3 · ${titulosPasoSuscripcion[numero]}`;
+    document.getElementById('boton-paso-anterior').classList.toggle('oculto', numero === 1);
+    document.getElementById('boton-paso-siguiente').classList.toggle('oculto', numero === 3);
+    document.getElementById('boton-guardar-suscripcion').classList.toggle('oculto', numero !== 3);
+    document.getElementById('mensaje-suscripcion').classList.add('oculto');
+
+    if (numero === 2 && mapaSuscripcion) {
+        setTimeout(() => mapaSuscripcion.invalidateSize(), 100);
+    }
+
+    if (numero === 3) {
+        renderizarResumenSuscripcion();
+    }
+
+    document.querySelector('.modal-suscripcion').scrollTop = 0;
+}
+
+function renderizarResumenSuscripcion() {
+    const producto = productosPorDistribuidora.find(
+        (item) => item.id === document.getElementById('producto-suscripcion').value
+    );
+
+    if (!producto) {
+        return;
+    }
+
+    const cantidad = Number(document.getElementById('cantidad-suscripcion').value) || 1;
+    const envases = Number(document.getElementById('envases-suscripcion').value) || 0;
+    const frecuencia = document.getElementById('frecuencia-suscripcion').value;
+    const subtotal = Number(producto.precio) * cantidad;
+    const descuento = Math.min(Number(producto.descuento_por_envase || 0) * envases, subtotal);
+    const proximas = calcularFechasEntrega(
+        fechaSuscripcionElegida,
+        frecuencia,
+        sumarPeriodoSuscripcion(sumarPeriodoSuscripcion(fechaSuscripcionElegida, 'mensual'), 'mensual')
+    ).slice(0, 3);
+
+    const porEntrega = subtotal - descuento;
+    const esTransferencia = document.querySelector('input[name="metodo-pago-suscripcion"]:checked').value === 'transferencia';
+    document.getElementById('campo-meses-suscripcion').style.display = esTransferencia ? '' : 'none';
+
+    let detallePago = 'Pagás en efectivo al recibir cada pedido.';
+
+    if (esTransferencia) {
+        const meses = Number(document.getElementById('meses-suscripcion').value) || 1;
+        const finPeriodo = sumarMesesSuscripcion(fechaSuscripcionElegida, meses);
+        const entregas = calcularFechasEntrega(fechaSuscripcionElegida, frecuencia, finPeriodo)
+            .filter((fecha) => fecha < finPeriodo);
+
+        detallePago = `Pagás ${meses} ${meses === 1 ? 'mes' : 'meses'} por adelantado: ` +
+            `<b>${entregas.length} entregas × ${formatearPrecio(porEntrega)} = ${formatearPrecio(entregas.length * porEntrega)}</b>`;
+    }
+
+    document.getElementById('resumen-suscripcion').innerHTML = `
+        <strong>${cantidad} × ${escaparHtml(producto.nombre)} · ${etiquetasFrecuenciaResumen[frecuencia]}</strong>
+        Por entrega: ${formatearPrecio(porEntrega)}<br>
+        Próximas entregas: ${proximas.map(formatearFecha).join(' · ')}<br>
+        ${detallePago}
+    `;
+}
+
+const etiquetasFrecuenciaResumen = { semanal: 'Semanal', quincenal: 'Quincenal', mensual: 'Mensual' };
+
+function validarPasoSuscripcion(numero) {
+    if (numero === 1) {
+        const cantidad = Number(document.getElementById('cantidad-suscripcion').value);
+
+        if (!document.getElementById('distribuidora-suscripcion').value ||
+            !document.getElementById('producto-suscripcion').value ||
+            !cantidad || cantidad < 1) {
+            mostrarMensajeSuscripcion('Elegí distribuidora, producto y cantidad.', 'error');
+            return false;
+        }
+
+        const maximo = distribuidorasMaximo[document.getElementById('distribuidora-suscripcion').value];
+
+        if (maximo != null && cantidad > maximo) {
+            mostrarMensajeSuscripcion(`Esta distribuidora acepta hasta ${maximo} bidones por entrega.`, 'error');
+            return false;
+        }
+
+        if (!fechaSuscripcionElegida) {
+            mostrarMensajeSuscripcion('Elegí la fecha de la primera entrega en el calendario.', 'error');
+            return false;
+        }
+    }
+
+    if (numero === 2) {
+        if (!document.getElementById('calle-suscripcion').value.trim() ||
+            !document.getElementById('ciudad-suscripcion').value.trim()) {
+            mostrarMensajeSuscripcion('Completá calle y ciudad.', 'error');
+            return false;
+        }
+
+        if (!document.getElementById('latitud-suscripcion').value) {
+            mostrarMensajeSuscripcion('Elegí tu ubicación: buscala o tocá el mapa.', 'error');
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function avanzarPasoSuscripcion() {
+    if (validarPasoSuscripcion(pasoSuscripcion)) {
+        irAPasoSuscripcion(pasoSuscripcion + 1);
+    }
+}
+
+function sumarMesesSuscripcion(clave, meses) {
+    const [anio, mes, dia] = clave.split('-').map(Number);
+    const ultimoDia = new Date(anio, mes - 1 + meses + 1, 0).getDate();
+    return formatearClaveFechaSuscripcion(new Date(anio, mes - 1 + meses, Math.min(dia, ultimoDia)));
+}
+
+document.getElementById('boton-paso-siguiente').addEventListener('click', avanzarPasoSuscripcion);
+document.getElementById('meses-suscripcion').addEventListener('change', renderizarResumenSuscripcion);
+document.querySelectorAll('input[name="metodo-pago-suscripcion"]').forEach((radio) => {
+    radio.addEventListener('change', renderizarResumenSuscripcion);
+});
+document.getElementById('boton-paso-anterior').addEventListener('click', () => {
+    irAPasoSuscripcion(pasoSuscripcion - 1);
+});
+
 function abrirModalSuscripcion() {
     document.getElementById('formulario-suscripcion').reset();
     document.getElementById('producto-suscripcion').innerHTML = '<option value="">Elegí primero una distribuidora</option>';
@@ -373,6 +559,7 @@ function abrirModalSuscripcion() {
     document.getElementById('sugerencias-direccion-suscripcion').classList.add('oculto');
     document.getElementById('modal-suscripcion').classList.remove('oculto');
     iniciarMapaSuscripcion();
+    irAPasoSuscripcion(1);
 }
 
 function cerrarModalSuscripcion() {
@@ -390,6 +577,11 @@ function mostrarMensajeSuscripcion(texto, tipo) {
 }
 
 document.getElementById('formulario-suscripcion').addEventListener('submit', async (evento) => {
+    if (pasoSuscripcion !== 3) {
+        evento.preventDefault();
+        avanzarPasoSuscripcion();
+        return;
+    }
     evento.preventDefault();
 
     const botonGuardar = document.getElementById('boton-guardar-suscripcion');
@@ -421,6 +613,38 @@ document.getElementById('formulario-suscripcion').addEventListener('submit', asy
 
     botonGuardar.disabled = true;
     botonGuardar.textContent = 'Creando...';
+
+    if (metodoPago === 'transferencia') {
+        const meses = Number(document.getElementById('meses-suscripcion').value) || 1;
+
+        const { data: idPago, error: errorPago } = await supabaseCliente.rpc('crear_suscripcion_transferencia', {
+            p_distribuidora_id: idDistribuidora,
+            p_producto_id: idProducto,
+            p_cantidad: cantidad,
+            p_envases: envases,
+            p_frecuencia: frecuencia,
+            p_fecha_inicio: fechaInicio,
+            p_calle: calle,
+            p_numero: numero || null,
+            p_ciudad: ciudad,
+            p_provincia: provincia || null,
+            p_referencia: referencia || null,
+            p_latitud: Number(latitud),
+            p_longitud: Number(longitud),
+            p_meses: meses
+        });
+
+        if (errorPago || !idPago) {
+            mostrarMensajeSuscripcion(errorPago?.message || 'No pudimos crear la suscripción. Probá de nuevo.', 'error');
+            botonGuardar.disabled = false;
+            botonGuardar.textContent = 'Crear suscripción';
+            return;
+        }
+
+        localStorage.setItem('aquatrack_pago_pendiente', idPago);
+        window.location.href = 'carrito.html';
+        return;
+    }
 
     const { error } = await supabaseCliente
         .from('suscripciones')

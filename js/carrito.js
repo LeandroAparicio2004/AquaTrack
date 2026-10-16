@@ -1215,6 +1215,27 @@ document
             }
 
             const resumen = actualizarResumen();
+
+            for (const grupo of resumen.grupos) {
+                const { data: distribuidora } = await supabaseCliente
+                    .from('distribuidoras')
+                    .select('nombre, max_bidones_por_pedido')
+                    .eq('id', grupo.id)
+                    .maybeSingle();
+
+                const maximo = distribuidora?.max_bidones_por_pedido;
+                const totalBidones = grupo.productos.reduce(
+                    (total, producto) => total + (Number(producto.cantidad) || 0),
+                    0
+                );
+
+                if (maximo != null && totalBidones > maximo) {
+                    throw new Error(
+                        `${distribuidora.nombre} acepta hasta ${maximo} bidones por pedido. Bajá la cantidad e intentá de nuevo.`
+                    );
+                }
+            }
+
             let idPagoCreado = null;
 
             if (metodoSeleccionado.value === 'transferencia') {
