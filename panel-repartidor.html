@@ -81,6 +81,66 @@
                 <div class="lista-entregas-repartidor" id="lista-entregas-repartidor"></div>
             </section>
 
+            <section class="panel-seccion oculto" id="seccion-rutas" role="tabpanel">
+                <div class="panel-seccion-encabezado">
+                    <h2>Hojas de ruta</h2>
+                    <button type="button" class="btn btn-secundario" id="btn-exportar-rutas"
+                        style="display: none;">Descargar Excel</button>
+                </div>
+
+                <div id="rutas-vista-lista">
+                    <div class="filtros-movimientos">
+                        <label>Desde <input type="date" id="rutas-desde"></label>
+                        <label>Hasta <input type="date" id="rutas-hasta"></label>
+                        <button type="button" class="btn btn-secundario btn-chico"
+                            id="btn-filtrar-rutas">Filtrar</button>
+                    </div>
+
+                    <p class="estado-productos-panel oculto" id="estado-rutas"></p>
+
+                    <div class="contenedor-tabla-cobros">
+                        <table class="tabla-cobros">
+                            <thead>
+                                <tr>
+                                    <th>Ruta finalizada</th>
+                                    <th>Repartidor</th>
+                                    <th>Entregas</th>
+                                    <th>Monto</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-rutas"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="rutas-vista-detalle" style="display: none;">
+                    <div class="encabezado-detalle-ruta">
+                        <button type="button" class="btn btn-secundario btn-chico" id="btn-volver-rutas">← Volver</button>
+                        <h3 id="rutas-titulo-detalle"></h3>
+                    </div>
+
+                    <div class="resumen-cobros" id="resumen-rutas"></div>
+
+                    <div class="contenedor-tabla-cobros">
+                        <table class="tabla-cobros">
+                            <thead>
+                                <tr>
+                                    <th>Parada</th>
+                                    <th>Hora</th>
+                                    <th>Cliente</th>
+                                    <th>Dirección</th>
+                                    <th>Productos</th>
+                                    <th>Total</th>
+                                    <th>Pago</th>
+                                </tr>
+                            </thead>
+                            <tbody id="detalle-ruta"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
             <section class="panel-seccion oculto" id="seccion-perfil" role="tabpanel">
                 <h2>Mi perfil</h2>
 
