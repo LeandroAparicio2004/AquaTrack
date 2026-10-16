@@ -619,9 +619,8 @@ async function inicializarPanel() {
 
 const seccionesRepartidor = {
     entregas: document.getElementById('seccion-entregas'),
-    perfil: document.getElementById('seccion-perfil'),
-    publicidad: document.getElementById('seccion-publicidad'),
-    cobros: document.getElementById('seccion-cobros')
+    rutas: document.getElementById('seccion-rutas'),
+    perfil: document.getElementById('seccion-perfil')
 };
 
 document.querySelectorAll('.panel-pestana').forEach((pestana) => {
@@ -638,6 +637,10 @@ document.querySelectorAll('.panel-pestana').forEach((pestana) => {
 
         if (pestana.dataset.pestana === 'entregas') {
             cargarMisEntregas();
+        }
+
+        if (pestana.dataset.pestana === 'rutas') {
+            window.cargarHojasRuta();
         }
     });
 });
