@@ -282,6 +282,7 @@ async function cargarSuscripcionesPanel() {
         .from('suscripciones')
         .select(`
             id, cantidad, envases_devueltos, frecuencia, proxima_entrega, estado,
+            metodo_pago, pagada_hasta,
             direccion_calle, direccion_numero, direccion_ciudad, direccion_referencia,
             usuarios ( nombre, apellido, telefono ),
             productos ( nombre, capacidad_litros )
@@ -296,6 +297,16 @@ async function cargarSuscripcionesPanel() {
     }
 
     suscripcionesDelPanel = data || [];
+
+    const { data: repartidores } = await supabaseCliente.rpc('obtener_repartidores_suscripciones', {
+        p_distribuidora_id: distribuidoraActual.id
+    });
+
+    repartidoresPorSuscripcion = {};
+    (repartidores || []).forEach((fila) => {
+        repartidoresPorSuscripcion[fila.suscripcion_id] = fila;
+    });
+
     renderizarSuscripcionesPanel();
 }
 
@@ -325,6 +336,7 @@ function renderizarSuscripcionesPanel() {
         const cliente = suscripcion.usuarios;
         const producto = suscripcion.productos;
         const nombreCliente = `${cliente?.nombre || ''} ${cliente?.apellido || ''}`.trim() || 'Cliente';
+        const nombreRepartidor = repartidoresPorSuscripcion[suscripcion.id]?.repartidor || '';
 
         const direccion = [
             `${suscripcion.direccion_calle || ''} ${suscripcion.direccion_numero || ''}`.trim(),
@@ -379,6 +391,14 @@ function renderizarSuscripcionesPanel() {
                 ? `<p class="tarjeta-producto-panel-descripcion">Devuelve ${suscripcion.envases_devueltos} envase(s) por entrega</p>`
                 : ''}
                 ${proximaEntregaHtml}
+                ${suscripcion.estado !== 'cancelada'
+                ? `<p class="tarjeta-producto-panel-descripcion">Repartidor: <strong>${nombreRepartidor ? escaparHtml(nombreRepartidor) : 'Sin asignar'}</strong></p>`
+                : ''}
+                <p class="tarjeta-producto-panel-descripcion">
+                    Pago: ${suscripcion.metodo_pago === 'transferencia'
+                ? `Transferencia${suscripcion.pagada_hasta ? ` · paga hasta ${formatearFechaPanel(suscripcion.pagada_hasta)}` : ''}`
+                : 'Efectivo'}
+                </p>
             </article>
         `;
     }).join('');
@@ -800,7 +820,16 @@ function precargarFormularioPerfil() {
     }
 }
 
-inicializarPanel();
+function abrirPestanaDesdeHash() {
+    const nombre = window.location.hash.replace('#', '');
+
+    if (nombre) {
+        document.querySelector(`.panel-pestana[data-pestana="${nombre}"]`)?.click();
+    }
+}
+
+window.addEventListener('hashchange', abrirPestanaDesdeHash);
+inicializarPanel().then(abrirPestanaDesdeHash);
 
 const pestanas = document.querySelectorAll('.panel-pestana');
 const secciones = {
@@ -822,6 +851,7 @@ let seccionListaSuscripcionesCargada = false;
 let seccionPublicidadCargada = false;
 let mesCalendarioActual = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 let suscripcionesDelPanel = [];
+let repartidoresPorSuscripcion = {};
 let pedidosSinAsignar = [];
 let mapaEntregaPorPedido = {};
 let pedidosSeleccionados = new Set();
@@ -1742,7 +1772,7 @@ async function cargarAnunciosPanel() {
 
     const { data, error } = await supabaseCliente
         .from('anuncios')
-        .select('id, titulo, descripcion, imagen_url, monto, estado, creado_en, fecha_fin')
+        .select('id, titulo, descripcion, imagen_url, monto, estado, creado_en, fecha_fin, renovacion_solicitada')
         .eq('distribuidora_id', distribuidoraActual.id)
         .order('creado_en', { ascending: false });
 
@@ -1778,10 +1808,51 @@ async function cargarAnunciosPanel() {
             ${anuncio.estado === 'activo' && anuncio.fecha_fin
                 ? `<p class="tarjeta-producto-panel-descripcion">Se vuelve a cobrar el: ${formatearFechaPanel(anuncio.fecha_fin.slice(0, 10))}</p>`
                 : ''}
+            ${anuncio.renovacion_solicitada
+                ? '<p class="tarjeta-producto-panel-descripcion">Renovación en revisión.</p>'
+                : (anuncio.estado === 'vencido' || (anuncio.estado === 'activo' && anuncio.fecha_fin && new Date(anuncio.fecha_fin) - Date.now() < 7 * 86400000))
+                    ? `<div class="tarjeta-producto-panel-acciones">
+                           <button type="button" class="btn btn-secundario btn-chico" data-renovar-anuncio="${anuncio.id}">Renovar</button>
+                       </div>`
+                    : ''}
         `;
         lista.appendChild(tarjeta);
     });
 }
+
+let anuncioEnRenovacion = null;
+
+document.getElementById('lista-anuncios-panel').addEventListener('click', async (evento) => {
+    const boton = evento.target.closest('[data-renovar-anuncio]');
+
+    if (!boton) {
+        return;
+    }
+
+    const anuncio = anunciosDelPanel.find((item) => item.id === boton.dataset.renovarAnuncio);
+
+    if (!anuncio) {
+        return;
+    }
+
+    anuncioEnRenovacion = anuncio;
+    anuncioEnCreacion = anuncio.id;
+
+    document.getElementById('titulo-modal-anuncio').textContent = 'Renovar anuncio';
+    document.getElementById('monto-anuncio-texto').textContent = formatearPrecio(anuncio.monto);
+
+    const configuracion = await cargarConfiguracionPagoAnuncio();
+    document.getElementById('alias-anuncio').textContent = configuracion?.alias || '—';
+    document.getElementById('cbu-anuncio').textContent = configuracion?.cbu || '—';
+    document.getElementById('titular-anuncio').textContent = configuracion?.titular_cuenta || '—';
+    document.getElementById('comprobante-anuncio').value = '';
+    document.getElementById('nombre-archivo-comprobante-anuncio').textContent = '';
+    document.getElementById('mensaje-anuncio').classList.add('oculto');
+
+    formularioAnuncioDatos.classList.add('oculto');
+    pasoPagoAnuncio.classList.remove('oculto');
+    modalAnuncio.classList.remove('oculto');
+});
 
 async function cargarConfiguracionPagoAnuncio() {
     if (configuracionPagoAnuncio) return configuracionPagoAnuncio;
@@ -1804,7 +1875,7 @@ function precioAnuncioSegunSeleccion(configuracion) {
 
 function llenarSelectProductosAnuncio() {
     const select = document.getElementById('producto-anuncio');
-    select.innerHTML = '<option value="">Destacar solo la distribuidora</option>';
+    select.innerHTML = '<option value="">Destacar tu distribuidora</option>';
 
     productosDelPanel.forEach((producto) => {
         const opcion = document.createElement('option');
@@ -1826,6 +1897,8 @@ document.getElementById('btn-crear-anuncio').addEventListener('click', async () 
     vistaFotoAnuncio.innerHTML = '<span>Sin imagen</span>';
     archivoImagenAnuncio = null;
     anuncioEnCreacion = null;
+    anuncioEnRenovacion = null;
+    document.getElementById('titulo-modal-anuncio').textContent = 'Crear anuncio';
 
     llenarSelectProductosAnuncio();
 
@@ -1948,7 +2021,13 @@ document.getElementById('btn-enviar-comprobante-anuncio').addEventListener('clic
 
         const { error: errorUpdate } = await supabaseCliente
             .from('anuncios')
-            .update({ comprobante_url: urlData.publicUrl, estado: 'pendiente_aprobacion' })
+            .update(anuncioEnRenovacion
+                ? {
+                    comprobante_url: urlData.publicUrl,
+                    renovacion_solicitada: true,
+                    estado: anuncioEnRenovacion.estado === 'activo' ? 'activo' : 'pendiente_aprobacion'
+                }
+                : { comprobante_url: urlData.publicUrl, estado: 'pendiente_aprobacion' })
             .eq('id', anuncioEnCreacion);
 
         if (errorUpdate) throw new Error('No pudimos enviar el comprobante.');

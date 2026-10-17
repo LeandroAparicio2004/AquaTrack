@@ -919,14 +919,14 @@ body.sin-desplazamiento {
 }
 
 .etiqueta-combo {
-    background: #ffb020;
-    color: #1a1a1a;
+  background: #ffb020;
+  color: #1a1a1a;
 }
 
 .incluye-combo-producto {
-    font-size: 0.85rem;
-    opacity: 0.85;
-    margin: 0.25rem 0 0.5rem;
+  font-size: 0.85rem;
+  opacity: 0.85;
+  margin: 0.25rem 0 0.5rem;
 }
 
 .tarjeta-anuncio-popup {
@@ -1007,4 +1007,14 @@ body.sin-desplazamiento {
   background: rgba(0, 0, 0, 0.45);
   color: #fff;
   z-index: 2;
+}
+
+.anuncio-popup-imagen,
+.anuncio-popup-contenido {
+  transition: opacity 0.3s ease;
+}
+
+.anuncio-popup-imagen.anuncio-saliendo,
+.anuncio-popup-contenido.anuncio-saliendo {
+  opacity: 0;
 }

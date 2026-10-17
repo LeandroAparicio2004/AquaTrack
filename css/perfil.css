@@ -1,0 +1,52 @@
+.pagina-perfil {
+  padding: 40px 0 80px;
+}
+
+.tarjeta-perfil {
+  max-width: 520px;
+  margin: 0 0 24px;
+  padding: 24px;
+  border: 1px solid var(--color-borde-inicio);
+  background: var(--color-superficie-inicio);
+  border-radius: 16px;
+}
+
+.tarjeta-perfil h2 {
+  margin: 0 0 16px;
+  font-size: 1.1rem;
+}
+
+.campo-perfil {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.campo-perfil label {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.campo-perfil input {
+  padding: 10px 12px;
+  border: 1px solid var(--color-borde-inicio);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-texto-inicio);
+  font: inherit;
+}
+
+.campo-perfil input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mensaje-perfil {
+  min-height: 1.2em;
+  margin: 0 0 12px;
+  font-size: 0.9rem;
+}
+
+.mensaje-perfil.error { color: #dc2626; }
+.mensaje-perfil.exito { color: #16a34a; }

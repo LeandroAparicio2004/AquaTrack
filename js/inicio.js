@@ -354,6 +354,45 @@ verificarSesion();
 
 let anunciosPopup = [];
 let indiceAnuncioPopup = 0;
+let temporizadorAnuncioPopup = null;
+
+function cambiarAnuncioPopup(nuevoIndice) {
+    const secciones = document.querySelectorAll('.anuncio-popup-imagen, .anuncio-popup-contenido');
+
+    secciones.forEach((seccion) => seccion.classList.add('anuncio-saliendo'));
+
+    setTimeout(() => {
+        indiceAnuncioPopup = nuevoIndice;
+        renderizarAnuncioPopup();
+        secciones.forEach((seccion) => seccion.classList.remove('anuncio-saliendo'));
+    }, 300);
+}
+
+function detenerRotacionAnuncios() {
+    clearInterval(temporizadorAnuncioPopup);
+    temporizadorAnuncioPopup = null;
+}
+
+function iniciarRotacionAnuncios() {
+    detenerRotacionAnuncios();
+
+    if (anunciosPopup.length < 2) {
+        return;
+    }
+
+    temporizadorAnuncioPopup = setInterval(() => {
+        cambiarAnuncioPopup((indiceAnuncioPopup + 1) % anunciosPopup.length);
+    }, 3000);
+}
+
+const tarjetaAnuncioPopup = document.querySelector('.tarjeta-anuncio-popup');
+
+tarjetaAnuncioPopup.addEventListener('mouseenter', detenerRotacionAnuncios);
+tarjetaAnuncioPopup.addEventListener('mouseleave', () => {
+    if (!document.getElementById('modal-anuncio-popup').classList.contains('oculto')) {
+        iniciarRotacionAnuncios();
+    }
+});
 
 function nombreDistribuidoraAnuncio(anuncio) {
     return anuncio.distribuidoras?.nombre || 'Distribuidora';
@@ -388,8 +427,8 @@ function renderizarAnuncioPopup() {
             punto.type = 'button';
             punto.className = `punto-anuncio-popup ${indice === indiceAnuncioPopup ? 'activo' : ''}`;
             punto.addEventListener('click', () => {
-                indiceAnuncioPopup = indice;
-                renderizarAnuncioPopup();
+                cambiarAnuncioPopup(indice);
+                iniciarRotacionAnuncios();
             });
             paginas.appendChild(punto);
         });
@@ -412,15 +451,18 @@ async function cargarAnuncioPopup() {
 
     document.getElementById('modal-anuncio-popup').classList.remove('oculto');
     document.body.classList.add('sin-desplazamiento');
+    iniciarRotacionAnuncios();
 }
 
 document.getElementById('btn-cerrar-anuncio-popup').addEventListener('click', () => {
+    detenerRotacionAnuncios();
     document.getElementById('modal-anuncio-popup').classList.add('oculto');
     document.body.classList.remove('sin-desplazamiento');
 });
 
 document.getElementById('modal-anuncio-popup').addEventListener('click', (evento) => {
     if (evento.target.id === 'modal-anuncio-popup') {
+        detenerRotacionAnuncios();
         evento.currentTarget.classList.add('oculto');
         document.body.classList.remove('sin-desplazamiento');
     }

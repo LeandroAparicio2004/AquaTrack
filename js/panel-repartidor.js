@@ -645,7 +645,16 @@ document.querySelectorAll('.panel-pestana').forEach((pestana) => {
     });
 });
 
-inicializarPanel();
+function abrirPestanaDesdeHash() {
+    const nombre = window.location.hash.replace('#', '');
+
+    if (nombre) {
+        document.querySelector(`.panel-pestana[data-pestana="${nombre}"]`)?.click();
+    }
+}
+
+window.addEventListener('hashchange', abrirPestanaDesdeHash);
+inicializarPanel().then(abrirPestanaDesdeHash);
 
 document.getElementById('boton-cerrar-sesion').addEventListener('click', async () => {
     await supabaseCliente.auth.signOut();

@@ -618,7 +618,16 @@ async function inicializarPanel() {
     cargarPendientes();
 }
 
-inicializarPanel();
+function abrirPestanaDesdeHash() {
+    const nombre = window.location.hash.replace('#', '');
+
+    if (nombre) {
+        document.querySelector(`.panel-pestana[data-pestana="${nombre}"]`)?.click();
+    }
+}
+
+window.addEventListener('hashchange', abrirPestanaDesdeHash);
+inicializarPanel().then(abrirPestanaDesdeHash);
 
 document.getElementById('boton-cerrar-sesion').addEventListener('click', async () => {
     await supabaseCliente.auth.signOut();
@@ -640,7 +649,7 @@ async function cargarPublicidadAdmin() {
     const { data, error } = await supabaseCliente
         .from('anuncios')
         .select(`
-            id, titulo, descripcion, imagen_url, monto, comprobante_url, estado, creado_en, fecha_fin,
+            id, titulo, descripcion, imagen_url, monto, comprobante_url, estado, creado_en, fecha_fin, renovacion_solicitada,
             distribuidoras ( nombre )
         `)
         .in('estado', ['pendiente_aprobacion', 'activo'])
@@ -668,15 +677,18 @@ async function cargarPublicidadAdmin() {
         tarjeta.className = 'tarjeta-producto-panel';
 
         const esPendiente = anuncio.estado === 'pendiente_aprobacion';
+        const esRenovacion = Boolean(anuncio.renovacion_solicitada);
+        const requiereRevision = esPendiente || esRenovacion;
 
         const comprobante = anuncio.comprobante_url
             ? `<a href="${escaparHtml(anuncio.comprobante_url)}" target="_blank" rel="noopener" class="enlace-comprobante-pago">Ver comprobante</a>`
             : '<span class="texto-sin-comprobante">Sin comprobante.</span>';
 
-        const acciones = esPendiente
+        const acciones = requiereRevision
             ? `
-                <button type="button" class="btn btn-principal btn-chico" data-aprobar-anuncio="${anuncio.id}">Aprobar</button>
-                <button type="button" class="btn btn-secundario btn-chico btn-peligro" data-rechazar-anuncio="${anuncio.id}">Rechazar</button>
+                <button type="button" class="btn btn-principal btn-chico" data-aprobar-anuncio="${anuncio.id}">${esRenovacion ? 'Aprobar renovación' : 'Aprobar'}</button>
+                <button type="button" class="btn btn-secundario btn-chico btn-peligro" data-rechazar-anuncio="${anuncio.id}"
+                    data-renovacion="${esRenovacion ? '1' : ''}" data-estado="${anuncio.estado}">Rechazar</button>
             `
             : `
                 <button type="button" class="btn btn-secundario btn-chico btn-peligro" data-desactivar-anuncio="${anuncio.id}">Desactivar</button>
@@ -686,7 +698,7 @@ async function cargarPublicidadAdmin() {
             <div class="tarjeta-producto-panel-superior">
                 <h3>${escaparHtml(anuncio.titulo)}</h3>
                 <span class="etiqueta-estado-producto ${esPendiente ? 'pendiente' : 'activo'}">
-                    ${esPendiente ? 'En revisión' : 'Activo'}
+                    ${esPendiente ? 'En revisión' : esRenovacion ? 'Renovación pendiente' : 'Activo'}
                 </span>
             </div>
             <p class="tarjeta-producto-panel-descripcion">${escaparHtml(anuncio.distribuidoras?.nombre || 'Distribuidora')}</p>
@@ -730,13 +742,25 @@ document.getElementById('lista-publicidad-admin').addEventListener('click', asyn
         botonAprobar.disabled = true;
 
         const ahora = new Date();
-        const vencimiento = new Date(ahora);
+
+        const { data: anuncioActual } = await supabaseCliente
+            .from('anuncios')
+            .select('estado, fecha_fin')
+            .eq('id', botonAprobar.dataset.aprobarAnuncio)
+            .single();
+
+        const base = anuncioActual?.estado === 'activo' && anuncioActual.fecha_fin && new Date(anuncioActual.fecha_fin) > ahora
+            ? new Date(anuncioActual.fecha_fin)
+            : new Date(ahora);
+
+        const vencimiento = new Date(base);
         vencimiento.setMonth(vencimiento.getMonth() + 1);
 
         const { error } = await supabaseCliente
             .from('anuncios')
             .update({
                 estado: 'activo',
+                renovacion_solicitada: false,
                 aprobado_por: usuarioActualId,
                 aprobado_en: ahora.toISOString(),
                 fecha_fin: vencimiento.toISOString()
@@ -757,13 +781,20 @@ document.getElementById('lista-publicidad-admin').addEventListener('click', asyn
 
         botonRechazar.disabled = true;
 
+        const esRechazoRenovacion = botonRechazar.dataset.renovacion === '1';
+
         const { error } = await supabaseCliente
             .from('anuncios')
-            .update({
-                estado: 'rechazado',
-                aprobado_por: usuarioActualId,
-                aprobado_en: new Date().toISOString()
-            })
+            .update(esRechazoRenovacion
+                ? {
+                    renovacion_solicitada: false,
+                    estado: botonRechazar.dataset.estado === 'activo' ? 'activo' : 'vencido'
+                }
+                : {
+                    estado: 'rechazado',
+                    aprobado_por: usuarioActualId,
+                    aprobado_en: new Date().toISOString()
+                })
             .eq('id', botonRechazar.dataset.rechazarAnuncio);
 
         if (error) {

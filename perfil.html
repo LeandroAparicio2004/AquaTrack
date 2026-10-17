@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <script>
+    (function () {
+      if (localStorage.getItem('aquatrack_tema') === 'oscuro') {
+        document.documentElement.setAttribute('data-tema', 'oscuro');
+      }
+    })();
+  </script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi perfil — AquaTrack</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/comunes.css">
+  <link rel="stylesheet" href="css/inicio.css">
+  <link rel="stylesheet" href="css/seguimiento.css">
+  <link rel="stylesheet" href="css/perfil.css">
+</head>
+
+<body>
+  <header class="encabezado inicio-encabezado">
+    <div class="contenedor encabezado-interno">
+      <div class="encabezado-izquierda">
+        <a href="index.html" class="marca-inicio" aria-label="Ir al inicio de AquaTrack">
+          <span class="logo">AquaTrack</span>
+        </a>
+      </div>
+
+      <nav class="navegacion-inicio" aria-label="Navegación principal">
+        <a href="productos.html" class="enlace-nav">Productos</a>
+        <div class="nav-sesion" id="nav-usuario">
+          <a href="historial.html" class="enlace-nav">Mis pedidos</a>
+          <a href="suscripciones.html" class="enlace-nav">Suscripciones</a>
+          <a href="perfil.html" class="enlace-nav">Mi perfil</a>
+          <button type="button" class="btn btn-secundario btn-peligro" id="boton-cerrar-sesion">Salir</button>
+        </div>
+        <button type="button" class="btn-tema" id="btn-tema" aria-label="Cambiar tema"></button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="pagina-perfil">
+    <div class="contenedor">
+      <div class="encabezado-seguimiento">
+        <p class="etiqueta-seccion">Tu cuenta</p>
+        <h1>Mi perfil</h1>
+      </div>
+
+      <form class="tarjeta-perfil" id="formulario-datos" novalidate>
+        <h2>Datos personales</h2>
+
+        <div class="campo-perfil">
+          <label for="correo-perfil">Correo</label>
+          <input type="email" id="correo-perfil" disabled>
+        </div>
+        <div class="campo-perfil">
+          <label for="nombre-perfil">Nombre</label>
+          <input type="text" id="nombre-perfil" required>
+        </div>
+        <div class="campo-perfil">
+          <label for="apellido-perfil">Apellido</label>
+          <input type="text" id="apellido-perfil" required>
+        </div>
+        <div class="campo-perfil">
+          <label for="telefono-perfil">Teléfono</label>
+          <input type="tel" id="telefono-perfil" inputmode="tel" required>
+        </div>
+
+        <p class="mensaje-perfil" id="mensaje-datos"></p>
+        <button type="submit" class="btn btn-principal" id="btn-guardar-datos">Guardar cambios</button>
+      </form>
+
+      <form class="tarjeta-perfil" id="formulario-clave" novalidate>
+        <h2>Cambiar contraseña</h2>
+
+        <div class="campo-perfil">
+          <label for="clave-nueva">Nueva contraseña</label>
+          <input type="password" id="clave-nueva" minlength="6" autocomplete="new-password">
+        </div>
+        <div class="campo-perfil">
+          <label for="clave-repetir">Repetí la contraseña</label>
+          <input type="password" id="clave-repetir" minlength="6" autocomplete="new-password">
+        </div>
+
+        <p class="mensaje-perfil" id="mensaje-clave"></p>
+        <button type="submit" class="btn btn-principal" id="btn-guardar-clave">Cambiar contraseña</button>
+      </form>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/perfil.js"></script>
+  <script src="js/tema.js"></script>
+</body>
+
+</html>

@@ -109,6 +109,15 @@
         if (evento.key === 'Escape') abrirPanel(false);
     });
 
+    const destinosNotificacion = {
+        pago_recibido_admin: 'admin.html#pagos',
+        pago_cliente_vendedor: 'panel-vendedor.html#cobros',
+        liquidacion_pagada: 'panel-vendedor.html#cobros',
+        ruta_finalizada: 'panel-vendedor.html#rutas',
+        anuncio_por_vencer: 'panel-vendedor.html#publicidad',
+        anuncio_vencido: 'panel-vendedor.html#publicidad'
+    };
+
     lista.addEventListener('click', async (evento) => {
         const item = evento.target.closest('[data-id]');
         if (!item) return;
@@ -125,8 +134,10 @@
                 .eq('id', notificacion.id);
         }
 
-        if (notificacion.enlace) {
-            window.location.href = notificacion.enlace;
+        const destino = destinosNotificacion[notificacion.tipo] || notificacion.enlace;
+
+        if (destino) {
+            window.location.href = destino;
         }
     });
 
