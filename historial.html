@@ -91,6 +91,41 @@
     </div>
   </main>
 
+  <div class="modal-resena" id="modal-resena" hidden>
+    <div class="modal-resena-caja" role="dialog" aria-modal="true" aria-labelledby="titulo-resena">
+      <h3 id="titulo-resena">Calificá tu pedido</h3>
+      <p class="subtitulo-resena" id="subtitulo-resena"></p>
+
+      <p class="etiqueta-resena">Distribuidora</p>
+      <div class="estrellas-resena" data-grupo="distribuidora">
+        <button type="button" data-valor="1">★</button>
+        <button type="button" data-valor="2">★</button>
+        <button type="button" data-valor="3">★</button>
+        <button type="button" data-valor="4">★</button>
+        <button type="button" data-valor="5">★</button>
+      </div>
+
+      <p class="etiqueta-resena">Repartidor <span>(opcional)</span></p>
+      <div class="estrellas-resena" data-grupo="repartidor">
+        <button type="button" data-valor="1">★</button>
+        <button type="button" data-valor="2">★</button>
+        <button type="button" data-valor="3">★</button>
+        <button type="button" data-valor="4">★</button>
+        <button type="button" data-valor="5">★</button>
+      </div>
+
+      <p class="etiqueta-resena">Comentario <span>(opcional)</span></p>
+      <textarea id="comentario-resena" maxlength="300" rows="3" placeholder="Contanos cómo fue tu experiencia"></textarea>
+
+      <p class="error-resena" id="error-resena" hidden></p>
+
+      <div class="acciones-resena">
+        <button type="button" class="btn btn-secundario" id="btn-cancelar-resena">Cancelar</button>
+        <button type="button" class="btn btn-principal" id="btn-enviar-resena">Enviar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="js/supabase-config.js"></script>
   <script src="js/historial.js"></script>

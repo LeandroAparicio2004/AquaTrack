@@ -137,3 +137,100 @@
     text-align: left;
   }
 }
+
+.boton-repetir-historial {
+  border: 1px solid var(--color-acento);
+  background: transparent;
+  color: var(--color-acento);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.boton-repetir-historial:hover:not(:disabled) {
+  background: var(--color-acento);
+  color: #fff;
+}
+
+.boton-repetir-historial:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+[hidden] { display: none !important; }
+
+.boton-resena-historial {
+  border: 1px solid #f59e0b;
+  background: transparent;
+  color: #f59e0b;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.boton-resena-historial:hover { background: #f59e0b; color: #fff; }
+
+.resena-hecha-historial { color: #f59e0b; font-size: 0.85rem; font-weight: 700; }
+
+.modal-resena {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.modal-resena-caja {
+  width: 100%;
+  max-width: 420px;
+  padding: 24px;
+  border: 1px solid var(--color-borde-inicio);
+  border-radius: 16px;
+  background: var(--color-superficie-inicio);
+  color: var(--color-texto-inicio);
+}
+
+.modal-resena-caja h3 { margin: 0 0 4px; }
+.subtitulo-resena { margin: 0 0 16px; font-size: 0.85rem; opacity: 0.75; }
+
+.etiqueta-resena { margin: 14px 0 6px; font-size: 0.85rem; font-weight: 700; }
+.etiqueta-resena span { font-weight: 400; opacity: 0.7; }
+
+.estrellas-resena { display: flex; gap: 4px; }
+
+.estrellas-resena button {
+  border: 0;
+  background: transparent;
+  color: var(--color-borde-inicio);
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.estrellas-resena button.activa { color: #f59e0b; }
+
+.modal-resena-caja textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--color-borde-inicio);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-texto-inicio);
+  font: inherit;
+  resize: vertical;
+}
+
+.error-resena { margin: 10px 0 0; color: #dc2626; font-size: 0.85rem; }
+
+.acciones-resena { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; }

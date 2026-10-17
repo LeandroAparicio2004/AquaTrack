@@ -65,6 +65,8 @@ function renderizarHistorial() {
 
                     <div class="acciones-historial">
                         <a href="ticket.html?pedido=${pedido.id}">Ver ticket</a>
+                        ${obtenerBotonResena(pedido)}
+                        ${(pedido.detalles_pedidos || []).length > 0 ? `<button type="button" class="boton-repetir-historial" data-repetir-pedido="${pedido.id}">Repetir pedido</button>` : ''}
                         ${puedeSeguirEnVivo ? `<a href="seguimiento.html?pedido=${pedido.id}">Seguir en vivo</a>` : ''}
                     </div>
                 </div>
@@ -72,6 +74,205 @@ function renderizarHistorial() {
         `;
     }).join('');
 }
+
+function obtenerResenaPedido(pedido) {
+    return Array.isArray(pedido.resenas) ? pedido.resenas[0] : pedido.resenas;
+}
+
+function obtenerBotonResena(pedido) {
+    if (pedido.estado !== 'entregado') {
+        return '';
+    }
+
+    const resena = obtenerResenaPedido(pedido);
+
+    if (resena) {
+        return `<span class="resena-hecha-historial">Calificaste ${'★'.repeat(resena.estrellas_distribuidora)}</span>`;
+    }
+
+    return `<button type="button" class="boton-resena-historial" data-calificar-pedido="${pedido.id}">Calificar</button>`;
+}
+
+let pedidoAcalificar = null;
+const valoresResena = { distribuidora: 0, repartidor: 0 };
+
+function pintarEstrellasResena() {
+    document.querySelectorAll('.estrellas-resena').forEach((grupo) => {
+        const valor = valoresResena[grupo.dataset.grupo];
+
+        grupo.querySelectorAll('button').forEach((boton) => {
+            boton.classList.toggle('activa', Number(boton.dataset.valor) <= valor);
+        });
+    });
+}
+
+function abrirModalResena(idPedido) {
+    const pedido = pedidosHistorial.find((p) => p.id === idPedido);
+
+    if (!pedido) {
+        return;
+    }
+
+    pedidoAcalificar = idPedido;
+    valoresResena.distribuidora = 0;
+    valoresResena.repartidor = 0;
+    pintarEstrellasResena();
+
+    document.getElementById('subtitulo-resena').textContent =
+        `${pedido.distribuidoras?.nombre || 'AquaTrack'} · Pedido #${pedido.id.slice(0, 8).toUpperCase()}`;
+    document.getElementById('comentario-resena').value = '';
+    document.getElementById('error-resena').hidden = true;
+    document.getElementById('btn-enviar-resena').disabled = false;
+    document.getElementById('modal-resena').hidden = false;
+}
+
+function cerrarModalResena() {
+    document.getElementById('modal-resena').hidden = true;
+    pedidoAcalificar = null;
+}
+
+document.getElementById('lista-historial').addEventListener('click', (evento) => {
+    const boton = evento.target.closest('[data-calificar-pedido]');
+
+    if (boton) {
+        abrirModalResena(boton.dataset.calificarPedido);
+    }
+});
+
+document.querySelectorAll('.estrellas-resena').forEach((grupo) => {
+    grupo.addEventListener('click', (evento) => {
+        const boton = evento.target.closest('button');
+
+        if (!boton) {
+            return;
+        }
+
+        const grupoNombre = grupo.dataset.grupo;
+        const valor = Number(boton.dataset.valor);
+
+        valoresResena[grupoNombre] = valoresResena[grupoNombre] === valor ? 0 : valor;
+        pintarEstrellasResena();
+    });
+});
+
+document.getElementById('btn-cancelar-resena').addEventListener('click', cerrarModalResena);
+
+document.getElementById('btn-enviar-resena').addEventListener('click', async () => {
+    const error = document.getElementById('error-resena');
+
+    if (!valoresResena.distribuidora) {
+        error.textContent = 'Elegí las estrellas para la distribuidora.';
+        error.hidden = false;
+        return;
+    }
+
+    const boton = document.getElementById('btn-enviar-resena');
+    boton.disabled = true;
+
+    const { error: errorRpc } = await supabaseCliente.rpc('crear_resena', {
+        p_pedido: pedidoAcalificar,
+        p_estrellas_distribuidora: valoresResena.distribuidora,
+        p_estrellas_repartidor: valoresResena.repartidor || null,
+        p_comentario: document.getElementById('comentario-resena').value
+    });
+
+    if (errorRpc) {
+        error.textContent = errorRpc.message.includes('Ya calificaste')
+            ? 'Ya calificaste este pedido.'
+            : 'No pudimos enviar tu reseña. Intentá de nuevo.';
+        error.hidden = false;
+        boton.disabled = false;
+        return;
+    }
+
+    cerrarModalResena();
+    cargarHistorial();
+});
+
+async function repetirPedido(idPedido, boton) {
+    const pedido = pedidosHistorial.find((p) => p.id === idPedido);
+    const detalles = pedido?.detalles_pedidos || [];
+
+    if (detalles.length === 0) {
+        return;
+    }
+
+    boton.disabled = true;
+    const textoOriginal = boton.textContent;
+    boton.textContent = 'Cargando...';
+
+    const { data: productos, error } = await supabaseCliente
+        .from('productos')
+        .select(`
+            id, nombre, precio, descuento_por_envase, capacidad_litros, activo,
+            distribuidoras!inner ( id, nombre, estado )
+        `)
+        .in('id', detalles.map((d) => d.producto_id))
+        .eq('activo', true)
+        .eq('distribuidoras.estado', 'activa');
+
+    boton.disabled = false;
+    boton.textContent = textoOriginal;
+
+    if (error || !productos || productos.length === 0) {
+        alert('Los productos de este pedido ya no están disponibles.');
+        return;
+    }
+
+    if (productos.length < detalles.length) {
+        const seguir = confirm('Algunos productos de este pedido ya no están disponibles. ¿Querés agregar los que sí están?');
+
+        if (!seguir) {
+            return;
+        }
+    }
+
+    let carrito = [];
+
+    try {
+        carrito = JSON.parse(localStorage.getItem('aquatrack_carrito')) || [];
+    } catch {
+        carrito = [];
+    }
+
+    detalles.forEach((detalle) => {
+        const producto = productos.find((p) => p.id === detalle.producto_id);
+
+        if (!producto) {
+            return;
+        }
+
+        const existente = carrito.find((item) => item.id === producto.id);
+
+        if (existente) {
+            existente.cantidad += detalle.cantidad;
+            return;
+        }
+
+        carrito.push({
+            id: producto.id,
+            nombre: producto.nombre,
+            precio: Number(producto.precio),
+            descuento_por_envase: Number(producto.descuento_por_envase) || 0,
+            capacidad_litros: producto.capacidad_litros,
+            distribuidora_id: producto.distribuidoras.id,
+            distribuidora_nombre: producto.distribuidoras.nombre,
+            cantidad: detalle.cantidad,
+            envases_devueltos: 0
+        });
+    });
+
+    localStorage.setItem('aquatrack_carrito', JSON.stringify(carrito));
+    window.location.href = 'carrito.html';
+}
+
+document.getElementById('lista-historial').addEventListener('click', (evento) => {
+    const boton = evento.target.closest('[data-repetir-pedido]');
+
+    if (boton) {
+        repetirPedido(boton.dataset.repetirPedido, boton);
+    }
+});
 
 function configurarFiltrosHistorial() {
     const contenedorFiltros = document.getElementById('filtros-historial');
@@ -107,7 +308,8 @@ async function cargarHistorial() {
         .from('pedidos')
         .select(`
             id, estado, total, creado_en,
-            distribuidoras ( nombre )
+            distribuidoras ( nombre ),
+            detalles_pedidos ( producto_id, cantidad )
         `)
         .eq('cliente_id', session.user.id)
         .order('creado_en', { ascending: false });
