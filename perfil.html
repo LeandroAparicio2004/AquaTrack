@@ -53,6 +53,12 @@
         <h1>Mi perfil</h1>
       </div>
 
+      <div class="pestanas-perfil" role="tablist">
+        <button type="button" class="pestana-perfil activa" data-pestana-perfil="datos">Datos</button>
+        <button type="button" class="pestana-perfil" data-pestana-perfil="direcciones">Direcciones</button>
+      </div>
+
+      <section id="panel-datos" class="panel-perfil-pestana">
       <form class="tarjeta-perfil" id="formulario-datos" novalidate>
         <h2>Datos personales</h2>
 
@@ -76,22 +82,63 @@
         <p class="mensaje-perfil" id="mensaje-datos"></p>
         <button type="submit" class="btn btn-principal" id="btn-guardar-datos">Guardar cambios</button>
       </form>
+      </section>
 
-      <form class="tarjeta-perfil" id="formulario-clave" novalidate>
-        <h2>Cambiar contraseña</h2>
-
-        <div class="campo-perfil">
-          <label for="clave-nueva">Nueva contraseña</label>
-          <input type="password" id="clave-nueva" minlength="6" autocomplete="new-password">
-        </div>
-        <div class="campo-perfil">
-          <label for="clave-repetir">Repetí la contraseña</label>
-          <input type="password" id="clave-repetir" minlength="6" autocomplete="new-password">
+      <section id="panel-direcciones" class="panel-perfil-pestana" hidden>
+        <div class="tarjeta-perfil tarjeta-ancha">
+          <h2>Mis direcciones</h2>
+          <div id="lista-direcciones-perfil"></div>
+          <p class="mensaje-perfil" id="mensaje-lista-direcciones"></p>
         </div>
 
-        <p class="mensaje-perfil" id="mensaje-clave"></p>
-        <button type="submit" class="btn btn-principal" id="btn-guardar-clave">Cambiar contraseña</button>
-      </form>
+        <form class="tarjeta-perfil tarjeta-ancha" id="formulario-direccion" novalidate>
+          <h2>Agregar dirección</h2>
+
+          <div class="campo-perfil">
+            <label for="alias-direccion">Nombre (ej: Casa, Trabajo)</label>
+            <input type="text" id="alias-direccion" maxlength="30">
+          </div>
+
+          <div class="campo-perfil campo-buscador-perfil">
+            <label for="buscador-perfil">Buscá tu dirección</label>
+            <input type="text" id="buscador-perfil" placeholder="Ej: Piedra Blanca" autocomplete="off">
+            <div id="sugerencias-perfil" class="sugerencias-perfil" hidden></div>
+          </div>
+
+          <div id="mapa-perfil" class="mapa-perfil"></div>
+
+          <div class="fila-perfil">
+            <div class="campo-perfil">
+              <label for="calle-perfil">Calle</label>
+              <input type="text" id="calle-perfil">
+            </div>
+            <div class="campo-perfil">
+              <label for="numero-perfil">Número</label>
+              <input type="text" id="numero-perfil">
+            </div>
+          </div>
+          <div class="fila-perfil">
+            <div class="campo-perfil">
+              <label for="ciudad-perfil">Ciudad</label>
+              <input type="text" id="ciudad-perfil">
+            </div>
+            <div class="campo-perfil">
+              <label for="provincia-perfil">Provincia</label>
+              <input type="text" id="provincia-perfil" value="Catamarca">
+            </div>
+          </div>
+          <div class="campo-perfil">
+            <label for="referencia-perfil">Referencia (opcional)</label>
+            <input type="text" id="referencia-perfil" placeholder="Entre calles, color de casa...">
+          </div>
+
+          <input type="hidden" id="latitud-perfil">
+          <input type="hidden" id="longitud-perfil">
+
+          <p class="mensaje-perfil" id="mensaje-direccion"></p>
+          <button type="submit" class="btn btn-principal" id="btn-guardar-direccion">Guardar dirección</button>
+        </form>
+      </section>
     </div>
   </main>
 

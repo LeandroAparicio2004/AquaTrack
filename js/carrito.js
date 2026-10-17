@@ -1066,11 +1066,127 @@ document
         mostrarPaso(1);
     });
 
+let direccionRechazadaClave = '';
+
+function claveDireccionCarrito() {
+    return ['calle-entrega', 'numero-entrega', 'ciudad-entrega']
+        .map((id) => document.getElementById(id).value.trim().toLowerCase())
+        .join('|');
+}
+
+function preguntarGuardarDireccion() {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('modal-guardar-direccion');
+        const campoAlias = document.getElementById('alias-guardar-direccion');
+        const error = document.getElementById('error-guardar-direccion');
+        const botonSi = document.getElementById('btn-si-guardar-direccion');
+        const botonNo = document.getElementById('btn-no-guardar-direccion');
+
+        document.getElementById('texto-guardar-direccion').textContent = [
+            document.getElementById('calle-entrega').value.trim(),
+            document.getElementById('numero-entrega').value.trim(),
+            document.getElementById('ciudad-entrega').value.trim()
+        ].filter(Boolean).join(' ');
+
+        campoAlias.value = '';
+        error.hidden = true;
+        botonSi.disabled = false;
+        modal.hidden = false;
+        campoAlias.focus();
+
+        const cerrar = () => {
+            modal.hidden = true;
+            botonSi.onclick = null;
+            botonNo.onclick = null;
+            resolve();
+        };
+
+        botonNo.onclick = () => {
+            direccionRechazadaClave = claveDireccionCarrito();
+            cerrar();
+        };
+
+        botonSi.onclick = async () => {
+            const alias = campoAlias.value.trim();
+
+            if (!alias) {
+                error.textContent = 'Poné un nombre para identificarla.';
+                error.hidden = false;
+                return;
+            }
+
+            botonSi.disabled = true;
+
+            const { error: errorGuardado } = await supabaseCliente
+                .from('direcciones_guardadas')
+                .insert({
+                    alias,
+                    calle: document.getElementById('calle-entrega').value.trim(),
+                    numero: document.getElementById('numero-entrega').value.trim(),
+                    ciudad: document.getElementById('ciudad-entrega').value.trim(),
+                    provincia: document.getElementById('provincia-entrega').value.trim(),
+                    referencia: document.getElementById('referencia-entrega').value.trim(),
+                    latitud: Number(document.getElementById('latitud-entrega').value),
+                    longitud: Number(document.getElementById('longitud-entrega').value)
+                });
+
+            if (errorGuardado) {
+                error.textContent = 'No pudimos guardarla. Podés seguir con tu pedido.';
+                error.hidden = false;
+                botonSi.disabled = false;
+                return;
+            }
+
+            cargarDireccionesGuardadasCarrito();
+            cerrar();
+        };
+    });
+}
+
+async function debePreguntarGuardarDireccion() {
+    const latitud = document.getElementById('latitud-entrega').value;
+    const longitud = document.getElementById('longitud-entrega').value;
+
+    if (!latitud || !longitud) {
+        return false;
+    }
+
+    const clave = claveDireccionCarrito();
+
+    if (clave === direccionRechazadaClave) {
+        return false;
+    }
+
+    const { data: { session } } = await supabaseCliente.auth.getSession();
+
+    if (!session) {
+        return false;
+    }
+
+    await cargarDireccionesGuardadasCarrito();
+
+    if (direccionesGuardadasCarrito.length >= 5) {
+        return false;
+    }
+
+    const yaGuardada = direccionesGuardadasCarrito.some((d) =>
+        [d.calle, d.numero, d.ciudad]
+            .map((valor) => (valor || '').trim().toLowerCase())
+            .join('|') === clave
+    );
+
+    return !yaGuardada;
+}
+
 document
     .getElementById('btn-continuar-resumen')
-    .addEventListener('click', () => {
+    .addEventListener('click', async () => {
         if (!validarDatosEntrega()) {
             return;
+        }
+
+        if (await debePreguntarGuardarDireccion()) {
+            await preguntarGuardarDireccion();
         }
 
         mostrarPaso(3);

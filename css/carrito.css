@@ -838,3 +838,55 @@
   border-color: var(--color-acento);
   background: var(--color-acento-suave-inicio);
 }
+
+.modal-guardar-direccion {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.modal-guardar-direccion-caja {
+  width: 100%;
+  max-width: 400px;
+  padding: 24px;
+  border: 1px solid var(--color-borde-inicio);
+  border-radius: 16px;
+  background: var(--color-superficie-inicio);
+  color: var(--color-texto-inicio);
+}
+
+.modal-guardar-direccion-caja h3 { margin: 0 0 6px; }
+
+.modal-guardar-direccion-caja p { margin: 0 0 14px; opacity: 0.8; }
+
+.modal-guardar-direccion-caja label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.modal-guardar-direccion-caja input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--color-borde-inicio);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--color-texto-inicio);
+  font: inherit;
+}
+
+.error-guardar-direccion { margin: 8px 0 0; color: #dc2626; font-size: 0.85rem; }
+
+.acciones-guardar-direccion {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}

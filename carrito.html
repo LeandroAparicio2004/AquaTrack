@@ -384,6 +384,22 @@
     </div>
   </footer>
 
+  <div class="modal-guardar-direccion" id="modal-guardar-direccion" hidden>
+    <div class="modal-guardar-direccion-caja" role="dialog" aria-modal="true" aria-labelledby="titulo-guardar-direccion">
+      <h3 id="titulo-guardar-direccion">¿Guardar esta dirección?</h3>
+      <p id="texto-guardar-direccion"></p>
+
+      <label for="alias-guardar-direccion">Nombre (ej: Casa, Trabajo)</label>
+      <input type="text" id="alias-guardar-direccion" maxlength="30" placeholder="Casa" autocomplete="off">
+      <p class="error-guardar-direccion" id="error-guardar-direccion" hidden></p>
+
+      <div class="acciones-guardar-direccion">
+        <button type="button" class="btn btn-secundario" id="btn-no-guardar-direccion">Ahora no</button>
+        <button type="button" class="btn btn-principal" id="btn-si-guardar-direccion">Guardar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="js/supabase-config.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
