@@ -281,6 +281,63 @@ function seleccionarDireccion(resultado) {
     );
 }
 
+let direccionesGuardadasCarrito = [];
+
+async function cargarDireccionesGuardadasCarrito() {
+    const { data } = await supabaseCliente
+        .from('direcciones_guardadas')
+        .select('id, alias, calle, numero, ciudad, provincia, referencia, latitud, longitud')
+        .order('creado_en', { ascending: true });
+
+    direccionesGuardadasCarrito = data || [];
+
+    const contenedor = document.getElementById('direcciones-guardadas');
+    const lista = document.getElementById('lista-direcciones-guardadas');
+
+    if (!contenedor || !lista) {
+        return;
+    }
+
+    contenedor.hidden = direccionesGuardadasCarrito.length === 0;
+
+    lista.innerHTML = direccionesGuardadasCarrito.map((d) => `
+        <button type="button" class="chip-direccion-guardada" data-direccion-guardada="${d.id}">
+            <strong>${d.alias.replace(/</g, '&lt;')}</strong>
+            <span>${[d.calle, d.numero].filter(Boolean).join(' ').replace(/</g, '&lt;')}</span>
+        </button>
+    `).join('');
+}
+
+document.addEventListener('click', (evento) => {
+    const boton = evento.target.closest('[data-direccion-guardada]');
+
+    if (!boton) {
+        return;
+    }
+
+    const d = direccionesGuardadasCarrito.find((x) => x.id === boton.dataset.direccionGuardada);
+
+    if (!d) {
+        return;
+    }
+
+    document.getElementById('calle-entrega').value = d.calle || '';
+    document.getElementById('numero-entrega').value = d.numero || '';
+    document.getElementById('ciudad-entrega').value = d.ciudad || '';
+    document.getElementById('provincia-entrega').value = d.provincia || '';
+    document.getElementById('referencia-entrega').value = d.referencia || '';
+    document.getElementById('buscador-direccion').value =
+        [d.calle, d.numero, d.ciudad].filter(Boolean).join(', ');
+
+    if (d.latitud && d.longitud) {
+        colocarMarcadorDireccion(d.latitud, d.longitud, d.alias);
+    }
+
+    document.querySelectorAll('.chip-direccion-guardada').forEach((chip) => {
+        chip.classList.toggle('activa', chip === boton);
+    });
+});
+
 function configurarBuscadorDireccion() {
     const buscador =
         document.getElementById('buscador-direccion');
@@ -721,6 +778,8 @@ function mostrarPaso(numero) {
     }
 
     if (numero === 2) {
+        cargarDireccionesGuardadasCarrito();
+
         setTimeout(() => {
             inicializarMapaDireccion();
 

@@ -801,3 +801,40 @@
   color: var(--color-texto-inicio);
 }
 
+[hidden] { display: none !important; }
+
+.direcciones-guardadas { margin-bottom: 16px; }
+
+.titulo-direcciones-guardadas {
+  margin: 0 0 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.lista-direcciones-guardadas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip-direccion-guardada {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-borde-inicio);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--color-texto-inicio);
+  font: inherit;
+  cursor: pointer;
+}
+
+.chip-direccion-guardada span { font-size: 0.8rem; opacity: 0.75; }
+
+.chip-direccion-guardada:hover,
+.chip-direccion-guardada.activa {
+  border-color: var(--color-acento);
+  background: var(--color-acento-suave-inicio);
+}
