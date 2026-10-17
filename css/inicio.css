@@ -1018,3 +1018,38 @@ body.sin-desplazamiento {
 .anuncio-popup-contenido.anuncio-saliendo {
   opacity: 0;
 }
+
+.calificacion-catalogo {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.estrella-catalogo { color: #f59e0b; }
+.cantidad-catalogo { font-weight: 400; opacity: 0.7; }
+
+.calificacion-nueva {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--color-acento-suave-inicio);
+  color: var(--color-acento);
+  font-size: 0.7rem;
+}
+
+.etiqueta-sin-stock {
+  background: rgba(220, 38, 38, 0.15);
+  color: #ef4444;
+}
+
+.etiqueta-poco-stock {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+.btn-agregar:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

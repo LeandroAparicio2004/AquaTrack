@@ -115,7 +115,9 @@
         liquidacion_pagada: 'panel-vendedor.html#cobros',
         ruta_finalizada: 'panel-vendedor.html#rutas',
         anuncio_por_vencer: 'panel-vendedor.html#publicidad',
-        anuncio_vencido: 'panel-vendedor.html#publicidad'
+        anuncio_vencido: 'panel-vendedor.html#publicidad',
+        resena_vendedor: 'panel-vendedor.html#perfil',
+        resena_repartidor: 'panel-repartidor.html#perfil'
     };
 
     lista.addEventListener('click', async (evento) => {

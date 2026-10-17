@@ -1411,6 +1411,29 @@ document
                 }
             }
 
+            const idsProductosCarrito = resumen.grupos.flatMap(
+                (grupo) => grupo.productos.map((producto) => producto.id)
+            );
+
+            const { data: productosConStock } = await supabaseCliente
+                .from('productos')
+                .select('id, nombre, stock')
+                .in('id', idsProductosCarrito);
+
+            for (const grupo of resumen.grupos) {
+                for (const producto of grupo.productos) {
+                    const actual = (productosConStock || []).find((p) => p.id === producto.id);
+
+                    if (actual && actual.stock != null && Number(producto.cantidad) > actual.stock) {
+                        throw new Error(
+                            actual.stock === 0
+                                ? `${actual.nombre} se quedó sin stock. Quitalo del pedido para continuar.`
+                                : `De ${actual.nombre} solo quedan ${actual.stock} unidades. Bajá la cantidad e intentá de nuevo.`
+                        );
+                    }
+                }
+            }
+
             let idPagoCreado = null;
 
             if (metodoSeleccionado.value === 'transferencia') {

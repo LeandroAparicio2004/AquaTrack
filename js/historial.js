@@ -309,7 +309,8 @@ async function cargarHistorial() {
         .select(`
             id, estado, total, creado_en,
             distribuidoras ( nombre ),
-            detalles_pedidos ( producto_id, cantidad )
+            detalles_pedidos ( producto_id, cantidad ),
+            resenas ( estrellas_distribuidora, estrellas_repartidor )
         `)
         .eq('cliente_id', session.user.id)
         .order('creado_en', { ascending: false });

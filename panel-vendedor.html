@@ -275,6 +275,8 @@
             <section class="panel-seccion oculto" id="seccion-perfil" role="tabpanel">
                 <h2>Perfil del negocio</h2>
 
+                <div class="calificacion-perfil" id="calificacion-perfil"></div>
+
                 <form id="formulario-perfil" novalidate>
                     <div class="panel-perfil-grilla">
 
@@ -358,6 +360,13 @@
 
                     </div>
                 </form>
+
+                <div class="bloque-resenas-perfil" id="bloque-resenas-perfil" hidden>
+
+                    <h3>Reseñas de clientes</h3>
+                    <div class="resumen-resenas" id="resumen-resenas-panel"></div>
+                    <div class="lista-resenas-panel" id="lista-resenas-panel"></div>
+                </div>
             </section>
 
             <section class="panel-seccion oculto" id="seccion-rutas" role="tabpanel">
@@ -525,6 +534,16 @@
 
                     <small>
                         Monto que se descuenta por cada envase vacío devuelto.
+                    </small>
+                </div>
+
+                <div class="campo">
+                    <label for="stock-producto">Stock disponible</label>
+
+                    <input type="number" id="stock-producto" min="0" step="1" placeholder="Sin límite">
+
+                    <small>
+                        Dejalo vacío si no querés controlar el stock.
                     </small>
                 </div>
 

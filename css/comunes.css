@@ -444,3 +444,42 @@ button:focus-visible {
     width: auto;
   }
 }
+
+.contenedor-avisos {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 5000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: min(380px, calc(100vw - 32px));
+}
+
+.aviso-flotante {
+  padding: 12px 16px;
+  border-left: 4px solid #ef4444;
+  border-radius: 12px;
+  background: #111827;
+  color: #f9fafb;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.4;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  cursor: pointer;
+  animation: aviso-entrar 0.25s ease;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.aviso-aviso { border-left-color: #f59e0b; }
+.aviso-exito { border-left-color: #22c55e; }
+
+.aviso-saliendo {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+@keyframes aviso-entrar {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -11,12 +11,40 @@ const botonCerrarModal = document.getElementById('boton-cerrar-modal');
 const botonContinuar = document.getElementById('boton-continuar');
 const notificacion = document.getElementById('notificacion');
 
-// mostrar "Iniciar sesion/Crear cuenta" o "Salir"
 const navInvitado = document.getElementById('nav-invitado');
 const navUsuario = document.getElementById('nav-usuario');
 const botonCerrarSesion = document.getElementById('boton-cerrar-sesion');
 
 let productosDisponibles = [];
+let calificacionesDistribuidoras = {};
+
+function crearEtiquetaProducto(producto) {
+    if (producto.stock === 0) {
+        return '<span class="etiqueta-producto etiqueta-sin-stock">Sin stock</span>';
+    }
+
+    if (producto.stock != null && producto.stock <= 5) {
+        return `<span class="etiqueta-producto etiqueta-poco-stock">Quedan ${producto.stock}</span>`;
+    }
+
+    return producto.es_combo
+        ? '<span class="etiqueta-producto etiqueta-combo">Combo</span>'
+        : '<span class="etiqueta-producto">Disponible</span>';
+}
+
+function crearBloqueCalificacion(idDistribuidora) {
+    const calificacion = calificacionesDistribuidoras[idDistribuidora];
+
+    if (!calificacion) {
+        return '<span class="calificacion-catalogo calificacion-nueva">Nueva</span>';
+    }
+
+    const promedio = Number(calificacion.promedio).toFixed(1).replace('.', ',');
+
+    return `<span class="calificacion-catalogo" title="${calificacion.cantidad} reseñas">
+      <span class="estrella-catalogo">★</span> ${promedio} <span class="cantidad-catalogo">(${calificacion.cantidad})</span>
+    </span>`;
+}
 let temporizadorNotificacion;
 
 function escaparHtml(valor) {
@@ -183,13 +211,12 @@ function renderizarProductos() {
           ${crearIconoProducto()}
         </div>
 
-        ${producto.es_combo
-                ? '<span class="etiqueta-producto etiqueta-combo">Combo</span>'
-                : '<span class="etiqueta-producto">Disponible</span>'}
+        ${crearEtiquetaProducto(producto)}
       </div>
 
       <p class="nombre-distribuidora">
         ${escaparHtml(distribuidora.nombre || 'Distribuidora local')}
+        ${crearBloqueCalificacion(distribuidora.id)}
       </p>
 
       <h3>${escaparHtml(producto.nombre)}</h3>
@@ -224,8 +251,9 @@ function renderizarProductos() {
         type="button"
         class="btn btn-principal btn-agregar"
         data-agregar-producto="${escaparHtml(producto.id)}"
+        ${producto.stock === 0 ? 'disabled' : ''}
       >
-        Agregar al pedido
+        ${producto.stock === 0 ? 'Sin stock' : 'Agregar al pedido'}
       </button>
     `;
 
@@ -261,6 +289,7 @@ async function cargarProductos() {
       capacidad_litros,
       precio,
       descuento_por_envase,
+      stock,
       activo,
       foto_url,
       es_combo,
@@ -287,6 +316,14 @@ async function cargarProductos() {
 
     productosDisponibles = data || [];
 
+    const { data: calificaciones } = await supabaseCliente
+        .rpc('obtener_calificaciones_distribuidoras');
+
+    calificacionesDistribuidoras = {};
+    (calificaciones || []).forEach((fila) => {
+        calificacionesDistribuidoras[fila.distribuidora_id] = fila;
+    });
+
     cargarOpcionesCapacidad();
     renderizarProductos();
 }
@@ -311,6 +348,19 @@ async function agregarProducto(idProducto) {
 
     const distribuidora = obtenerDistribuidora(producto);
     const carrito = obtenerCarrito();
+
+    if (producto.stock != null) {
+        const enCarrito = carrito.find((elemento) => elemento.id === idProducto)?.cantidad || 0;
+
+        if (enCarrito + 1 > producto.stock) {
+            mostrarNotificacion(
+                producto.stock === 0
+                    ? 'Este producto está sin stock.'
+                    : `Solo quedan ${producto.stock} unidades disponibles.`
+            );
+            return;
+        }
+    }
 
     const productoExistente = carrito.find(
         (elemento) => elemento.id === idProducto

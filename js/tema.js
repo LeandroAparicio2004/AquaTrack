@@ -35,6 +35,100 @@ document.querySelectorAll('.btn-tema').forEach((boton) => {
     });
 });
 
+function inferirTipoAviso(texto) {
+    if (/fue cancelado|correctamente|guardad|actualizad|enviad|copiad/i.test(texto)) {
+        return 'exito';
+    }
+
+    if (/^No hay |Subí una imagen|ya salió|ya no están|Algunos/i.test(texto)) {
+        return 'aviso';
+    }
+
+    return 'error';
+}
+
+function mostrarAviso(texto, tipo) {
+    const mensaje = String(texto ?? '');
+    const clase = tipo || inferirTipoAviso(mensaje);
+
+    let contenedor = document.getElementById('contenedor-avisos');
+
+    if (!contenedor) {
+        contenedor = document.createElement('div');
+        contenedor.id = 'contenedor-avisos';
+        contenedor.className = 'contenedor-avisos';
+        contenedor.setAttribute('aria-live', 'polite');
+        document.body.appendChild(contenedor);
+    }
+
+    while (contenedor.children.length >= 3) {
+        contenedor.firstElementChild.remove();
+    }
+
+    const aviso = document.createElement('div');
+    aviso.className = `aviso-flotante aviso-${clase}`;
+    aviso.setAttribute('role', clase === 'error' ? 'alert' : 'status');
+    aviso.textContent = mensaje;
+
+    const cerrar = () => {
+        aviso.classList.add('aviso-saliendo');
+        setTimeout(() => aviso.remove(), 250);
+    };
+
+    aviso.addEventListener('click', cerrar);
+    contenedor.appendChild(aviso);
+    setTimeout(cerrar, 5000);
+}
+
+window.alert = (texto) => mostrarAviso(texto);
+
+function inferirTipoAviso(texto) {
+    if (/fue cancelado|correctamente|guardad|actualizad|enviad|copiad/i.test(texto)) {
+        return 'exito';
+    }
+
+    if (/^No hay |Subí una imagen|ya salió|ya no están|Algunos/i.test(texto)) {
+        return 'aviso';
+    }
+
+    return 'error';
+}
+
+function mostrarAviso(texto, tipo) {
+    const mensaje = String(texto ?? '');
+    const clase = tipo || inferirTipoAviso(mensaje);
+
+    let contenedor = document.getElementById('contenedor-avisos');
+
+    if (!contenedor) {
+        contenedor = document.createElement('div');
+        contenedor.id = 'contenedor-avisos';
+        contenedor.className = 'contenedor-avisos';
+        contenedor.setAttribute('aria-live', 'polite');
+        document.body.appendChild(contenedor);
+    }
+
+    while (contenedor.children.length >= 3) {
+        contenedor.firstElementChild.remove();
+    }
+
+    const aviso = document.createElement('div');
+    aviso.className = `aviso-flotante aviso-${clase}`;
+    aviso.setAttribute('role', clase === 'error' ? 'alert' : 'status');
+    aviso.textContent = mensaje;
+
+    const cerrar = () => {
+        aviso.classList.add('aviso-saliendo');
+        setTimeout(() => aviso.remove(), 250);
+    };
+
+    aviso.addEventListener('click', cerrar);
+    contenedor.appendChild(aviso);
+    setTimeout(cerrar, 5000);
+}
+
+window.alert = (texto) => mostrarAviso(texto);
+
 const scriptCampana = document.createElement('script');
 scriptCampana.src = 'js/campana.js';
 document.body.appendChild(scriptCampana);

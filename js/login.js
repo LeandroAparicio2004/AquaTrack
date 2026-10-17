@@ -38,7 +38,12 @@ formulario.addEventListener('submit', async (evento) => {
     const { data, error } = await supabaseCliente.auth.signInWithPassword({ email: correo, password: contrasena });
 
     if (error) {
-      mostrarMensaje('Correo o contraseña incorrectos.', 'error');
+      mostrarMensaje(
+        error.message?.toLowerCase().includes('email not confirmed')
+          ? 'Todavía no confirmaste tu correo. Revisá tu bandeja de entrada (y el spam).'
+          : 'Correo o contraseña incorrectos.',
+        'error'
+      );
       btnEnviar.disabled = false;
       btnEnviar.textContent = 'Iniciar sesión';
       return;

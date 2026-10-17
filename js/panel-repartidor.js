@@ -654,7 +654,109 @@ function abrirPestanaDesdeHash() {
 }
 
 window.addEventListener('hashchange', abrirPestanaDesdeHash);
-inicializarPanel().then(abrirPestanaDesdeHash);
+let viendoResenas = false;
+
+function alternarVistaResenas(mostrarResenas) {
+    viendoResenas = mostrarResenas;
+    document.getElementById('formulario-perfil-repartidor').hidden = mostrarResenas;
+    document.getElementById('bloque-resenas-perfil').hidden = !mostrarResenas;
+
+    const boton = document.getElementById('enlace-ver-resenas');
+
+    if (boton) {
+        boton.textContent = mostrarResenas ? 'Ver perfil' : 'Ver reseñas';
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function textoEstrellasResena(valor) {
+    const llenas = Math.round(valor);
+    return '★'.repeat(llenas) + '☆'.repeat(5 - llenas);
+}
+
+async function cargarResenasRepartidor() {
+    if (!usuarioActual) {
+        return;
+    }
+
+    const { data, error } = await supabaseCliente
+        .from('resenas')
+        .select('id, estrellas_repartidor, comentario, creado_en')
+        .eq('repartidor_id', usuarioActual.id)
+        .not('estrellas_repartidor', 'is', null)
+        .order('creado_en', { ascending: false });
+
+    const resumen = document.getElementById('resumen-resenas-panel');
+    const lista = document.getElementById('lista-resenas-panel');
+    const perfil = document.getElementById('calificacion-perfil');
+
+    if (error) {
+        lista.innerHTML = '<p class="vacio-resenas-panel">No pudimos cargar tus calificaciones.</p>';
+        return;
+    }
+
+    const resenas = data || [];
+
+    if (resenas.length === 0) {
+        perfil.innerHTML = '<span class="calificacion-vacia">Todavía no tenés calificaciones.</span>';
+        resumen.innerHTML = '';
+        lista.innerHTML = '<p class="vacio-resenas-panel">Todavía no tenés calificaciones. Aparecen cuando un cliente califica un pedido que entregaste.</p>';
+        return;
+    }
+
+    const promedio = resenas.reduce((suma, r) => suma + r.estrellas_repartidor, 0) / resenas.length;
+    const promedioTexto = promedio.toFixed(1).replace('.', ',');
+    const cantidadTexto = `${resenas.length} ${resenas.length === 1 ? 'calificación' : 'calificaciones'}`;
+
+    perfil.innerHTML = `
+        <span class="calificacion-estrellas">${textoEstrellasResena(promedio)}</span>
+        <strong>${promedioTexto}</strong>
+        <span>· ${cantidadTexto}</span>
+        <button type="button" class="enlace-resenas" id="enlace-ver-resenas">${viendoResenas ? 'Ver perfil' : 'Ver reseñas'}</button>
+    `;
+
+    document.getElementById('enlace-ver-resenas').addEventListener('click', () => {
+        alternarVistaResenas(!viendoResenas);
+    });
+
+    const barras = [5, 4, 3, 2, 1].map((estrellas) => {
+        const cantidad = resenas.filter((r) => r.estrellas_repartidor === estrellas).length;
+        const porcentaje = Math.round((cantidad / resenas.length) * 100);
+
+        return `
+            <div class="barra-resena">
+                <span>${estrellas} ★</span>
+                <div class="barra-resena-fondo"><div class="barra-resena-relleno" style="width:${porcentaje}%"></div></div>
+                <span>${cantidad}</span>
+            </div>
+        `;
+    }).join('');
+
+    resumen.innerHTML = `
+        <div class="resumen-resenas-promedio">
+            <strong>${promedioTexto}</strong>
+            <span class="calificacion-estrellas">${textoEstrellasResena(promedio)}</span>
+            <span>${cantidadTexto}</span>
+        </div>
+        <div class="resumen-resenas-barras">${barras}</div>
+    `;
+
+    lista.innerHTML = resenas.map((r) => `
+        <article class="tarjeta-resena-panel">
+            <div class="cabecera-resena-panel">
+                <span class="calificacion-estrellas">${textoEstrellasResena(r.estrellas_repartidor)}</span>
+                <span class="fecha-resena-panel">${new Date(r.creado_en).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+            </div>
+            ${r.comentario ? `<p class="comentario-resena-panel">${escaparHtml(r.comentario)}</p>` : '<p class="comentario-resena-panel sin-comentario">Sin comentario.</p>'}
+        </article>
+    `).join('');
+}
+
+inicializarPanel().then(() => {
+    cargarResenasRepartidor();
+    abrirPestanaDesdeHash();
+});
 
 document.getElementById('boton-cerrar-sesion').addEventListener('click', async () => {
     await supabaseCliente.auth.signOut();

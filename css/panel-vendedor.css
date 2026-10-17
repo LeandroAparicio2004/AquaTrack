@@ -1546,42 +1546,191 @@ body {
 }
 
 .formulario-limites {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  gap: 1rem 1.5rem;
-  margin: 1.25rem 0;
-  padding: 1rem 1.25rem;
-  border: 1px solid var(--color-borde);
-  border-radius: 10px;
-  background: var(--color-superficie);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1rem 1.5rem;
+    margin: 1.25rem 0;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--color-borde);
+    border-radius: 10px;
+    background: var(--color-superficie);
 }
 
 .campo-limite {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
 }
 
 .campo-limite label {
-  color: var(--color-texto-suave);
-  font-size: 0.85rem;
-  font-weight: 600;
+    color: var(--color-texto-suave);
+    font-size: 0.85rem;
+    font-weight: 600;
 }
 
 .campo-limite input {
-  width: 190px;
-  padding: 0.5rem 0.7rem;
-  border: 1px solid var(--color-borde);
-  border-radius: 8px;
-  background: var(--color-fondo);
-  color: var(--color-texto);
-  font-size: 0.9rem;
+    width: 190px;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid var(--color-borde);
+    border-radius: 8px;
+    background: var(--color-fondo);
+    color: var(--color-texto);
+    font-size: 0.9rem;
 }
 
 .formulario-limites .btn {
-  flex: none;
-  width: auto;
-  padding: 0.55rem 1.1rem;
-  font-size: 0.9rem;
+    flex: none;
+    width: auto;
+    padding: 0.55rem 1.1rem;
+    font-size: 0.9rem;
+}
+
+.calificacion-perfil {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 18px;
+}
+
+.calificacion-estrellas {
+    color: #f59e0b;
+    letter-spacing: 2px;
+}
+
+.calificacion-vacia {
+    color: var(--color-texto-suave);
+    font-size: 0.9rem;
+}
+
+.enlace-resenas {
+    border: 0;
+    background: transparent;
+    color: var(--color-acento);
+    font: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.resumen-resenas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.resumen-resenas:empty {
+    display: none;
+}
+
+.resumen-resenas-promedio {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.resumen-resenas-promedio strong {
+    font-size: 2.6rem;
+    line-height: 1;
+}
+
+.resumen-resenas-barras {
+    flex: 1;
+    min-width: 220px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.barra-resena {
+    display: grid;
+    grid-template-columns: 36px 1fr 28px;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+}
+
+.barra-resena-fondo {
+    height: 8px;
+    border-radius: 999px;
+    background: var(--color-borde);
+    overflow: hidden;
+}
+
+.barra-resena-relleno {
+    height: 100%;
+    background: #f59e0b;
+    border-radius: 999px;
+}
+
+.lista-resenas-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.tarjeta-resena-panel {
+    padding: 16px;
+    border: 1px solid var(--color-borde);
+    border-radius: 12px;
+    background: var(--color-superficie);
+}
+
+.cabecera-resena-panel {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.fecha-resena-panel {
+    color: var(--color-texto-suave);
+    font-size: 0.8rem;
+}
+
+.comentario-resena-panel {
+    margin: 0 0 8px;
+}
+
+.comentario-resena-panel.sin-comentario {
+    color: var(--color-texto-suave);
+    font-style: italic;
+}
+
+.repartidor-resena-panel {
+    margin: 0;
+    color: var(--color-texto-suave);
+    font-size: 0.85rem;
+}
+
+.vacio-resenas-panel {
+    color: var(--color-texto-suave);
+}
+
+.bloque-resenas-perfil {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--color-borde);
+}
+
+.bloque-resenas-perfil h3 {
+    margin: 0 0 16px;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+.bloque-resenas-perfil {
+    margin-top: 8px;
+    padding-top: 0;
+    border-top: 0;
+}
+
+.modal-producto {
+    max-height: calc(100vh - 40px);
+    overflow-y: auto;
 }

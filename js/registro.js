@@ -341,11 +341,12 @@ formulario.addEventListener('submit', async (evento) => {
     }
 
     try {
-        const { error } = await supabaseCliente.auth.signUp({
+        const { data, error } = await supabaseCliente.auth.signUp({
             email: document.getElementById('correo').value.trim(),
             password: document.getElementById('contrasena').value,
             options: {
-                data: datosUsuario
+                data: datosUsuario,
+                emailRedirectTo: new URL('login.html', window.location.href).href
             }
         });
 
@@ -353,6 +354,22 @@ formulario.addEventListener('submit', async (evento) => {
             mostrarMensaje(obtenerMensajeError(error), 'error');
             botonEnviar.disabled = false;
             botonEnviar.textContent = 'Crear cuenta';
+            return;
+        }
+
+        if (data?.user && data.user.identities?.length === 0) {
+            mostrarMensaje('Ese correo ya está registrado. Probá iniciar sesión.', 'error');
+            botonEnviar.disabled = false;
+            botonEnviar.textContent = 'Crear cuenta';
+            return;
+        }
+
+        if (!data?.session) {
+            mostrarMensaje(
+                '¡Cuenta creada! Te enviamos un correo para confirmarla. Revisá tu bandeja de entrada (y el spam) y después iniciá sesión.',
+                'exito'
+            );
+            botonEnviar.textContent = 'Revisá tu correo';
             return;
         }
 
