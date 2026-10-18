@@ -1734,3 +1734,50 @@ body {
     max-height: calc(100vh - 40px);
     overflow-y: auto;
 }
+
+.insignia-urgente {
+    display: inline-block;
+    min-width: 18px;
+    margin-left: 4px;
+    padding: 1px 6px;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    line-height: 1.4;
+    text-align: center;
+}
+
+.tarjeta-pedido-tablero.pedido-urgente {
+    border: 1px solid #ef4444;
+    border-left: 4px solid #ef4444;
+    background: rgba(239, 68, 68, 0.12);
+}
+
+.tarjeta-pedido-tablero.pedido-programado {
+    border-left: 4px solid #f59e0b;
+}
+
+.etiqueta-urgencia {
+    display: inline-block;
+    margin-bottom: 6px;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.etiqueta-programada {
+    display: inline-block;
+    margin-bottom: 6px;
+    color: #f59e0b;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+
+.texto-sin-asignar {
+    color: #ef4444;
+}

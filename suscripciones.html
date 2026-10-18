@@ -271,6 +271,36 @@
     </div>
   </div>
 
+  <div class="modal-fondo oculto" id="modal-calendario-entregas" role="dialog" aria-modal="true"
+    aria-labelledby="titulo-modal-entregas">
+    <div class="modal-suscripcion">
+      <button type="button" class="boton-cerrar-modal" id="boton-cerrar-modal-entregas"
+        aria-label="Cerrar ventana">×</button>
+
+      <h2 id="titulo-modal-entregas">Tus días de entrega</h2>
+      <p class="subtitulo-modal-suscripcion" id="resumen-calendario-entregas"></p>
+
+      <div class="calendario-navegacion-cliente">
+        <button type="button" class="btn btn-secundario btn-chico" id="btn-mes-anterior-entregas">‹</button>
+        <span id="etiqueta-mes-entregas">—</span>
+        <button type="button" class="btn btn-secundario btn-chico" id="btn-mes-siguiente-entregas">›</button>
+      </div>
+
+      <div class="calendario-leyenda-cliente">
+        <span class="leyenda-item"><span class="leyenda-punto programada"></span> Programada</span>
+        <span class="leyenda-item"><span class="leyenda-punto hecha"></span> Entregada</span>
+        <span class="leyenda-item"><span class="leyenda-punto cancelada"></span> Cancelada</span>
+        <span class="leyenda-item"><span class="leyenda-punto estimada"></span> Estimada</span>
+      </div>
+
+      <div class="grilla-calendario-cabecera-cliente">
+        <span>D</span><span>L</span><span>M</span><span>M</span><span>J</span><span>V</span><span>S</span>
+      </div>
+
+      <div class="grilla-calendario-cliente" id="grilla-calendario-entregas"></div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="js/supabase-config.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>

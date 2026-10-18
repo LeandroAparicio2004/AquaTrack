@@ -49,8 +49,13 @@
     display: inline-block;
 }
 
-.leyenda-punto.disponible { background: #2ecc71; }
-.leyenda-punto.lleno { background: #e74c3c; }
+.leyenda-punto.disponible {
+    background: #2ecc71;
+}
+
+.leyenda-punto.lleno {
+    background: #e74c3c;
+}
 
 .grilla-calendario-cabecera-cliente {
     display: grid;
@@ -104,4 +109,47 @@
 
 .fecha-elegida-suscripcion.oculto {
     display: none;
+}
+
+.leyenda-punto.programada {
+    background: var(--color-acento, #3b82f6);
+}
+
+.leyenda-punto.hecha {
+    background: #2ecc71;
+}
+
+.leyenda-punto.cancelada {
+    background: #e74c3c;
+}
+
+.leyenda-punto.estimada {
+    background: transparent;
+    border: 2px dashed var(--color-acento, #3b82f6);
+}
+
+.dia-calendario-cliente.dia-solo-lectura {
+    cursor: default;
+}
+
+.dia-calendario-cliente.dia-entrega-hecha {
+    background: #2ecc71;
+    color: #fff;
+    font-weight: 700;
+}
+
+.dia-calendario-cliente.dia-entrega-cancelada {
+    background: rgba(231, 76, 60, 0.18);
+    color: #e74c3c;
+    text-decoration: line-through;
+}
+
+.dia-calendario-cliente.dia-entrega-estimada {
+    border: 2px dashed var(--color-acento, #3b82f6);
+    font-weight: 700;
+}
+
+.dia-calendario-cliente.dia-hoy-entregas {
+    outline: 2px solid var(--color-texto-inicio, #fff);
+    outline-offset: -2px;
 }

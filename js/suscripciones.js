@@ -740,6 +740,8 @@ async function cargarRecordatorioEntrega(listaSuscripciones) {
         `;
 }
 
+let idsConEntregasPendientes = new Set();
+
 async function cargarSuscripciones() {
     const lista = document.getElementById('lista-suscripciones');
     const estado = document.getElementById('estado-suscripciones');
@@ -761,6 +763,20 @@ async function cargarSuscripciones() {
     }
 
     await cargarRecordatorioEntrega(data);
+
+    idsConEntregasPendientes = new Set();
+    const idsCanceladas = (data || []).filter((s) => s.estado === 'cancelada').map((s) => s.id);
+
+    if (idsCanceladas.length > 0) {
+        const { data: pendientes } = await supabaseCliente
+            .from('pedidos')
+            .select('suscripcion_id')
+            .in('suscripcion_id', idsCanceladas)
+            .in('estado', ['pendiente', 'asignado', 'en_camino'])
+            .gte('fecha_entrega', new Date().toLocaleDateString('en-CA'));
+
+        idsConEntregasPendientes = new Set((pendientes || []).map((p) => p.suscripcion_id));
+    }
 
     if (!data || data.length === 0) {
         lista.innerHTML = '';
@@ -797,12 +813,12 @@ async function cargarSuscripciones() {
                     <h3>${escaparHtml(producto?.nombre || 'Producto')} (${producto?.capacidad_litros || '?'}L) x${suscripcion.cantidad}</h3>
                     <p>${escaparHtml(suscripcion.distribuidoras?.nombre || 'AquaTrack')} — ${etiquetasFrecuencia[suscripcion.frecuencia] || suscripcion.frecuencia}</p>
                     <p>Estimado por entrega: ${formatearPrecio(totalEstimado)}</p>
-                    ${suscripcion.metodo_pago === 'transferencia' && suscripcion.pagada_hasta
+                    ${suscripcion.metodo_pago === 'transferencia' && suscripcion.pagada_hasta && (suscripcion.estado !== 'cancelada' || idsConEntregasPendientes.has(suscripcion.id))
                 ? `<p>Entregas pagas hasta: ${formatearFecha(suscripcion.pagada_hasta)}</p>`
                 : ''}
                     ${suscripcion.estado !== 'cancelada'
                 ? `<p>Próxima entrega: ${formatearFecha(suscripcion.proxima_entrega)}</p>`
-                : `<p>Cancelada${suscripcion.metodo_pago === 'transferencia' && suscripcion.pagada_hasta && suscripcion.pagada_hasta >= new Date().toLocaleDateString('en-CA') ? ' — no se renueva; se cumplen las entregas ya pagas' : ''}</p>`}
+                : `<p>Cancelada${idsConEntregasPendientes.has(suscripcion.id) ? ' — no se renueva; se cumplen las entregas ya pagas' : ''}</p>`}
                     ${suscripcion.ultimo_pedido_id
                 ? `<a href="ticket.html?pedido=${suscripcion.ultimo_pedido_id}">Ver último ticket generado</a>`
                 : ''}
@@ -810,7 +826,9 @@ async function cargarSuscripciones() {
 
                 <div class="detalle-suscripcion">
                     <span class="etiqueta-estado-pedido ${suscripcion.estado}">${etiquetasEstadoSuscripcion[suscripcion.estado] || suscripcion.estado}</span>
-                    <div class="acciones-suscripcion">${acciones}</div>
+                    <div class="acciones-suscripcion">${(suscripcion.estado !== 'cancelada' || idsConEntregasPendientes.has(suscripcion.id))
+                ? `<button type="button" class="boton-reactivar-suscripcion" data-calendario="${suscripcion.id}" data-frecuencia="${suscripcion.frecuencia}" data-proxima="${suscripcion.proxima_entrega || ''}" data-metodo="${suscripcion.metodo_pago}" data-estado="${suscripcion.estado}">Ver calendario</button>`
+                : ''}${acciones}</div>
                 </div>
             </div>
         `;
@@ -884,6 +902,137 @@ document.getElementById('lista-suscripciones').addEventListener('click', async (
 
         await cargarSuscripciones();
     }
+});
+
+const calendarioEntregas = { mes: new Date(), fechas: {}, estimadas: new Set() };
+
+function renderizarCalendarioEntregas() {
+    const grilla = document.getElementById('grilla-calendario-entregas');
+    const { mes, fechas, estimadas } = calendarioEntregas;
+    const primerDia = new Date(mes.getFullYear(), mes.getMonth(), 1);
+    const ultimoDia = new Date(mes.getFullYear(), mes.getMonth() + 1, 0);
+    const hoy = formatearClaveFechaSuscripcion(new Date());
+
+    document.getElementById('etiqueta-mes-entregas').textContent = etiquetaMesSuscripcion(mes);
+    grilla.innerHTML = '';
+
+    for (let i = 0; i < primerDia.getDay(); i++) {
+        const vacia = document.createElement('div');
+        vacia.className = 'dia-calendario-cliente dia-vacio-cliente';
+        grilla.appendChild(vacia);
+    }
+
+    for (let dia = 1; dia <= ultimoDia.getDate(); dia++) {
+        const clave = formatearClaveFechaSuscripcion(new Date(mes.getFullYear(), mes.getMonth(), dia));
+        const estado = fechas[clave];
+        const celda = document.createElement('div');
+
+        celda.className = 'dia-calendario-cliente dia-solo-lectura';
+        celda.textContent = dia;
+
+        if (estado === 'entregado') {
+            celda.classList.add('dia-entrega-hecha');
+        } else if (estado === 'cancelado') {
+            celda.classList.add('dia-entrega-cancelada');
+        } else if (estado) {
+            celda.classList.add('dia-entrega-suscripcion');
+        } else if (estimadas.has(clave)) {
+            celda.classList.add('dia-entrega-estimada');
+        }
+
+        if (clave === hoy) {
+            celda.classList.add('dia-hoy-entregas');
+        }
+
+        grilla.appendChild(celda);
+    }
+}
+
+async function abrirCalendarioEntregas(boton) {
+    const grilla = document.getElementById('grilla-calendario-entregas');
+    const resumen = document.getElementById('resumen-calendario-entregas');
+
+    document.getElementById('modal-calendario-entregas').classList.remove('oculto');
+    grilla.innerHTML = '<p class="estado-suscripciones">Cargando calendario...</p>';
+    resumen.textContent = '';
+
+    const { data, error } = await supabaseCliente
+        .from('pedidos')
+        .select('fecha_entrega, estado')
+        .eq('suscripcion_id', boton.dataset.calendario);
+
+    if (error) {
+        grilla.innerHTML = '<p class="estado-suscripciones">No pudimos cargar el calendario.</p>';
+        return;
+    }
+
+    const fechas = {};
+    (data || []).forEach((pedido) => {
+        if (pedido.fecha_entrega) {
+            fechas[pedido.fecha_entrega] = pedido.estado;
+        }
+    });
+
+    const hoy = formatearClaveFechaSuscripcion(new Date());
+    const estimadas = new Set();
+
+    if (boton.dataset.metodo !== 'transferencia' && boton.dataset.estado === 'activa' && boton.dataset.proxima) {
+        const limite = new Date();
+        limite.setMonth(limite.getMonth() + 6);
+
+        calcularFechasEntrega(
+            boton.dataset.proxima,
+            boton.dataset.frecuencia,
+            formatearClaveFechaSuscripcion(limite)
+        ).forEach((clave) => {
+            if (clave >= hoy && !fechas[clave]) {
+                estimadas.add(clave);
+            }
+        });
+    }
+
+    const proximas = [
+        ...Object.entries(fechas)
+            .filter(([clave, estado]) => clave >= hoy && estado !== 'cancelado' && estado !== 'entregado')
+            .map(([clave]) => clave),
+        ...estimadas
+    ].sort();
+
+    calendarioEntregas.fechas = fechas;
+    calendarioEntregas.estimadas = estimadas;
+    calendarioEntregas.mes = proximas.length
+        ? new Date(Number(proximas[0].slice(0, 4)), Number(proximas[0].slice(5, 7)) - 1, 1)
+        : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+
+    resumen.textContent = proximas.length
+        ? `Próxima entrega: ${formatearFecha(proximas[0])}`
+        : 'No hay entregas programadas.';
+
+    renderizarCalendarioEntregas();
+}
+
+document.getElementById('lista-suscripciones').addEventListener('click', (evento) => {
+    const boton = evento.target.closest('[data-calendario]');
+
+    if (boton) {
+        abrirCalendarioEntregas(boton);
+    }
+});
+
+document.getElementById('btn-mes-anterior-entregas').addEventListener('click', () => {
+    const { mes } = calendarioEntregas;
+    calendarioEntregas.mes = new Date(mes.getFullYear(), mes.getMonth() - 1, 1);
+    renderizarCalendarioEntregas();
+});
+
+document.getElementById('btn-mes-siguiente-entregas').addEventListener('click', () => {
+    const { mes } = calendarioEntregas;
+    calendarioEntregas.mes = new Date(mes.getFullYear(), mes.getMonth() + 1, 1);
+    renderizarCalendarioEntregas();
+});
+
+document.getElementById('boton-cerrar-modal-entregas').addEventListener('click', () => {
+    document.getElementById('modal-calendario-entregas').classList.add('oculto');
 });
 
 let suscripcionARenovar = null;

@@ -392,7 +392,7 @@ function renderizarSuscripcionesPanel() {
                 : ''}
                 ${proximaEntregaHtml}
                 ${suscripcion.estado !== 'cancelada'
-                ? `<p class="tarjeta-producto-panel-descripcion">Repartidor: <strong>${nombreRepartidor ? escaparHtml(nombreRepartidor) : 'Sin asignar'}</strong></p>`
+                ? `<p class="tarjeta-producto-panel-descripcion">Repartidor: <strong class="${!nombreRepartidor && (diasHastaFechaPanel(suscripcion.proxima_entrega) ?? 1) <= 0 ? 'texto-sin-asignar' : ''}">${nombreRepartidor ? escaparHtml(nombreRepartidor) : 'Sin asignar'}</strong></p>`
                 : ''}
                 <p class="tarjeta-producto-panel-descripcion">
                     Pago: ${suscripcion.metodo_pago === 'transferencia'
@@ -462,7 +462,7 @@ async function cargarTableroEntregas() {
     const { data: pendientes, error: errorPendientes } = await supabaseCliente
         .from('pedidos')
         .select(`
-            id, direccion_calle, direccion_numero, direccion_ciudad,
+            id, suscripcion_id, fecha_entrega, direccion_calle, direccion_numero, direccion_ciudad,
             usuarios!pedidos_cliente_id_fkey ( nombre, apellido ),
             detalles_pedidos ( cantidad, productos ( nombre ) )
         `)
@@ -506,7 +506,81 @@ function resumenItemsPedido(pedido) {
         .join(', ');
 }
 
+function diasDeAtrasoPedido(pedido) {
+    if (!pedido.suscripcion_id || !pedido.fecha_entrega) {
+        return null;
+    }
+
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    const [anio, mes, dia] = pedido.fecha_entrega.split('-').map(Number);
+
+    return Math.round((hoy - new Date(anio, mes - 1, dia)) / 86400000);
+}
+
+function claseUrgenciaPedido(pedido) {
+    const dias = diasDeAtrasoPedido(pedido);
+
+    if (dias === null) {
+        return '';
+    }
+
+    return dias >= 0 ? 'pedido-urgente' : 'pedido-programado';
+}
+
+function etiquetaSuscripcionPedido(pedido) {
+    const dias = diasDeAtrasoPedido(pedido);
+
+    if (dias === null) {
+        return '';
+    }
+
+    if (dias > 0) {
+        return `<span class="etiqueta-urgencia">⚠ Suscripción atrasada (${dias} día${dias === 1 ? '' : 's'})</span>`;
+    }
+
+    if (dias === 0) {
+        return '<span class="etiqueta-urgencia">⚠ Suscripción: entrega HOY</span>';
+    }
+
+    return `<span class="etiqueta-programada">Suscripción · ${formatearFechaPanel(pedido.fecha_entrega)}</span>`;
+}
+
+function puntajeUrgenciaPedido(pedido) {
+    const dias = diasDeAtrasoPedido(pedido);
+    return dias !== null && dias >= 0 ? dias + 1 : 0;
+}
+
+function pintarInsigniaAsignar(cantidad) {
+    const insignia = document.getElementById('insignia-asignar');
+
+    if (!insignia) {
+        return;
+    }
+
+    insignia.textContent = cantidad;
+    insignia.hidden = cantidad === 0;
+}
+
+async function cargarInsigniaAsignar() {
+    if (!distribuidoraActual) {
+        return;
+    }
+
+    const { count } = await supabaseCliente
+        .from('pedidos')
+        .select('id', { count: 'exact', head: true })
+        .eq('distribuidora_id', distribuidoraActual.id)
+        .eq('estado', 'pendiente')
+        .not('suscripcion_id', 'is', null)
+        .lte('fecha_entrega', new Date().toLocaleDateString('en-CA'));
+
+    pintarInsigniaAsignar(count || 0);
+}
+
 function renderizarTablero() {
+    pintarInsigniaAsignar(pedidosSinAsignar.filter((pedido) => puntajeUrgenciaPedido(pedido) > 0).length);
     const tablero = document.getElementById('tablero-entregas');
     tablero.innerHTML = '';
 
@@ -523,9 +597,10 @@ function renderizarTablero() {
             </span>
         </div>
         <div class="zona-drop">
-            ${pedidosSinAsignar.map((pedido) => `
-                <div class="tarjeta-pedido-tablero tarjeta-seleccionable ${pedidosSeleccionados.has(pedido.id) ? 'seleccionada' : ''}"
+            ${[...pedidosSinAsignar].sort((a, b) => puntajeUrgenciaPedido(b) - puntajeUrgenciaPedido(a)).map((pedido) => `
+                <div class="tarjeta-pedido-tablero tarjeta-seleccionable ${pedidosSeleccionados.has(pedido.id) ? 'seleccionada' : ''} ${claseUrgenciaPedido(pedido)}"
                     draggable="true" data-pedido-click="${pedido.id}">
+                    ${etiquetaSuscripcionPedido(pedido)}
                     <strong>${escaparHtml(pedido.usuarios?.nombre || '')} ${escaparHtml(pedido.usuarios?.apellido || '')}</strong>
                     <span>${escaparHtml(pedido.direccion_calle)} ${escaparHtml(pedido.direccion_numero || '')}, ${escaparHtml(pedido.direccion_ciudad)}</span>
                     <span>${escaparHtml(resumenItemsPedido(pedido))}</span>
@@ -971,6 +1046,7 @@ async function cargarResenasPanel() {
 }
 
 inicializarPanel().then(() => {
+    cargarInsigniaAsignar();
     cargarResenasPanel();
     abrirPestanaDesdeHash();
 });
