@@ -284,7 +284,8 @@ async function cargarPagosTransferencia() {
         const { data: pedidosDelPago } = await supabaseCliente
             .from('pedidos')
             .select('total, distribuidoras ( id, nombre, alias, cbu, titular_cuenta )')
-            .eq('pago_transferencia_id', pago.id);
+            .eq('pago_transferencia_id', pago.id)
+            .neq('estado', 'cancelado');
 
         const mapaDesglose = new Map();
 

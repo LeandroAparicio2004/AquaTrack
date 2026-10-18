@@ -399,12 +399,53 @@ function renderizarSuscripcionesPanel() {
                 ? `Transferencia${suscripcion.pagada_hasta ? ` · paga hasta ${formatearFechaPanel(suscripcion.pagada_hasta)}` : ''}`
                 : 'Efectivo'}
                 </p>
+                ${suscripcion.estado !== 'cancelada'
+                ? `<div class="tarjeta-producto-panel-acciones">
+                       <button type="button" class="btn btn-secundario btn-peligro btn-chico" data-cancelar-suscripcion="${suscripcion.id}">Cancelar suscripción</button>
+                   </div>`
+                : ''}
             </article>
         `;
     }).join('');
 }
 
 document.getElementById('filtro-estado-suscripciones').addEventListener('change', renderizarSuscripcionesPanel);
+
+document.getElementById('lista-suscripciones-panel').addEventListener('click', async (evento) => {
+    const boton = evento.target.closest('[data-cancelar-suscripcion]');
+
+    if (!boton) {
+        return;
+    }
+
+    const motivo = prompt(
+        'Vas a cancelar esta suscripción. Se anulan las entregas pendientes y se avisa al cliente.\n\nEscribí el motivo (el cliente lo va a ver):'
+    );
+
+    if (motivo === null) {
+        return;
+    }
+
+    if (!motivo.trim()) {
+        alert('Escribí un motivo para el cliente.');
+        return;
+    }
+
+    boton.disabled = true;
+
+    const { error } = await supabaseCliente.rpc('cancelar_suscripcion_vendedor', {
+        p_suscripcion_id: boton.dataset.cancelarSuscripcion,
+        p_motivo: motivo.trim()
+    });
+
+    if (error) {
+        alert('No pudimos cancelar la suscripción. Intentá de nuevo.');
+        boton.disabled = false;
+        return;
+    }
+
+    await cargarSuscripcionesPanel();
+});
 
 async function cargarTableroEntregas() {
     const estadoVacio = document.getElementById('estado-tablero');

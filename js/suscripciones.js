@@ -802,7 +802,7 @@ async function cargarSuscripciones() {
                 : ''}
                     ${suscripcion.estado !== 'cancelada'
                 ? `<p>Próxima entrega: ${formatearFecha(suscripcion.proxima_entrega)}</p>`
-                : `<p>Cancelada</p>`}
+                : `<p>Cancelada${suscripcion.metodo_pago === 'transferencia' && suscripcion.pagada_hasta && suscripcion.pagada_hasta >= new Date().toLocaleDateString('en-CA') ? ' — no se renueva; se cumplen las entregas ya pagas' : ''}</p>`}
                     ${suscripcion.ultimo_pedido_id
                 ? `<a href="ticket.html?pedido=${suscripcion.ultimo_pedido_id}">Ver último ticket generado</a>`
                 : ''}
@@ -869,14 +869,18 @@ document.getElementById('lista-suscripciones').addEventListener('click', async (
     }
 
     if (botonCancelar) {
-        if (!confirm('¿Seguro que querés cancelar esta suscripción? No se van a generar más pedidos automáticos.')) {
+        if (!confirm('¿Seguro que querés cancelar esta suscripción? Ya no se va a renovar ni a generar pedidos nuevos. Las entregas que ya pagaste se cumplen igual.')) {
             return;
         }
 
-        await supabaseCliente
-            .from('suscripciones')
-            .update({ estado: 'cancelada', actualizado_en: new Date().toISOString() })
-            .eq('id', botonCancelar.dataset.cancelar);
+        const { error: errorCancelar } = await supabaseCliente.rpc('cancelar_suscripcion', {
+            p_suscripcion_id: botonCancelar.dataset.cancelar
+        });
+
+        if (errorCancelar) {
+            alert('No pudimos cancelar la suscripción. Intentá de nuevo.');
+            return;
+        }
 
         await cargarSuscripciones();
     }
