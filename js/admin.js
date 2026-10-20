@@ -183,6 +183,10 @@ function crearTarjetaPago(pago) {
             accionPago = `<button type="button" class="btn btn-secundario btn-chico" disabled>
                  Esperando comprobante del cliente
                </button>`;
+        } else if (pago.estado !== 'confirmado') {
+            accionPago = `<button type="button" class="btn btn-secundario btn-chico" disabled>
+                 Aprobá el pago primero
+               </button>`;
         } else {
             accionPago = `<button type="button" class="btn btn-secundario btn-chico" data-marcar-pagada="${pago.id}" data-distribuidora="${item.distribuidora_id}" data-monto="${item.monto}">
                  Adjuntar comprobante y pagar
@@ -211,6 +215,15 @@ function crearTarjetaPago(pago) {
         ? `<a href="${escaparHtml(pago.comprobante_url)}" target="_blank" rel="noopener" class="enlace-comprobante-pago">Ver comprobante</a>`
         : `<span class="texto-sin-comprobante">El cliente todavía no subió el comprobante.</span>`;
 
+    const accionesVerificacion = pago.estado === 'pendiente'
+        ? (pago.comprobante_url
+            ? `<div class="acciones-verificacion-pago">
+                   <button type="button" class="btn btn-principal btn-chico" data-decidir-pago="${pago.id}" data-decision="aprobar">Aprobar pago</button>
+                   <button type="button" class="btn btn-secundario btn-peligro btn-chico" data-decidir-pago="${pago.id}" data-decision="rechazar">Rechazar pago</button>
+               </div>`
+            : '')
+        : '';
+
     const tarjeta = document.createElement('article');
     tarjeta.className = 'tarjeta-pago-transferencia';
 
@@ -220,7 +233,7 @@ function crearTarjetaPago(pago) {
                 <h3>${escaparHtml(cliente)}</h3>
                 <p class="tarjeta-pago-fecha">${escaparHtml(fecha)}</p>
             </div>
-            <span class="etiqueta-estado-producto pendiente">Pendiente</span>
+            <span class="etiqueta-estado-producto pendiente">${pago.estado === 'confirmado' ? 'Verificado' : 'Por verificar'}</span>
         </div>
 
         <div class="tarjeta-pago-totales">
@@ -235,6 +248,7 @@ function crearTarjetaPago(pago) {
         </div>
 
         <div class="tarjeta-pago-comprobante">${comprobante}</div>
+        ${accionesVerificacion}
 
         <h4 class="titulo-desglose-pago">A rendir a cada distribuidora</h4>
         <div class="desglose-pago">${desglose || '<p>Sin pedidos asociados.</p>'}</div>`;
@@ -252,7 +266,7 @@ async function cargarPagosTransferencia() {
             id, monto_total, comision_porcentaje, comprobante_url, estado, creado_en,
             usuarios!pagos_transferencia_cliente_id_fkey ( nombre, apellido )
         `)
-        .eq('estado', 'pendiente')
+        .in('estado', ['pendiente', 'confirmado'])
         .order('creado_en', { ascending: false });
 
     lista.innerHTML = '';
@@ -330,7 +344,18 @@ async function cargarPagosTransferencia() {
             liquidacion: mapaLiquidaciones.get(item.distribuidora_id) || null
         }));
 
+        const todoPagado = pago.desglose.length > 0 && pago.desglose.every((item) => item.liquidacion?.pagado);
+
+        if (pago.estado === 'confirmado' && todoPagado) {
+            continue;
+        }
+
         lista.appendChild(crearTarjetaPago(pago));
+    }
+
+    if (!lista.children.length) {
+        estadoVacio.textContent = 'No hay pagos por verificar ni liquidaciones pendientes.';
+        estadoVacio.classList.remove('oculto');
     }
 }
 
@@ -383,36 +408,48 @@ async function marcarDistribuidoraPagada(idPago, idDistribuidora, monto, boton, 
         return;
     }
 
-    const { data: pedidosDelPago } = await supabaseCliente
-        .from('pedidos')
-        .select('distribuidora_id')
-        .eq('pago_transferencia_id', idPago);
-
-    const distribuidorasUnicas = new Set(
-        (pedidosDelPago || []).map((pedido) => pedido.distribuidora_id)
-    );
-
-    const { data: liquidacionesPagadas } = await supabaseCliente
-        .from('liquidaciones_distribuidora')
-        .select('distribuidora_id')
-        .eq('pago_transferencia_id', idPago)
-        .eq('pagado', true);
-
-    if (distribuidorasUnicas.size > 0 && (liquidacionesPagadas || []).length >= distribuidorasUnicas.size) {
-        await supabaseCliente
-            .from('pagos_transferencia')
-            .update({
-                estado: 'confirmado',
-                confirmado_por: session?.user?.id || null,
-                confirmado_en: new Date().toISOString()
-            })
-            .eq('id', idPago);
-    }
-
     await cargarPagosTransferencia();
 }
 
-document.getElementById('lista-pagos-transferencia')?.addEventListener('click', (evento) => {
+document.getElementById('lista-pagos-transferencia')?.addEventListener('click', async (evento) => {
+    const botonDecision = evento.target.closest('[data-decidir-pago]');
+
+    if (botonDecision) {
+        const aprobar = botonDecision.dataset.decision === 'aprobar';
+        const pregunta = aprobar
+            ? '¿Confirmás que el comprobante es válido y que el dinero ya ingresó? Se habilita el pedido.'
+            : '¿Seguro que querés rechazar este pago? Se cancelan los pedidos asociados.';
+
+        if (!confirm(pregunta)) {
+            return;
+        }
+
+        botonDecision.disabled = true;
+
+        const {
+            data: { session }
+        } = await supabaseCliente.auth.getSession();
+
+        const cambios = aprobar
+            ? { estado: 'confirmado', confirmado_por: session?.user?.id || null, confirmado_en: new Date().toISOString() }
+            : { estado: 'rechazado' };
+
+        const { error } = await supabaseCliente
+            .from('pagos_transferencia')
+            .update(cambios)
+            .eq('id', botonDecision.dataset.decidirPago);
+
+        if (error) {
+            console.error('Error al decidir el pago:', error);
+            alert('No pudimos guardar la decisión. Intentá de nuevo.');
+            botonDecision.disabled = false;
+            return;
+        }
+
+        await cargarPagosTransferencia();
+        return;
+    }
+
     const botonMarcarPagada = evento.target.closest('[data-marcar-pagada]');
 
     if (botonMarcarPagada) {

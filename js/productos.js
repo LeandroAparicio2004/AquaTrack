@@ -17,6 +17,8 @@ const botonCerrarSesion = document.getElementById('boton-cerrar-sesion');
 
 let productosDisponibles = [];
 let calificacionesDistribuidoras = {};
+let favoritosIds = new Set();
+const filtroFavoritos = document.getElementById('filtro-favoritos');
 
 function crearEtiquetaProducto(producto) {
     if (producto.stock === 0) {
@@ -154,6 +156,7 @@ function renderizarProductos() {
     const capacidadSeleccionada = filtroCapacidad.value;
 
     const tipoSeleccionado = filtroTipo.value;
+    const soloFavoritos = filtroFavoritos.classList.contains('activo');
 
     const productosFiltrados = productosDisponibles.filter((producto) => {
         const distribuidora = obtenerDistribuidora(producto);
@@ -176,14 +179,17 @@ function renderizarProductos() {
             (tipoSeleccionado === 'combos' && producto.es_combo) ||
             (tipoSeleccionado === 'individuales' && !producto.es_combo);
 
-        return coincideBusqueda && coincideCapacidad && coincideTipo;
+        const coincideFavorito = !soloFavoritos || favoritosIds.has(producto.id);
+
+        return coincideBusqueda && coincideCapacidad && coincideTipo && coincideFavorito;
     });
 
     listaProductos.innerHTML = '';
 
     if (productosFiltrados.length === 0) {
-        estadoCatalogo.textContent =
-            'No encontramos productos con esos filtros.';
+        estadoCatalogo.textContent = soloFavoritos && favoritosIds.size === 0
+            ? 'Todavía no guardaste favoritos. Toca el ♡ de un producto para guardarlo.'
+            : 'No encontramos productos con esos filtros.';
         estadoCatalogo.className = 'estado-catalogo';
         contadorProductos.textContent = 'Sin resultados';
         return;
@@ -204,6 +210,10 @@ function renderizarProductos() {
         tarjeta.className = 'tarjeta-producto';
 
         tarjeta.innerHTML = `
+      <button type="button" class="boton-favorito${favoritosIds.has(producto.id) ? ' activo' : ''}"
+        data-favorito="${escaparHtml(producto.id)}"
+        aria-label="${favoritosIds.has(producto.id) ? 'Quitar de favoritos' : 'Guardar en favoritos'}"
+        aria-pressed="${favoritosIds.has(producto.id)}">${favoritosIds.has(producto.id) ? '♥' : '♡'}</button>
       ${crearBloqueImagen(producto)}
 
       <div class="tarjeta-producto-superior">
@@ -324,6 +334,17 @@ async function cargarProductos() {
         calificacionesDistribuidoras[fila.distribuidora_id] = fila;
     });
 
+    favoritosIds = new Set();
+
+    const {
+        data: { session: sesionFavoritos }
+    } = await supabaseCliente.auth.getSession();
+
+    if (sesionFavoritos) {
+        const { data: favoritos } = await supabaseCliente.from('favoritos').select('producto_id');
+        favoritosIds = new Set((favoritos || []).map((fila) => fila.producto_id));
+    }
+
     cargarOpcionesCapacidad();
     renderizarProductos();
 }
@@ -387,7 +408,55 @@ async function agregarProducto(idProducto) {
     mostrarNotificacion('Producto agregado a tu pedido.');
 }
 
+async function alternarFavorito(idProducto) {
+    const {
+        data: { session }
+    } = await supabaseCliente.auth.getSession();
+
+    if (!session) {
+        abrirModalAcceso();
+        return;
+    }
+
+    const eraFavorito = favoritosIds.has(idProducto);
+
+    if (eraFavorito) {
+        favoritosIds.delete(idProducto);
+    } else {
+        favoritosIds.add(idProducto);
+    }
+
+    renderizarProductos();
+
+    const { error } = eraFavorito
+        ? await supabaseCliente.from('favoritos').delete()
+            .eq('usuario_id', session.user.id).eq('producto_id', idProducto)
+        : await supabaseCliente.from('favoritos')
+            .insert({ usuario_id: session.user.id, producto_id: idProducto });
+
+    if (error) {
+        if (eraFavorito) {
+            favoritosIds.add(idProducto);
+        } else {
+            favoritosIds.delete(idProducto);
+        }
+
+        renderizarProductos();
+        mostrarNotificacion('No pudimos actualizar tus favoritos.');
+        return;
+    }
+
+    mostrarNotificacion(eraFavorito ? 'Quitado de favoritos.' : 'Guardado en favoritos.');
+}
+
 listaProductos.addEventListener('click', (evento) => {
+    const botonFavorito = evento.target.closest('[data-favorito]');
+
+    if (botonFavorito) {
+        alternarFavorito(botonFavorito.dataset.favorito);
+        return;
+    }
+
     const boton = evento.target.closest('[data-agregar-producto]');
 
     if (!boton) {
@@ -400,6 +469,12 @@ listaProductos.addEventListener('click', (evento) => {
 buscadorProductos.addEventListener('input', renderizarProductos);
 filtroCapacidad.addEventListener('change', renderizarProductos);
 filtroTipo.addEventListener('change', renderizarProductos);
+filtroFavoritos.addEventListener('click', () => {
+    const activo = filtroFavoritos.classList.toggle('activo');
+    filtroFavoritos.setAttribute('aria-pressed', String(activo));
+    filtroFavoritos.textContent = activo ? '♥' : '♡';
+    renderizarProductos();
+});
 
 botonCarrito.addEventListener('click', async () => {
     const {

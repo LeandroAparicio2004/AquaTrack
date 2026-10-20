@@ -1053,3 +1053,68 @@ body.sin-desplazamiento {
   opacity: 0.55;
   cursor: not-allowed;
 }
+
+.tarjeta-producto {
+    position: relative;
+}
+
+.boton-favorito {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    z-index: 2;
+    width: 2.2rem;
+    height: 2.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid rgba(100, 116, 139, 0.4);
+    background: rgba(255, 255, 255, 0.92);
+    color: #64748b;
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform 0.15s;
+}
+
+.boton-favorito:hover {
+    transform: scale(1.12);
+}
+
+.boton-favorito.activo {
+    color: #e11d48;
+    border-color: #e11d48;
+}
+
+.acciones-encabezado-catalogo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.filtro-favoritos {
+    width: 2.6rem;
+    height: 2.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1px solid rgba(100, 116, 139, 0.5);
+    background: transparent;
+    color: #94a3b8;
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.15s;
+}
+
+.filtro-favoritos:hover {
+    transform: scale(1.08);
+}
+
+.filtro-favoritos.activo {
+    color: #ffffff;
+    background: #e11d48;
+    border-color: #e11d48;
+}

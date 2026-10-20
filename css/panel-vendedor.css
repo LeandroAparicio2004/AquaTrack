@@ -1781,3 +1781,9 @@ body {
 .texto-sin-asignar {
     color: #ef4444;
 }
+
+.acciones-verificacion-pago {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.75rem 0;
+}

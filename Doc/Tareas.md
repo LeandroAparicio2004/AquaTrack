@@ -85,34 +85,34 @@ Nuevas Tareas:
 - Probar el botón "Desactivar" anuncio - Terminado 
 - Verificar botón volver atrás, cerrar grupo de entrega y ver métricas - TERMINADO
 - T2: Corregir clases CSS en panel-vendedor.js (entregado → activo, cancelado → rechazada) - TERMINADO
-- T1: Unificar asignado / asignada entre pedidos y entregas
+- T1: Unificar asignado / asignada entre pedidos y entregas - TERMINADO
 - B4: Mensaje recordatorio de la fecha de envío en el panel de suscripciones - Terminado
-- E1: Popups de publicidad con rotación automática al siguiente anuncio cada pocos segundos (cada imagen con su propio link)
+- E1: Popups de publicidad con rotación automática al siguiente anuncio cada pocos segundos (cada imagen con su propio link) - TERMINADO
 
 **Tareas medias**
 - D10: @media para mobile en los 6 CSS (DESPUES)
 - D5: Búsqueda de productos por texto - Terminado
-- D6: Perfil de cliente editable
+- D6: Perfil de cliente editable - TERMINADO
 - D8: Verificación de email en el registro
-- D9: Stock de productos
-- D4: Reseñas y calificación a vendedor y repartidor
+- D9: Stock de productos - TERMINADO
+- D4: Reseñas y calificación a vendedor y repartidor - TERMINADO
 - C1: Campana de avisos dentro de la página - Terminado
-- C2: Aviso por Gmail de mensajes nuevos
+- C2: Aviso por Gmail de mensajes nuevos - TERMINADO
 - C3: Hoja de ruta del repartidor - Terminado
-- A5: Aviso por Gmail de pagos y transferencias, con desglose (monto y nombre)
+- A5: Aviso por Gmail de pagos y transferencias, con desglose (monto y nombre) - TERMINADO
   
 - B2: Cupo semanal de suscripciones - Terminado {
   se usa solo el cupo máximo por día, que el vendedor configura en su panel. El calendario muestra Disponible / Lleno / Bloqueado. Límite semanal lo considero inutil. La capacidad semanal es el cupo diario por los días de atención.
   }
 
 - B5: Unificar la lógica de "pago pendiente" entre carrito.js y suscripciones.js - Terminado
-- T3: Estandarizar el manejo de errores
-- D7: "Repetir pedido" y favoritos
+- T3: Estandarizar el manejo de errores - TERMINADO
+- D7: "Repetir pedido" y favoritos - TERMINADO
 
 **Tareas largas**
 - B1: Asignar automáticamente las suscripciones a uno o más repartidores (prioridad total) - Terminado
-- B3: Re-revisar el panel de Suscripciones (lógica y UI)
-- A1: Re-revisar la lógica de negocio completa
+- B3: Re-revisar el panel de Suscripciones (lógica y UI) - TERMINADO
+- A1: Re-revisar la lógica de negocio completa - TERMINADO
 - A2: Desglose de pagos con transparencia total (monto, nombre, comisión) - Terminado
 - A3: Liquidación a vendedores y repartidores - Terminado
 - A4: Resumen en Excel de todo movimiento monetario - Terminado
