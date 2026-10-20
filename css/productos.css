@@ -1,0 +1,229 @@
+/* Estilos exclusivos de productos.html */
+
+.migas {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  color: var(--color-texto-secundario-inicio);
+  font-size: 0.85rem;
+}
+
+.migas a:hover {
+  color: var(--color-acento-inicio);
+  text-decoration: underline;
+}
+
+.migas [aria-current] {
+  color: var(--color-texto-inicio);
+  font-weight: 700;
+}
+
+.catalogo-layout {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  align-items: start;
+  gap: 28px;
+}
+
+.filtros-lateral {
+  position: sticky;
+  top: 16px;
+  padding: 20px;
+  border: 1px solid var(--color-borde-inicio);
+  border-radius: 16px;
+  background: var(--color-superficie-inicio);
+  box-shadow: var(--sombra-tarjeta-inicio);
+}
+
+.filtros-lateral-cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.filtros-lateral h3 {
+  font-size: 1.1rem;
+}
+
+.enlace-limpiar {
+  border: 0;
+  color: var(--color-acento-inicio);
+  background: none;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.enlace-limpiar:hover {
+  text-decoration: underline;
+}
+
+.grupo-filtro {
+  min-width: 0;
+  padding: 16px 0 6px;
+  border: 0;
+  border-top: 1px solid var(--color-borde-inicio);
+}
+
+.grupo-filtro legend {
+  float: left;
+  width: 100%;
+  margin-bottom: 8px;
+  color: var(--color-texto-inicio);
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.grupo-filtro legend + * {
+  clear: both;
+}
+
+.opcion-filtro {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.opcion-filtro input {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  accent-color: var(--color-acento-inicio);
+}
+
+.cantidad-filtro {
+  margin-left: auto;
+  color: var(--color-texto-secundario-inicio);
+  font-size: 0.8rem;
+}
+
+.barra-catalogo {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.barra-catalogo .entrada-busqueda {
+  flex: 1;
+}
+
+.boton-filtros,
+.cerrar-filtros,
+.ver-resultados,
+.fondo-filtros {
+  display: none;
+}
+
+.catalogo-resultados .estado-catalogo {
+  margin-top: 0;
+}
+
+/* En celular los filtros se abren como un menú lateral */
+@media (max-width: 820px) {
+  .catalogo-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .boton-filtros {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 48px;
+    padding: 0 16px;
+    border: 1px solid var(--color-borde-inicio);
+    border-radius: 10px;
+    color: var(--color-texto-inicio);
+    background: var(--color-superficie-inicio);
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .boton-filtros svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .contador-filtros {
+    min-width: 20px;
+    padding: 1px 6px;
+    border-radius: 10px;
+    color: var(--color-superficie-inicio);
+    background: var(--color-acento-inicio);
+    font-size: 0.75rem;
+    text-align: center;
+  }
+
+  .contador-filtros:empty {
+    display: none;
+  }
+
+  .filtros-lateral {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 300;
+    width: min(320px, 86vw);
+    overflow-y: auto;
+    border-radius: 0 16px 16px 0;
+    transform: translateX(-105%);
+    transition: transform 0.25s ease;
+  }
+
+  .filtros-abiertos .filtros-lateral {
+    transform: none;
+  }
+
+  .cerrar-filtros {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    margin-left: 10px;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    color: var(--color-texto-inicio);
+    background: var(--color-fondo-inicio);
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .filtros-lateral-cabecera {
+    align-items: center;
+  }
+
+  .filtros-lateral-cabecera h3 {
+    margin-right: auto;
+  }
+
+  .ver-resultados {
+    display: block;
+    width: 100%;
+    margin-top: 14px;
+  }
+
+  .fondo-filtros {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 299;
+    background: rgba(5, 20, 28, 0.55);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  .filtros-abiertos .fondo-filtros {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}

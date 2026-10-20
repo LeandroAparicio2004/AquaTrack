@@ -1,10 +1,12 @@
 :root {
-  --color-fondo: #ffffff;
-  --color-superficie: #f3f4f6;
-  --color-texto: #111827;
-  --color-texto-secundario: #6b7280;
-  --color-acento: #1d4ed8;
-  --color-acento-oscuro: #1e3a8a;
+  --color-fondo: #e4f0f5;
+  --color-superficie: #ffffff;
+  --color-texto: #0f2530;
+  --color-texto-secundario: #54676f;
+  --color-borde: #bfd8e2;
+  --color-acento: #0b718f;
+  --color-acento-oscuro: #07566d;
+  --color-acento-suave: #d9edf4;
   --fuente-base: 'Manrope', system-ui, sans-serif;
   --ancho-maximo: 1080px;
 }
@@ -14,8 +16,14 @@
   --color-superficie: #1b2a31;
   --color-texto: #e7eef0;
   --color-texto-secundario: #9fb1b8;
-  --color-acento: #3b82f6;
-  --color-acento-oscuro: #60a5fa;
+  --color-borde: #2a3b43;
+  --color-acento: #2dd4bf;
+  --color-acento-oscuro: #5eead4;
+  --color-acento-suave: #16333a;
+}
+
+[data-tema="oscuro"] .btn-principal {
+  color: #062a30;
 }
 
 body {
@@ -55,7 +63,10 @@ button:focus-visible {
 .btn {
   display: inline-block;
   padding: 10px 22px;
-  border-radius: 6px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-family: inherit;
+  line-height: 1.3;
   font-weight: 700;
   font-size: 0.95rem;
   cursor: pointer;
@@ -98,7 +109,9 @@ button:focus-visible {
 }
 
 .encabezado {
-  border-bottom: 1px solid var(--color-superficie);
+  position: relative;
+  z-index: 100;
+  border-bottom: 1px solid var(--color-borde);
 }
 
 .encabezado-interno {
@@ -113,11 +126,6 @@ button:focus-visible {
   font-size: 1.25rem;
 }
 
-.navegacion {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
 
 .enlace-nav {
   color: var(--color-texto-secundario);
@@ -136,7 +144,7 @@ button:focus-visible {
 }
 
 .pie-pagina {
-  border-top: 1px solid var(--color-superficie);
+  border-top: 1px solid var(--color-borde);
   padding: 48px 0 0;
   margin-top: 60px;
 }
@@ -191,7 +199,7 @@ button:focus-visible {
 
 .pie-pagina-inferior {
   padding: 20px 0;
-  border-top: 1px solid var(--color-superficie);
+  border-top: 1px solid var(--color-borde);
   text-align: center;
 }
 
@@ -218,7 +226,7 @@ button:focus-visible {
   display: grid;
   flex-shrink: 0;
   place-items: center;
-  border: 1px solid var(--color-superficie);
+  border: 1px solid var(--color-borde);
   border-radius: 50%;
   color: var(--color-texto-secundario);
   background: transparent;
@@ -250,7 +258,7 @@ button:focus-visible {
   display: grid;
   flex-shrink: 0;
   place-items: center;
-  border: 1px solid var(--color-superficie);
+  border: 1px solid var(--color-borde);
   border-radius: 50%;
   color: var(--color-texto-secundario);
   background: transparent;
@@ -341,8 +349,8 @@ button:focus-visible {
   max-height: 420px;
   overflow-y: auto;
   z-index: 1000;
-  background: var(--color-fondo);
-  border: 1px solid var(--color-superficie);
+  background: var(--color-superficie);
+  border: 1px solid var(--color-borde);
   border-radius: 12px;
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
 }
@@ -353,7 +361,7 @@ button:focus-visible {
   justify-content: space-between;
   gap: 8px;
   padding: 12px 14px;
-  border-bottom: 1px solid var(--color-superficie);
+  border-bottom: 1px solid var(--color-borde);
   color: var(--color-texto);
 }
 
@@ -387,13 +395,13 @@ button:focus-visible {
   padding: 12px 14px;
   background: none;
   border: none;
-  border-bottom: 1px solid var(--color-superficie);
+  border-bottom: 1px solid var(--color-borde);
   cursor: pointer;
   color: var(--color-texto);
 }
 
 .campana-item:hover {
-  background: var(--color-superficie);
+  background: var(--color-acento-suave);
 }
 
 .campana-punto {
@@ -470,9 +478,6 @@ button:focus-visible {
   animation: aviso-entrar 0.25s ease;
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
-
-.aviso-aviso { border-left-color: #f59e0b; }
-.aviso-exito { border-left-color: #22c55e; }
 
 .aviso-saliendo {
   opacity: 0;

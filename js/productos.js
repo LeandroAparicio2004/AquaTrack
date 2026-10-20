@@ -2,8 +2,6 @@ const listaProductos = document.getElementById('lista-productos');
 const estadoCatalogo = document.getElementById('estado-catalogo');
 const contadorProductos = document.getElementById('contador-productos');
 const buscadorProductos = document.getElementById('buscador-productos');
-const filtroCapacidad = document.getElementById('filtro-capacidad');
-const filtroTipo = document.getElementById('filtro-tipo');
 const botonCarrito = document.getElementById('boton-carrito');
 const cantidadCarrito = document.getElementById('cantidad-carrito');
 const modalAcceso = document.getElementById('modal-acceso');
@@ -153,10 +151,11 @@ function crearBloqueImagen(producto) {
 
 function renderizarProductos() {
     const textoBusqueda = buscadorProductos.value.trim().toLowerCase();
-    const capacidadSeleccionada = filtroCapacidad.value;
+    const capacidadSeleccionada = valorFiltro('capacidad');
+    const tipoSeleccionado = valorFiltro('tipo');
+    const soloFavoritos = filtroFavoritos.checked;
 
-    const tipoSeleccionado = filtroTipo.value;
-    const soloFavoritos = filtroFavoritos.classList.contains('activo');
+    actualizarContadorFiltros(capacidadSeleccionada, tipoSeleccionado, soloFavoritos);
 
     const productosFiltrados = productosDisponibles.filter((producto) => {
         const distribuidora = obtenerDistribuidora(producto);
@@ -271,18 +270,44 @@ function renderizarProductos() {
     });
 }
 
+function valorFiltro(nombre) {
+    return document.querySelector(`input[name="${nombre}"]:checked`)?.value;
+}
+
+function actualizarContadorFiltros(capacidad, tipo, soloFavoritos) {
+    const activos = [capacidad !== 'todas', tipo !== 'todos', soloFavoritos].filter(Boolean).length;
+    document.getElementById('contador-filtros').textContent = activos || '';
+}
+
+function alternarFiltros(abrir) {
+    document.body.classList.toggle('filtros-abiertos', abrir);
+    document.body.classList.toggle('sin-desplazamiento', abrir);
+    document.getElementById('abrir-filtros').setAttribute('aria-expanded', String(abrir));
+}
+
 function cargarOpcionesCapacidad() {
+    const contenedor = document.getElementById('opciones-capacidad');
+
     const capacidades = [...new Set(
-        productosDisponibles.map((producto) => producto.capacidad_litros)
+        productosDisponibles
+            .filter((producto) => !producto.es_combo)
+            .map((producto) => producto.capacidad_litros)
     )].sort((a, b) => Number(a) - Number(b));
 
     capacidades.forEach((capacidad) => {
-        const opcion = document.createElement('option');
+        const cantidad = productosDisponibles.filter(
+            (producto) => !producto.es_combo && producto.capacidad_litros === capacidad
+        ).length;
 
-        opcion.value = capacidad;
-        opcion.textContent = `${capacidad} litros`;
+        const etiqueta = document.createElement('label');
+        etiqueta.className = 'opcion-filtro';
+        etiqueta.innerHTML = `
+            <input type="radio" name="capacidad" value="${escaparHtml(capacidad)}">
+            <span>${escaparHtml(capacidad)} litros</span>
+            <span class="cantidad-filtro">${cantidad}</span>
+        `;
 
-        filtroCapacidad.appendChild(opcion);
+        contenedor.appendChild(etiqueta);
     });
 }
 
@@ -467,12 +492,31 @@ listaProductos.addEventListener('click', (evento) => {
 });
 
 buscadorProductos.addEventListener('input', renderizarProductos);
-filtroCapacidad.addEventListener('change', renderizarProductos);
-filtroTipo.addEventListener('change', renderizarProductos);
-filtroFavoritos.addEventListener('click', () => {
-    const activo = filtroFavoritos.classList.toggle('activo');
-    filtroFavoritos.setAttribute('aria-pressed', String(activo));
-    filtroFavoritos.textContent = activo ? '♥' : '♡';
+document.querySelector('.filtros-lateral').addEventListener('change', renderizarProductos);
+
+document.getElementById('abrir-filtros').addEventListener('click', () => alternarFiltros(true));
+
+['cerrar-filtros', 'aplicar-filtros', 'fondo-filtros'].forEach((id) => {
+    document.getElementById(id).addEventListener('click', () => alternarFiltros(false));
+});
+
+document.addEventListener('keydown', (evento) => {
+    if (evento.key === 'Escape' && document.body.classList.contains('filtros-abiertos')) {
+        alternarFiltros(false);
+    }
+});
+
+window.matchMedia('(min-width: 821px)').addEventListener('change', (evento) => {
+    if (evento.matches) {
+        alternarFiltros(false);
+    }
+});
+
+document.getElementById('limpiar-filtros').addEventListener('click', () => {
+    buscadorProductos.value = '';
+    filtroFavoritos.checked = false;
+    document.querySelectorAll('.filtros-lateral input[type="radio"][value="todas"], .filtros-lateral input[type="radio"][value="todos"]')
+        .forEach((opcion) => { opcion.checked = true; });
     renderizarProductos();
 });
 

@@ -19,6 +19,7 @@
 
   <link rel="stylesheet" href="css/comunes.css">
   <link rel="stylesheet" href="css/inicio.css">
+  <link rel="stylesheet" href="css/productos.css">
 </head>
 
 <body>
@@ -69,54 +70,92 @@
   <main>
     <section class="destacados">
       <div class="contenedor">
+        <nav class="migas" aria-label="Ubicación">
+          <a href="index.html">Inicio</a>
+          <span aria-hidden="true">›</span>
+          <span aria-current="page">Productos</span>
+        </nav>
+
         <div class="encabezado-seccion">
-          <div>
-            <p class="etiqueta-seccion">Catálogo completo</p>
-            <h2>Todos los productos</h2>
-          </div>
-
-          <div class="acciones-encabezado-catalogo">
-            <button type="button" class="filtro-favoritos" id="filtro-favoritos"
-              aria-pressed="false" aria-label="Ver solo mis favoritos" title="Ver solo mis favoritos">♡</button>
-            <p class="contador-productos" id="contador-productos"></p>
-          </div>
+          <h2>Todos los productos</h2>
+          <p class="contador-productos" id="contador-productos"></p>
         </div>
 
-        <div class="filtros-catalogo">
-          <div class="campo-busqueda">
-            <label for="buscador-productos">Buscar</label>
-            <div class="entrada-busqueda">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8" />
-                <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-              </svg>
-              <input type="text" id="buscador-productos" placeholder="Producto o distribuidora...">
+        <div class="catalogo-layout">
+          <aside class="filtros-lateral" id="panel-filtros" aria-label="Filtros del catálogo">
+            <div class="filtros-lateral-cabecera">
+              <h3>Filtros</h3>
+              <button type="button" class="enlace-limpiar" id="limpiar-filtros">Limpiar</button>
+              <button type="button" class="cerrar-filtros" id="cerrar-filtros" aria-label="Cerrar filtros">×</button>
             </div>
-          </div>
 
-          <div class="campo-filtro">
-            <label for="filtro-capacidad">Capacidad</label>
-            <select id="filtro-capacidad">
-              <option value="todas">Todas</option>
-            </select>
-          </div>
+            <fieldset class="grupo-filtro">
+              <legend>Capacidad</legend>
+              <div id="opciones-capacidad">
+                <label class="opcion-filtro">
+                  <input type="radio" name="capacidad" value="todas" checked>
+                  <span>Todas</span>
+                </label>
+              </div>
+            </fieldset>
 
-          <div class="campo-filtro">
-            <label for="filtro-tipo">Tipo</label>
-            <select id="filtro-tipo">
-              <option value="todos">Todos</option>
-              <option value="combos">Solo combos</option>
-              <option value="individuales">Sin combos</option>
-            </select>
+            <fieldset class="grupo-filtro">
+              <legend>Tipo</legend>
+              <label class="opcion-filtro">
+                <input type="radio" name="tipo" value="todos" checked>
+                <span>Todos</span>
+              </label>
+              <label class="opcion-filtro">
+                <input type="radio" name="tipo" value="individuales">
+                <span>Sin combos</span>
+              </label>
+              <label class="opcion-filtro">
+                <input type="radio" name="tipo" value="combos">
+                <span>Solo combos</span>
+              </label>
+            </fieldset>
+
+            <div class="grupo-filtro">
+              <label class="opcion-filtro">
+                <input type="checkbox" id="filtro-favoritos">
+                <span>Solo mis favoritos ♥</span>
+              </label>
+            </div>
+
+            <button type="button" class="btn btn-principal ver-resultados" id="aplicar-filtros">Ver resultados</button>
+          </aside>
+
+          <div class="catalogo-resultados">
+            <div class="barra-catalogo">
+              <div class="entrada-busqueda">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8" />
+                  <path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                </svg>
+                <input type="search" id="buscador-productos" aria-label="Buscar productos" placeholder="Buscá un producto o una distribuidora...">
+              </div>
+
+              <button type="button" class="boton-filtros" id="abrir-filtros" aria-controls="panel-filtros" aria-expanded="false">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M4 7h10M18 7h2M4 17h2M10 17h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+                  <circle cx="16" cy="7" r="2" stroke="currentColor" stroke-width="1.8" />
+                  <circle cx="8" cy="17" r="2" stroke="currentColor" stroke-width="1.8" />
+                </svg>
+                <span>Filtros</span>
+                <span class="contador-filtros" id="contador-filtros"></span>
+              </button>
+            </div>
+
+            <div class="estado-catalogo" id="estado-catalogo" role="status" aria-live="polite">
+              Cargando productos...
+            </div>
+
+            <div class="grilla-productos" id="lista-productos"></div>
           </div>
         </div>
-
-        <div class="estado-catalogo" id="estado-catalogo" role="status" aria-live="polite">
-          Cargando productos...
-        </div>
-
-        <div class="grilla-productos" id="lista-productos"></div>
       </div>
+
+      <div class="fondo-filtros" id="fondo-filtros"></div>
     </section>
   </main>
 
