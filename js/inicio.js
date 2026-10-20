@@ -163,7 +163,7 @@ function renderizarDestacados() {
 
       <div class="detalle-producto">
         <span class="capacidad-producto">
-          ${escaparHtml(producto.capacidad_litros)} litros
+          ${producto.es_combo ? 'Combo' : `${escaparHtml(producto.capacidad_litros)} litros`}
         </span>
 
         <div class="precios-producto">
@@ -206,6 +206,7 @@ async function cargarDestacados() {
       precio,
       descuento_por_envase,
       activo,
+      es_combo,
       foto_url,
       distribuidoras!inner (
         id,
