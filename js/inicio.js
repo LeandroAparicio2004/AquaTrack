@@ -139,6 +139,7 @@ function renderizarDestacados() {
         const tarjeta = document.createElement('article');
 
         tarjeta.className = 'tarjeta-producto';
+        tarjeta.dataset.id = producto.id;
 
         tarjeta.innerHTML = `
       ${crearBloqueImagen(producto)}
@@ -206,13 +207,19 @@ async function cargarDestacados() {
       precio,
       descuento_por_envase,
       activo,
+      stock,
       es_combo,
+      incluye_combo,
       foto_url,
       distribuidoras!inner (
         id,
         nombre,
         ciudad,
         provincia,
+        calle,
+        numero,
+        latitud,
+        longitud,
         estado
       )
     `)
@@ -287,6 +294,8 @@ listaProductos.addEventListener('click', (evento) => {
 
     agregarProducto(boton.dataset.agregarProducto);
 });
+
+activarDetalleProductos(listaProductos, () => productosDisponibles);
 
 botonCarrito.addEventListener('click', async () => {
     const {

@@ -1104,3 +1104,86 @@ body.sin-desplazamiento {
 .tarjeta-producto:has(.boton-favorito) .tarjeta-producto-superior {
   padding-right: 2.8rem;
 }
+
+.tarjeta-producto .imagen-producto,
+.tarjeta-producto .icono-producto,
+.tarjeta-producto h3 {
+  cursor: pointer;
+}
+
+#modal-detalle-producto {
+  z-index: 200;
+  overflow-y: auto;
+}
+
+.modal-detalle {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  max-height: calc(100vh - 40px);
+  padding: 24px;
+  overflow-y: auto;
+  border: 1px solid var(--color-borde-inicio);
+  border-radius: 18px;
+  background: var(--color-superficie-inicio);
+  box-shadow: 0 24px 70px rgba(18, 35, 45, 0.25);
+}
+
+.modal-detalle h2 {
+  margin: 4px 0 8px;
+  font-size: 1.35rem;
+}
+
+.detalle-foto {
+  display: block;
+  width: 100%;
+  max-height: 200px;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.detalle-descripcion {
+  margin-bottom: 12px;
+  color: var(--color-texto-secundario-inicio);
+}
+
+.detalle-datos {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-top: 1px solid var(--color-borde-inicio);
+}
+
+.detalle-subtitulo {
+  margin: 8px 0 4px;
+  font-size: 1rem;
+}
+
+.detalle-direccion {
+  margin-bottom: 10px;
+  color: var(--color-texto-secundario-inicio);
+  font-size: 0.9rem;
+}
+
+.mapa-detalle {
+  height: 200px;
+  margin-bottom: 8px;
+  border: 1px solid var(--color-borde-inicio);
+  border-radius: 12px;
+  z-index: 0;
+}
+
+.enlace-como-llegar {
+  display: inline-block;
+  margin-bottom: 14px;
+  color: var(--color-acento-inicio);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.modal-detalle .btn-agregar {
+  width: 100%;
+}
