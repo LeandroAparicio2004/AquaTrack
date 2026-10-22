@@ -633,6 +633,7 @@ function renderizarTablero() {
                     ${seleccionadosEnColumna > 0 ? seleccionadosEnColumna + ' sel.' : entregasDelRepartidor.length}
                 </span>
             </div>
+            ${entregasDelRepartidor.length ? `<button type="button" class="btn btn-secundario btn-chico" data-imprimir-ruta="${miembro.usuario_id}">Imprimir hoja de ruta (PDF)</button>` : ''}
             ${repartidorEnRuta ? '<p class="aviso-repartidor-en-ruta">En ruta, no le puedes asignar pedidos ahora mismo</p>' : ''}
             <div class="zona-drop">
                 ${entregasDelRepartidor.map((entrega) => {
@@ -880,7 +881,7 @@ async function inicializarPanel() {
         .select(`
             distribuidoras (
                 id, nombre, descripcion, estado, calle, numero, ciudad, provincia,
-                acepta_efectivo, acepta_transferencia, alias, cbu, titular_cuenta, foto_url, cupo_diario, max_bidones_por_pedido
+                acepta_efectivo, acepta_transferencia, alias, cbu, titular_cuenta, foto_url, cupo_diario, max_bidones_por_pedido, latitud, longitud
             )
         `)
         .eq('usuario_id', session.user.id)
@@ -910,6 +911,7 @@ async function inicializarPanel() {
 }
 
 function precargarFormularioPerfil() {
+    cargarUbicacionNegocio(distribuidoraActual);
     document.getElementById('descripcion-negocio').value = distribuidoraActual.descripcion || '';
     document.getElementById('calle-perfil').value = distribuidoraActual.calle || '';
     document.getElementById('numero-perfil').value = distribuidoraActual.numero || '';
@@ -1089,6 +1091,10 @@ pestanas.forEach((pestana) => {
         Object.entries(secciones).forEach(([nombre, seccion]) => {
             seccion.classList.toggle('oculto', nombre !== pestana.dataset.pestana);
         });
+
+        if (pestana.dataset.pestana === 'perfil') {
+            mostrarMapaNegocio();
+        }
 
         if (pestana.dataset.pestana === 'repartidores' && !seccionRepartidoresCargada) {
             seccionRepartidoresCargada = true;
@@ -1440,6 +1446,7 @@ document.getElementById('formulario-perfil').addEventListener('submit', async (e
     const btnGuardarPerfil = document.getElementById('btn-guardar-perfil');
 
     const datosDistribuidora = {
+        ...leerUbicacionNegocio(),
         descripcion: document.getElementById('descripcion-negocio').value.trim(),
         calle: document.getElementById('calle-perfil').value.trim(),
         numero: document.getElementById('numero-perfil').value.trim(),

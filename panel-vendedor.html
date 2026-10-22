@@ -18,6 +18,7 @@
         rel="stylesheet">
     <link rel="stylesheet" href="css/comunes.css">
     <link rel="stylesheet" href="css/panel-vendedor.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="css/calendario-vendedor.css">
 </head>
 
@@ -321,6 +322,17 @@
                                     <input type="text" id="provincia-perfil" value="Catamarca">
                                 </div>
                             </div>
+
+                            <div class="campo">
+                                <label for="buscador-negocio">Ubicación en el mapa</label>
+                                <input type="text" id="buscador-negocio" placeholder="Buscá la dirección del negocio" autocomplete="off">
+                                <div id="sugerencias-negocio" class="sugerencias-negocio" hidden></div>
+                                <button type="button" class="btn btn-secundario" id="btn-mi-ubicacion-negocio">Usar mi ubicación actual</button>
+                                <p class="estado-ubicacion-negocio" id="estado-ubicacion-negocio"></p>
+                            </div>
+                            <div id="mapa-negocio" class="mapa-negocio"></div>
+                            <input type="hidden" id="latitud-negocio">
+                            <input type="hidden" id="longitud-negocio">
 
                             <div class="campo campo-checkbox">
                                 <label>
@@ -637,12 +649,16 @@
             </div>
         </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="js/supabase-config.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+    <script src="js/ubicacion-negocio.js"></script>
     <script src="js/panel-vendedor.js"></script>
     <script src="js/hojas-ruta.js"></script>
+    <script src="js/hoja-ruta-pdf.js"></script>
     <script src="js/tema.js"></script>
 </body>
 

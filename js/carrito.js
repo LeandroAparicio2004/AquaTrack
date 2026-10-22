@@ -112,6 +112,35 @@ function inicializarMapaDireccion() {
             'Ubicación seleccionada'
         );
     });
+
+    ubicarUsuarioEnMapa();
+}
+
+function ubicarUsuarioEnMapa() {
+    if (!navigator.geolocation) {
+        return;
+    }
+
+    navigator.geolocation.getCurrentPosition(async (posicion) => {
+        const { latitude, longitude } = posicion.coords;
+
+        if (document.getElementById('latitud-entrega').value) {
+            return;
+        }
+
+        colocarMarcadorDireccion(latitude, longitude, 'Estás acá');
+
+        try {
+            const respuesta = await fetch(`https://photon.komoot.io/reverse?lat=${latitude}&lon=${longitude}&limit=1`);
+            const resultado = (await respuesta.json()).features?.[0];
+
+            if (resultado && !document.getElementById('calle-entrega').value) {
+                seleccionarDireccion({ ...resultado, geometry: { coordinates: [longitude, latitude] } });
+            }
+        } catch (error) {
+            // punto marcado
+        }
+    }, () => {}, { enableHighAccuracy: true, timeout: 8000 });
 }
 
 function colocarMarcadorDireccion(
