@@ -473,8 +473,8 @@ async function cargarTableroEntregas() {
     const { data: entregas, error: errorEntregas } = await supabaseCliente
         .from('entregas')
         .select(`
-            id, estado, repartidor_id,
-            pedidos!inner ( id, direccion_calle, direccion_numero, direccion_ciudad, distribuidora_id,
+            id, estado, repartidor_id, cerrada_en,
+            pedidos!inner ( id, total, direccion_calle, direccion_numero, direccion_ciudad, distribuidora_id,
                 usuarios!pedidos_cliente_id_fkey ( nombre, apellido ),
                 detalles_pedidos ( cantidad, productos ( nombre ) ) )
         `)
@@ -579,6 +579,74 @@ async function cargarInsigniaAsignar() {
     pintarInsigniaAsignar(count || 0);
 }
 
+function accionesRutaTablero(idRepartidor, entregas) {
+    if (entregas.length === 0) {
+        return '';
+    }
+
+    const total = entregas.reduce((suma, entrega) => suma + Number(entrega.pedidos.total || 0), 0);
+    const productos = {};
+
+    entregas.forEach((entrega) => {
+        (entrega.pedidos.detalles_pedidos || []).forEach((item) => {
+            const nombre = item.productos?.nombre || 'Producto';
+            productos[nombre] = (productos[nombre] || 0) + item.cantidad;
+        });
+    });
+
+    const listaProductos = Object.entries(productos).map(([nombre, cantidad]) => `${cantidad} × ${nombre}`).join(' · ');
+
+    return `
+        <div class="resumen-ruta-tablero">
+            <strong>${entregas.length} parada${entregas.length === 1 ? '' : 's'} · ${formatearPrecio(total)}</strong>
+            <span>${escaparHtml(listaProductos)}</span>
+        </div>
+    `;
+}
+
+function botonRutaTablero(idRepartidor, entregas) {
+    if (entregas.length === 0) {
+        return '';
+    }
+
+    const sinCerrar = entregas.some((entrega) => entrega.estado === 'asignada' && !entrega.cerrada_en);
+
+    return sinCerrar
+        ? `<button type="button" class="btn btn-principal btn-ruta-tablero" data-cerrar-ruta="${idRepartidor}">Terminar ruta</button>`
+        : `<button type="button" class="btn btn-secundario btn-ruta-tablero" data-imprimir-ruta="${idRepartidor}">Imprimir hoja de ruta</button>`;
+}
+
+document.addEventListener('click', async (evento) => {
+    const boton = evento.target.closest('[data-cerrar-ruta]');
+
+    if (!boton) {
+        return;
+    }
+
+    if (!confirm('¿Terminar la ruta? Después no vas a poder cambiar los pedidos de este repartidor y podrá salir a repartir.')) {
+        return;
+    }
+
+    boton.disabled = true;
+
+    const ids = entregasTablero
+        .filter((entrega) => entrega.repartidor_id === boton.dataset.cerrarRuta && entrega.estado === 'asignada')
+        .map((entrega) => entrega.id);
+
+    const { error } = await supabaseCliente
+        .from('entregas')
+        .update({ cerrada_en: new Date().toISOString() })
+        .in('id', ids);
+
+    if (error) {
+        alert('No pudimos cerrar la ruta. Intentá de nuevo.');
+        boton.disabled = false;
+        return;
+    }
+
+    await cargarTableroEntregas();
+});
+
 function renderizarTablero() {
     pintarInsigniaAsignar(pedidosSinAsignar.filter((pedido) => puntajeUrgenciaPedido(pedido) > 0).length);
     const tablero = document.getElementById('tablero-entregas');
@@ -633,16 +701,16 @@ function renderizarTablero() {
                     ${seleccionadosEnColumna > 0 ? seleccionadosEnColumna + ' sel.' : entregasDelRepartidor.length}
                 </span>
             </div>
-            ${entregasDelRepartidor.length ? `<button type="button" class="btn btn-secundario btn-chico" data-imprimir-ruta="${miembro.usuario_id}">Imprimir hoja de ruta (PDF)</button>` : ''}
+            ${accionesRutaTablero(miembro.usuario_id, entregasDelRepartidor)}
             ${repartidorEnRuta ? '<p class="aviso-repartidor-en-ruta">En ruta, no le puedes asignar pedidos ahora mismo</p>' : ''}
             <div class="zona-drop">
                 ${entregasDelRepartidor.map((entrega) => {
-            const puedeMoverse = entrega.estado === 'asignada';
+            const puedeMoverse = entrega.estado === 'asignada' && !entrega.cerrada_en;
             const nombreCliente = `${entrega.pedidos.usuarios?.nombre || ''} ${entrega.pedidos.usuarios?.apellido || ''}`;
             const direccion = `${entrega.pedidos.direccion_calle} ${entrega.pedidos.direccion_numero || ''}, ${entrega.pedidos.direccion_ciudad}`;
             const etiqueta = `
                         <span class="etiqueta-estado-producto ${entrega.estado === 'en_camino' ? 'en_camino' : 'asignada'}">
-                            ${entrega.estado === 'en_camino' ? 'Enviado (no se puede mover)' : 'Asignada'}
+                            ${entrega.estado === 'en_camino' ? 'Enviado (no se puede mover)' : entrega.cerrada_en ? 'Ruta cerrada' : 'Asignada'}
                         </span>
                     `;
 
@@ -670,6 +738,7 @@ function renderizarTablero() {
                     `;
         }).join('')}
             </div>
+            ${botonRutaTablero(miembro.usuario_id, entregasDelRepartidor)}
         `;
 
         tablero.appendChild(columna);

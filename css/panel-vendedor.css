@@ -1833,3 +1833,22 @@ body {
     font-size: 0.85rem;
     color: var(--color-texto-secundario-panel);
 }
+
+.resumen-ruta-tablero {
+    display: grid;
+    gap: 2px;
+    margin: 0 10px 10px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: var(--color-acento-suave-panel);
+    font-size: 0.82rem;
+}
+
+.resumen-ruta-tablero span {
+    color: var(--color-texto-secundario-panel);
+}
+
+.btn-ruta-tablero {
+    width: calc(100% - 20px);
+    margin: 0 10px 10px;
+}

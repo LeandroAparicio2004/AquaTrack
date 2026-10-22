@@ -34,7 +34,7 @@ async function cargarMisEntregas() {
     const { data, error } = await supabaseCliente
         .from('entregas')
         .select(`
-            id, estado, asignada_en,
+            id, estado, asignada_en, cerrada_en,
             pedidos (
                 id, cliente_id, direccion_calle, direccion_numero, direccion_ciudad, direccion_referencia,
                 latitud, longitud, total, metodo_pago,
@@ -58,7 +58,13 @@ async function cargarMisEntregas() {
     });
 
     const barraSalir = document.getElementById('barra-salir-repartir');
-    barraSalir.classList.toggle('oculto', !(data || []).some((entrega) => entrega.estado === 'asignada'));
+    const asignadas = (data || []).filter((entrega) => entrega.estado === 'asignada');
+    const rutaCerrada = asignadas.length > 0 && asignadas.every((entrega) => entrega.cerrada_en);
+    const botonSalir = document.getElementById('btn-salir-repartir');
+
+    barraSalir.classList.toggle('oculto', asignadas.length === 0);
+    botonSalir.disabled = !rutaCerrada;
+    botonSalir.textContent = rutaCerrada ? 'Salir a repartir' : 'Esperando que el vendedor cierre tu ruta';
 
     const ordenConUbicacion = await dibujarMapaEntregas(data || []);
     const sinUbicacion = (data || []).filter((entrega) => !entrega.pedidos?.latitud || !entrega.pedidos?.longitud);
@@ -418,10 +424,11 @@ document.getElementById('btn-salir-repartir').addEventListener('click', async ()
         .from('entregas')
         .update({ estado: 'en_camino', iniciada_en: new Date().toISOString() })
         .eq('repartidor_id', usuarioActual.id)
-        .eq('estado', 'asignada');
+        .eq('estado', 'asignada')
+        .not('cerrada_en', 'is', null);
 
     if (error) {
-        alert('No pudimos iniciar el reparto. Intentá de nuevo.');
+        alert('No pudimos iniciar el reparto. Intente nuevamente.');
         boton.disabled = false;
         return;
     }
