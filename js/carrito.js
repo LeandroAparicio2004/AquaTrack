@@ -5,6 +5,17 @@ let mapaDireccion = null;
 let marcadorDireccion = null;
 let temporizadorBusquedaDireccion = null;
 let resultadosDirecciones = [];
+let ultimoPedidoCreado = null;
+
+function irAlTicketDelPedido() {
+    const idPedido = ultimoPedidoCreado || localStorage.getItem('aquatrack_pedido_pendiente');
+
+    localStorage.removeItem('aquatrack_pedido_pendiente');
+
+    window.location.href = idPedido
+        ? `ticket.html?pedido=${idPedido}`
+        : 'productos.html?pedido=confirmado';
+}
 
 let configuracionPagoAquaTrack = null;
 let idPagoTransferenciaActual = null;
@@ -1415,6 +1426,12 @@ document
 
             const idPagoCreado = resultado.pago_id;
 
+            ultimoPedidoCreado = resultado.pedidos?.[0] || null;
+
+            if (ultimoPedidoCreado) {
+                localStorage.setItem('aquatrack_pedido_pendiente', ultimoPedidoCreado);
+            }
+
             if (idPagoCreado) {
                 localStorage.setItem('aquatrack_pago_pendiente', idPagoCreado);
             }
@@ -1429,8 +1446,7 @@ document
                 return;
             }
 
-            window.location.href =
-                'productos.html?pedido=confirmado';
+            irAlTicketDelPedido();
         } catch (error) {
             console.error(error);
 
@@ -1592,8 +1608,7 @@ if (btnSubirComprobante) {
 
             localStorage.removeItem('aquatrack_pago_pendiente');
 
-            window.location.href =
-                'productos.html?pedido=confirmado';
+            irAlTicketDelPedido();
         } catch (error) {
             console.error(error);
 

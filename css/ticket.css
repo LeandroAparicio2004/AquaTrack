@@ -142,3 +142,18 @@
   text-align: center;
   font-size: 0.88rem;
 }
+
+.sello-pago-ticket {
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 3px 12px;
+  margin: 6px auto 4px;
+  width: fit-content;
+  border-radius: 999px;
+}
+
+.sello-pago-ticket.cobrado { color: #166534; background: #dcfce7; }
+.sello-pago-ticket.por-cobrar { color: #92400e; background: #fef3c7; }
+.sello-pago-ticket.verificando { color: #1d4ed8; background: #dbeafe; }
+.sello-pago-ticket.rechazado { color: #b91c1c; background: #fee2e2; }

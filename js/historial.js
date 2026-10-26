@@ -13,7 +13,7 @@ function formatearFecha(valor) {
 }
 
 const etiquetasEstadoPedidoHistorial = {
-    pendiente: 'Pendiente de asignación',
+    pendiente: 'Preparando Pedido',
     asignado: 'Asignado a un repartidor',
     en_camino: 'En camino',
     entregado: 'Entregado',
@@ -57,6 +57,7 @@ function renderizarHistorial() {
                     <span class="numero-pedido-historial">Pedido #${pedido.id.slice(0, 8).toUpperCase()}</span>
                     <span class="distribuidora-historial">${pedido.distribuidoras?.nombre || 'AquaTrack'}</span>
                     <span class="fecha-historial">${formatearFecha(pedido.creado_en)}</span>
+                    ${textoPagoHistorial(pedido)}
                 </div>
 
                 <div class="detalle-historial">
@@ -73,6 +74,43 @@ function renderizarHistorial() {
             </div>
         `;
     }).join('');
+}
+
+function textoPagoHistorial(pedido) {
+    if (pedido.estado === 'cancelado') {
+        return '';
+    }
+
+    const listaEntregas = Array.isArray(pedido.entregas) ? pedido.entregas : (pedido.entregas ? [pedido.entregas] : []);
+    const entrega = listaEntregas.find((item) => item.estado === 'entregada');
+    let pago;
+
+    if (pedido.metodo_pago === 'efectivo') {
+        pago = entrega && entrega.monto_cobrado != null
+            ? `Efectivo · cobrado ${formatearPrecio(entrega.monto_cobrado)}`
+            : 'Efectivo · se paga al recibir';
+    } else {
+        const estadoPago = pedido.pagos_transferencia?.estado;
+        pago = estadoPago === 'confirmado'
+            ? 'Transferencia · pago verificado'
+            : estadoPago === 'rechazado'
+                ? 'Transferencia · pago rechazado'
+                : 'Transferencia · en verificación';
+    }
+
+    const entregado = pedido.estado === 'entregado' && entrega?.entregada_en
+        ? ` · Entregado el ${formatearFecha(entrega.entregada_en)}`
+        : '';
+
+    const clase = pago.includes('rechazado')
+        ? 'rechazado'
+        : (pago.includes('cobrado') || pago.includes('verificado'))
+            ? 'cobrado'
+            : pago.includes('verificación')
+                ? 'verificando'
+                : 'por-cobrar';
+
+    return `<span class="chip-pago-historial ${clase}">${pago}</span>${entregado ? `<span class="fecha-historial">${entregado.replace(' · ', '')}</span>` : ''}`;
 }
 
 function obtenerResenaPedido(pedido) {
@@ -307,7 +345,9 @@ async function cargarHistorial() {
     const { data: pedidos, error } = await supabaseCliente
         .from('pedidos')
         .select(`
-            id, estado, total, creado_en,
+            id, estado, total, creado_en, metodo_pago,
+            pagos_transferencia ( estado ),
+            entregas ( estado, entregada_en, monto_cobrado ),
             distribuidoras ( nombre ),
             detalles_pedidos ( producto_id, cantidad ),
             resenas ( estrellas_distribuidora, estrellas_repartidor )

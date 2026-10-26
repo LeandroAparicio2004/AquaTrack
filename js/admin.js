@@ -346,7 +346,14 @@ async function cargarPagosTransferencia() {
 
         const todoPagado = pago.desglose.length > 0 && pago.desglose.every((item) => item.liquidacion?.pagado);
 
-        if (pago.estado === 'confirmado' && todoPagado) {
+        const completado = pago.estado === 'confirmado' && todoPagado;
+        const filtro = document.getElementById('filtro-pagos')?.value || 'pendientes';
+
+        if (filtro === 'pendientes' && completado) {
+            continue;
+        }
+
+        if (filtro === 'pagados' && !completado) {
             continue;
         }
 
@@ -354,10 +361,12 @@ async function cargarPagosTransferencia() {
     }
 
     if (!lista.children.length) {
-        estadoVacio.textContent = 'No hay pagos por verificar ni liquidaciones pendientes.';
+        estadoVacio.textContent = 'No hay pagos en esta vista.';
         estadoVacio.classList.remove('oculto');
     }
 }
+
+document.getElementById('filtro-pagos')?.addEventListener('change', cargarPagosTransferencia);
 
 async function marcarDistribuidoraPagada(idPago, idDistribuidora, monto, boton, archivo) {
     boton.disabled = true;

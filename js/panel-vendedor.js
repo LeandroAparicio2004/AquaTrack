@@ -395,9 +395,8 @@ function renderizarSuscripcionesPanel() {
                 ? `<p class="tarjeta-producto-panel-descripcion">Repartidor: <strong class="${!nombreRepartidor && (diasHastaFechaPanel(suscripcion.proxima_entrega) ?? 1) <= 0 ? 'texto-sin-asignar' : ''}">${nombreRepartidor ? escaparHtml(nombreRepartidor) : 'Sin asignar'}</strong></p>`
                 : ''}
                 <p class="tarjeta-producto-panel-descripcion">
-                    Pago: ${suscripcion.metodo_pago === 'transferencia'
-                ? `Transferencia${suscripcion.pagada_hasta ? ` · paga hasta ${formatearFechaPanel(suscripcion.pagada_hasta)}` : ''}`
-                : 'Efectivo'}
+                    Pago: ${suscripcion.metodo_pago === 'transferencia' ? 'Transferencia' : 'Efectivo'}
+                    ${suscripcion.estado !== 'cancelada' ? `<span class="cuenta-estado pendiente" data-estado-pago="${suscripcion.id}">...</span>` : ''}
                 </p>
                 <div class="tarjeta-producto-panel-acciones">
                     <button type="button" class="btn btn-secundario btn-chico" data-cuenta-suscripcion="${suscripcion.id}">Ver cuenta</button>
@@ -408,6 +407,32 @@ function renderizarSuscripcionesPanel() {
             </article>
         `;
     }).join('');
+
+    cargarEstadosPagoSuscripciones();
+}
+
+async function cargarEstadosPagoSuscripciones() {
+    const etiquetas = document.querySelectorAll('[data-estado-pago]');
+
+    for (const etiqueta of etiquetas) {
+        const cuenta = await obtenerCuentaSuscripcion(etiqueta.dataset.estadoPago);
+        const meses = cuenta?.meses || [];
+        let clase = 'pendiente';
+        let texto = 'Sin cobros aún';
+
+        if (meses.some((mes) => mes.atrasado)) {
+            clase = 'atrasado';
+            texto = 'Atrasado';
+        } else if (meses.length > 0 && meses.every((mes) => mes.pagado)) {
+            clase = 'pagado';
+            texto = 'Al día';
+        } else if (meses.length > 0) {
+            texto = 'Por pagar';
+        }
+
+        etiqueta.className = `cuenta-estado ${clase}`;
+        etiqueta.textContent = texto;
+    }
 }
 
 document.getElementById('filtro-estado-suscripciones').addEventListener('change', renderizarSuscripcionesPanel);

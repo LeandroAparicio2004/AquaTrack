@@ -1,118 +1,91 @@
-const etiquetasEstadoCuenta = {
-    pendiente: 'Programada',
-    asignado: 'Programada',
-    en_camino: 'En camino',
-    entregado: 'Entregada'
-};
-
 function dineroCuenta(valor) {
     return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(valor || 0);
 }
 
-function fechaCuenta(valor) {
-    if (!valor) {
-        return '-';
-    }
-
-    return new Date(`${valor}T00:00:00`).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+function nombreMesCuenta(periodo) {
+    const texto = new Date(`${periodo}T00:00:00`).toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+    return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
-function calcularCuentaSuscripcion(pedidos) {
-    const filas = (pedidos || [])
-        .filter((pedido) => pedido.estado !== 'cancelado')
-        .map((pedido) => {
-            const total = Number(pedido.total) || 0;
-            const entregado = pedido.estado === 'entregado';
-            const entrega = (pedido.entregas || []).find((item) => item.monto_cobrado != null);
-            let pagado = 0;
-            let textoPago;
-
-            if (pedido.metodo_pago === 'efectivo') {
-                if (entregado) {
-                    pagado = entrega ? Number(entrega.monto_cobrado) : total;
-                    textoPago = `Cobrado en efectivo (${dineroCuenta(pagado)})`;
-                } else {
-                    textoPago = 'Se cobra en efectivo al entregar';
-                }
-            } else if (pedido.pagos_transferencia?.estado === 'confirmado') {
-                pagado = total;
-                textoPago = 'Pagado por transferencia';
-            } else if (pedido.pagos_transferencia?.estado === 'rechazado') {
-                textoPago = 'Pago rechazado';
-            } else {
-                textoPago = 'Transferencia en verificación';
-            }
-
-            return {
-                fecha: pedido.fecha_entrega,
-                estado: etiquetasEstadoCuenta[pedido.estado] || pedido.estado,
-                entregado,
-                total,
-                pagado,
-                textoPago
-            };
-        });
-
-    const hechas = filas.filter((fila) => fila.entregado);
-    const entregadoTotal = hechas.reduce((suma, fila) => suma + fila.total, 0);
-    const pagadoTotal = filas.reduce((suma, fila) => suma + fila.pagado, 0);
-
-    return {
-        filas,
-        entregasHechas: hechas.length,
-        entregasTotales: filas.length,
-        entregadoTotal,
-        pagadoTotal,
-        saldo: entregadoTotal - pagadoTotal
-    };
-}
+(function agregarEstilosCuenta() {
+    const estilo = document.createElement('style');
+    estilo.textContent = `
+        .cuenta-estado { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.85rem; font-weight: 700; }
+        .cuenta-estado.pagado { background: #dcfce7; color: #166534; }
+        .cuenta-estado.atrasado { background: #fee2e2; color: #b91c1c; }
+        .cuenta-estado.pendiente { background: #fef3c7; color: #92400e; }
+        .cuenta-fila .btn { margin-top: 6px; }
+    `;
+    document.head.appendChild(estilo);
+})();
 
 async function obtenerCuentaSuscripcion(idSuscripcion) {
-    const { data, error } = await supabaseCliente
-        .from('pedidos')
-        .select(`
-            id, fecha_entrega, estado, total, metodo_pago,
-            pagos_transferencia ( estado ),
-            entregas ( monto_cobrado )
-        `)
-        .eq('suscripcion_id', idSuscripcion)
-        .order('fecha_entrega', { ascending: true });
+    const { data, error } = await supabaseCliente.rpc('pagos_mensuales_suscripcion', {
+        p_suscripcion_id: idSuscripcion
+    });
 
     if (error) {
         return null;
     }
 
-    return calcularCuentaSuscripcion(data);
+    return { id: idSuscripcion, meses: data || [] };
 }
 
 function htmlCuentaSuscripcion(cuenta) {
-    if (!cuenta || cuenta.filas.length === 0) {
+    if (!cuenta || cuenta.meses.length === 0) {
         return '<p class="estado-suscripciones">Todavía no hay entregas en esta suscripción.</p>';
     }
 
-    const etiquetaSaldo = cuenta.saldo > 0 ? 'Falta pagar' : cuenta.saldo < 0 ? 'Saldo a favor' : 'Saldo';
+    const esVendedor = !!document.getElementById('lista-suscripciones-panel');
 
     return `
-        <div class="cuenta-totales">
-            <div><span>Entregas hechas</span><strong>${cuenta.entregasHechas} de ${cuenta.entregasTotales}</strong></div>
-            <div><span>Entregado</span><strong>${dineroCuenta(cuenta.entregadoTotal)}</strong></div>
-            <div><span>Pagado</span><strong>${dineroCuenta(cuenta.pagadoTotal)}</strong></div>
-            <div><span>${etiquetaSaldo}</span><strong>${dineroCuenta(Math.abs(cuenta.saldo))}</strong></div>
-        </div>
-
         <div class="cuenta-lista">
-            ${cuenta.filas.map((fila) => `
-                <div class="cuenta-fila ${fila.entregado ? 'hecha' : ''}">
-                    <div>
-                        <strong>${fechaCuenta(fila.fecha)}</strong>
-                        <span>${fila.estado}</span>
+            ${cuenta.meses.map((mes) => {
+                const clase = mes.pagado ? 'pagado' : mes.atrasado ? 'atrasado' : 'pendiente';
+                const texto = mes.pagado ? 'Pagado' : mes.atrasado ? 'Atrasado' : 'Por pagar';
+                const boton = esVendedor
+                    ? `<br><button type="button" class="btn btn-secundario btn-chico" data-marcar-mes="${mes.periodo}" data-suscripcion="${cuenta.id}" data-pagado="${mes.pagado ? 'no' : 'si'}">${mes.pagado ? 'Deshacer' : 'Marcar pagado'}</button>`
+                    : '';
+
+                return `
+                    <div class="cuenta-fila">
+                        <div>
+                            <strong>${nombreMesCuenta(mes.periodo)}</strong>
+                            <span>${mes.entregas} entrega${mes.entregas === 1 ? '' : 's'}</span>
+                        </div>
+                        <div>
+                            <strong>${dineroCuenta(mes.monto)}</strong>
+                            <span class="cuenta-estado ${clase}">${texto}</span>${boton}
+                        </div>
                     </div>
-                    <div>
-                        <strong>${dineroCuenta(fila.total)}</strong>
-                        <span>${fila.textoPago}</span>
-                    </div>
-                </div>
-            `).join('')}
+                `;
+            }).join('')}
         </div>
+        <p class="estado-suscripciones">El monto del mes suma las entregas que ya se programaron.</p>
     `;
 }
+
+document.addEventListener('click', async (evento) => {
+    const boton = evento.target.closest('[data-marcar-mes]');
+
+    if (!boton) {
+        return;
+    }
+
+    boton.disabled = true;
+
+    const { error } = await supabaseCliente.rpc('marcar_mes_pagado', {
+        p_suscripcion_id: boton.dataset.suscripcion,
+        p_periodo: boton.dataset.marcarMes,
+        p_pagado: boton.dataset.pagado === 'si'
+    });
+
+    if (error) {
+        boton.disabled = false;
+        alert('No pudimos guardar el pago. Probá de nuevo.');
+        return;
+    }
+
+    const cuenta = await obtenerCuentaSuscripcion(boton.dataset.suscripcion);
+    document.getElementById('contenido-cuenta-suscripcion').innerHTML = htmlCuentaSuscripcion(cuenta);
+});
