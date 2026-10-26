@@ -27,7 +27,78 @@ function claseEstadoEntrega(estado) {
     return estado === 'en_camino' ? 'en_camino' : 'asignada';
 }
 
+async function cargarResumenHoy() {
+    const contenedor = document.getElementById('resumen-hoy-repartidor');
+
+    if (!contenedor) {
+        return;
+    }
+
+    const inicio = new Date();
+    inicio.setHours(0, 0, 0, 0);
+    const desde = inicio.toISOString();
+
+    const [{ data: entregadas }, { data: fallidas }] = await Promise.all([
+        supabaseCliente
+            .from('entregas')
+            .select(`
+                id, entregada_en, monto_cobrado,
+                pedidos ( total, metodo_pago, direccion_calle, direccion_numero,
+                    usuarios!pedidos_cliente_id_fkey ( nombre, apellido ) )
+            `)
+            .eq('repartidor_id', usuarioActual.id)
+            .eq('estado', 'entregada')
+            .gte('entregada_en', desde)
+            .order('entregada_en', { ascending: false }),
+        supabaseCliente
+            .from('intentos_entrega')
+            .select('id, motivo, creado_en')
+            .eq('repartidor_id', usuarioActual.id)
+            .gte('creado_en', desde)
+            .order('creado_en', { ascending: false })
+    ]);
+
+    const hechas = entregadas || [];
+    const noHechas = fallidas || [];
+
+    if (hechas.length === 0 && noHechas.length === 0) {
+        contenedor.innerHTML = '';
+        return;
+    }
+
+    const efectivo = hechas.reduce((suma, e) => suma + Number(e.monto_cobrado || 0), 0);
+    const transferencia = hechas
+        .filter((e) => e.pedidos?.metodo_pago === 'transferencia')
+        .reduce((suma, e) => suma + Number(e.pedidos?.total || 0), 0);
+
+    const hora = (fecha) => new Date(fecha).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+
+    contenedor.innerHTML = `
+        <h3>Hoy</h3>
+        <div class="resumen-hoy-totales">
+            <div><span>Efectivo cobrado (para entregar al vendedor)</span><strong>${formatearPrecio(efectivo)}</strong></div>
+            <div><span>Ya pagado por transferencia</span><strong>${formatearPrecio(transferencia)}</strong></div>
+            <div><span>Entregas hechas</span><strong>${hechas.length}</strong></div>
+            <div><span>No entregadas</span><strong>${noHechas.length}</strong></div>
+        </div>
+        ${hechas.map((e) => `
+            <div class="fila-resumen-hoy">
+                <span>✔ ${escaparHtml(e.pedidos?.usuarios?.nombre || '')} ${escaparHtml(e.pedidos?.usuarios?.apellido || '')} · ${escaparHtml(e.pedidos?.direccion_calle || '')} ${escaparHtml(e.pedidos?.direccion_numero || '')}</span>
+                <span>${e.pedidos?.metodo_pago === 'efectivo' ? 'Efectivo ' + formatearPrecio(e.monto_cobrado) : 'Transferencia'} · ${hora(e.entregada_en)}</span>
+            </div>
+        `).join('')}
+        ${noHechas.map((i) => `
+            <div class="fila-resumen-hoy fila-no-entregada">
+                <span>✖ No entregado: ${escaparHtml(i.motivo)}</span>
+                <span>${hora(i.creado_en)}</span>
+            </div>
+        `).join('')}
+    `;
+}
+
 async function cargarMisEntregas() {
+    cargarResumenHoy();
+
     const estadoVacio = document.getElementById('estado-entregas-repartidor');
     const lista = document.getElementById('lista-entregas-repartidor');
 
@@ -59,12 +130,11 @@ async function cargarMisEntregas() {
 
     const barraSalir = document.getElementById('barra-salir-repartir');
     const asignadas = (data || []).filter((entrega) => entrega.estado === 'asignada');
-    const rutaCerrada = asignadas.length > 0 && asignadas.every((entrega) => entrega.cerrada_en);
     const botonSalir = document.getElementById('btn-salir-repartir');
 
     barraSalir.classList.toggle('oculto', asignadas.length === 0);
-    botonSalir.disabled = !rutaCerrada;
-    botonSalir.textContent = rutaCerrada ? 'Salir a repartir' : 'Esperando que el vendedor cierre tu ruta';
+    botonSalir.disabled = false;
+    botonSalir.textContent = 'Salir a repartir';
 
     const ordenConUbicacion = await dibujarMapaEntregas(data || []);
     const sinUbicacion = (data || []).filter((entrega) => !entrega.pedidos?.latitud || !entrega.pedidos?.longitud);
@@ -133,7 +203,8 @@ async function cargarMisEntregas() {
                 </div>
                 <div class="tarjeta-producto-panel-acciones">
                     ${entrega.estado === 'en_camino'
-                ? `<button type="button" class="btn btn-principal btn-chico" data-confirmar-entrega="${entrega.id}">Confirmar entrega</button>`
+                ? `<button type="button" class="btn btn-principal btn-chico" data-confirmar-entrega="${entrega.id}">Confirmar entrega</button>
+                   <button type="button" class="btn btn-secundario btn-chico" data-no-pude-entregar="${entrega.id}">No pude entregar</button>`
                 : ''}
                     <button type="button" class="btn-icono-circular" data-chat-cliente="${pedido.cliente_id}" aria-label="Chatear con el cliente" title="Chatear con el cliente">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -279,6 +350,36 @@ document.getElementById('lista-entregas-repartidor').addEventListener('click', (
     abrirModalValidacionEntrega(botonConfirmar.dataset.confirmarEntrega);
 });
 
+document.getElementById('lista-entregas-repartidor').addEventListener('click', async (evento) => {
+    const boton = evento.target.closest('[data-no-pude-entregar]');
+    if (!boton) return;
+
+    const opciones = ['No estaba', 'No atiende', 'Dirección incorrecta', 'Otro'];
+    const eleccion = prompt(
+        '¿Por qué no pudiste entregar?\n\n1 = No estaba\n2 = No atiende\n3 = Dirección incorrecta\n4 = Otro\n\nEscribí el número:'
+    );
+    const motivo = opciones[Number(eleccion) - 1];
+
+    if (!motivo) return;
+
+    if (!confirm(`Vas a devolver este pedido al vendedor (${motivo}). ¿Seguro?`)) return;
+
+    boton.disabled = true;
+
+    const { error } = await supabaseCliente.rpc('no_pude_entregar', {
+        p_entrega_id: boton.dataset.noPudeEntregar,
+        p_motivo: motivo
+    });
+
+    if (error) {
+        alert(error.message || 'No pudimos devolver el pedido. Intentá de nuevo.');
+        boton.disabled = false;
+        return;
+    }
+
+    await cargarMisEntregas();
+});
+
 function codigoManualDePedido(idPedido) {
     return (idPedido || '').slice(0, 8).toUpperCase();
 }
@@ -379,16 +480,16 @@ async function procesarCodigoValidacion(codigoIngresado) {
     }
 
     await detenerEscanerQr();
-    await confirmarEntregaValidada();
+    await confirmarEntregaValidada(valorLimpio);
 }
 
-async function confirmarEntregaValidada() {
+async function confirmarEntregaValidada(codigo) {
     const idEntrega = entregaSeleccionadaValidacion;
 
-    const { error } = await supabaseCliente
-        .from('entregas')
-        .update({ estado: 'entregada', entregada_en: new Date().toISOString() })
-        .eq('id', idEntrega);
+    const { error } = await supabaseCliente.rpc('confirmar_entrega', {
+        p_entrega_id: idEntrega,
+        p_codigo: codigo
+    });
 
     if (error) {
         mostrarMensajeValidacion('No pudimos confirmar la entrega. Intentá de nuevo.', 'error');
@@ -424,8 +525,7 @@ document.getElementById('btn-salir-repartir').addEventListener('click', async ()
         .from('entregas')
         .update({ estado: 'en_camino', iniciada_en: new Date().toISOString() })
         .eq('repartidor_id', usuarioActual.id)
-        .eq('estado', 'asignada')
-        .not('cerrada_en', 'is', null);
+        .eq('estado', 'asignada');
 
     if (error) {
         alert('No pudimos iniciar el reparto. Intente nuevamente.');

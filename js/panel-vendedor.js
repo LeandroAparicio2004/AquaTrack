@@ -282,7 +282,7 @@ async function cargarSuscripcionesPanel() {
         .from('suscripciones')
         .select(`
             id, cantidad, envases_devueltos, frecuencia, proxima_entrega, estado,
-            metodo_pago, pagada_hasta,
+            metodo_pago, pagada_hasta, dias_semana,
             direccion_calle, direccion_numero, direccion_ciudad, direccion_referencia,
             usuarios ( nombre, apellido, telefono ),
             productos ( nombre, capacidad_litros )
@@ -384,7 +384,7 @@ function renderizarSuscripcionesPanel() {
                 ${cliente?.telefono ? `<p class="tarjeta-producto-panel-descripcion">Tel: ${escaparHtml(cliente.telefono)}</p>` : ''}
                 <p class="tarjeta-producto-panel-descripcion">
                     ${escaparHtml(producto?.nombre || 'Producto')} (${producto?.capacidad_litros || '?'}L) x${suscripcion.cantidad}
-                    — ${etiquetasFrecuenciaPanel[suscripcion.frecuencia] || suscripcion.frecuencia}
+                    — ${etiquetasFrecuenciaPanel[suscripcion.frecuencia] || suscripcion.frecuencia}${suscripcion.dias_semana && suscripcion.dias_semana.length ? ' (' + suscripcion.dias_semana.map((d) => ['', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'][d]).join(' · ') + ')' : ''}
                 </p>
                 <p class="tarjeta-producto-panel-descripcion">${escaparHtml(direccion)}</p>
                 ${suscripcion.envases_devueltos > 0
@@ -399,11 +399,12 @@ function renderizarSuscripcionesPanel() {
                 ? `Transferencia${suscripcion.pagada_hasta ? ` · paga hasta ${formatearFechaPanel(suscripcion.pagada_hasta)}` : ''}`
                 : 'Efectivo'}
                 </p>
-                ${suscripcion.estado !== 'cancelada'
-                ? `<div class="tarjeta-producto-panel-acciones">
-                       <button type="button" class="btn btn-secundario btn-peligro btn-chico" data-cancelar-suscripcion="${suscripcion.id}">Cancelar suscripción</button>
-                   </div>`
+                <div class="tarjeta-producto-panel-acciones">
+                    <button type="button" class="btn btn-secundario btn-chico" data-cuenta-suscripcion="${suscripcion.id}">Ver cuenta</button>
+                    ${suscripcion.estado !== 'cancelada'
+                ? `<button type="button" class="btn btn-secundario btn-peligro btn-chico" data-cancelar-suscripcion="${suscripcion.id}">Cancelar suscripción</button>`
                 : ''}
+                </div>
             </article>
         `;
     }).join('');
@@ -411,7 +412,25 @@ function renderizarSuscripcionesPanel() {
 
 document.getElementById('filtro-estado-suscripciones').addEventListener('change', renderizarSuscripcionesPanel);
 
+document.getElementById('boton-cerrar-modal-cuenta').addEventListener('click', () => {
+    document.getElementById('modal-cuenta-suscripcion').classList.add('oculto');
+});
+
 document.getElementById('lista-suscripciones-panel').addEventListener('click', async (evento) => {
+    const botonCuenta = evento.target.closest('[data-cuenta-suscripcion]');
+
+    if (botonCuenta) {
+        const contenido = document.getElementById('contenido-cuenta-suscripcion');
+        contenido.innerHTML = '<p>Cargando cuenta...</p>';
+        document.getElementById('modal-cuenta-suscripcion').classList.remove('oculto');
+
+        const cuenta = await obtenerCuentaSuscripcion(botonCuenta.dataset.cuentaSuscripcion);
+        contenido.innerHTML = cuenta
+            ? htmlCuentaSuscripcion(cuenta)
+            : '<p>No pudimos cargar la cuenta. Probá de nuevo.</p>';
+        return;
+    }
+
     const boton = evento.target.closest('[data-cancelar-suscripcion]');
 
     if (!boton) {
@@ -463,6 +482,7 @@ async function cargarTableroEntregas() {
         .from('pedidos')
         .select(`
             id, suscripcion_id, fecha_entrega, direccion_calle, direccion_numero, direccion_ciudad,
+            intento_fallido_motivo,
             usuarios!pedidos_cliente_id_fkey ( nombre, apellido ),
             detalles_pedidos ( cantidad, productos ( nombre ) )
         `)
@@ -499,6 +519,97 @@ async function cargarTableroEntregas() {
 
     renderizarTablero();
 }
+
+async function cargarResumenDia() {
+    const contenedor = document.getElementById('resumen-dia-vendedor');
+
+    if (!contenedor || !distribuidoraActual) {
+        return;
+    }
+
+    const inicio = new Date();
+    inicio.setHours(0, 0, 0, 0);
+    const desde = inicio.toISOString();
+
+    const [{ data: entregadas }, { data: fallidas }] = await Promise.all([
+        supabaseCliente
+            .from('entregas')
+            .select('id, repartidor_id, monto_cobrado, rendida_en, pedidos!inner ( total, metodo_pago, distribuidora_id )')
+            .eq('pedidos.distribuidora_id', distribuidoraActual.id)
+            .eq('estado', 'entregada')
+            .gte('entregada_en', desde),
+        supabaseCliente
+            .from('intentos_entrega')
+            .select('id, repartidor_id, motivo, pedidos!inner ( distribuidora_id )')
+            .eq('pedidos.distribuidora_id', distribuidoraActual.id)
+            .gte('creado_en', desde)
+    ]);
+
+    const hechas = entregadas || [];
+    const noHechas = fallidas || [];
+
+    if (hechas.length === 0 && noHechas.length === 0) {
+        contenedor.innerHTML = '';
+        return;
+    }
+
+    const nombreDe = (idRepartidor) => {
+        const miembro = repartidoresTablero.find((m) => m.usuario_id === idRepartidor);
+        return `${miembro?.usuarios?.nombre || ''} ${miembro?.usuarios?.apellido || ''}`.trim() || 'Repartidor';
+    };
+
+    const ids = [...new Set([...hechas, ...noHechas].map((x) => x.repartidor_id))];
+
+    const filas = ids.map((id) => {
+        const mias = hechas.filter((e) => e.repartidor_id === id);
+        const efectivo = mias.reduce((s, e) => s + Number(e.monto_cobrado || 0), 0);
+        const pendiente = mias.filter((e) => !e.rendida_en).reduce((s, e) => s + Number(e.monto_cobrado || 0), 0);
+        const transferencia = mias
+            .filter((e) => e.pedidos?.metodo_pago === 'transferencia')
+            .reduce((s, e) => s + Number(e.pedidos?.total || 0), 0);
+        const falladas = noHechas.filter((i) => i.repartidor_id === id).length;
+
+        return `
+            <div class="fila-resumen-hoy">
+                <span><strong>${escaparHtml(nombreDe(id))}</strong> · ${mias.length} entregada${mias.length === 1 ? '' : 's'}${falladas ? ` · ${falladas} no entregada${falladas === 1 ? '' : 's'}` : ''}</span>
+                <span>
+                    Efectivo ${formatearPrecio(efectivo)} · Transferencia ${formatearPrecio(transferencia)}
+                    ${pendiente > 0
+            ? `<button type="button" class="btn btn-principal btn-chico" data-recibir-efectivo="${id}" data-monto="${pendiente}">Recibí ${formatearPrecio(pendiente)}</button>`
+            : '<em>· efectivo recibido ✔</em>'}
+                </span>
+            </div>
+        `;
+    }).join('');
+
+    contenedor.innerHTML = `<h3>Efectivo de repartidores · hoy</h3>${filas}`;
+}
+
+document.addEventListener('click', async (evento) => {
+    const boton = evento.target.closest('[data-recibir-efectivo]');
+
+    if (!boton) {
+        return;
+    }
+
+    if (!confirm(`¿Confirmás que recibiste ${formatearPrecio(boton.dataset.monto)} en efectivo de este repartidor?`)) {
+        return;
+    }
+
+    boton.disabled = true;
+
+    const { error } = await supabaseCliente.rpc('recibir_efectivo', {
+        p_repartidor_id: boton.dataset.recibirEfectivo
+    });
+
+    if (error) {
+        alert(error.message || 'No pudimos registrar el efectivo. Intentá de nuevo.');
+        boton.disabled = false;
+        return;
+    }
+
+    await cargarResumenDia();
+});
 
 function resumenItemsPedido(pedido) {
     return (pedido.detalles_pedidos || [])
@@ -609,37 +720,35 @@ function botonRutaTablero(idRepartidor, entregas) {
         return '';
     }
 
-    const sinCerrar = entregas.some((entrega) => entrega.estado === 'asignada' && !entrega.cerrada_en);
-
-    return sinCerrar
-        ? `<button type="button" class="btn btn-principal btn-ruta-tablero" data-cerrar-ruta="${idRepartidor}">Terminar ruta</button>`
-        : `<button type="button" class="btn btn-secundario btn-ruta-tablero" data-imprimir-ruta="${idRepartidor}">Imprimir hoja de ruta</button>`;
+    return `<button type="button" class="btn btn-secundario btn-ruta-tablero" data-imprimir-ruta="${idRepartidor}">Imprimir hoja de ruta</button>`;
 }
 
 document.addEventListener('click', async (evento) => {
-    const boton = evento.target.closest('[data-cerrar-ruta]');
+    const boton = evento.target.closest('[data-marcar-entregado]');
 
     if (!boton) {
         return;
     }
 
-    if (!confirm('¿Terminar la ruta? Después no vas a poder cambiar los pedidos de este repartidor y podrá salir a repartir.')) {
+    const entrega = entregasTablero.find((item) => item.id === boton.dataset.marcarEntregado);
+    const pedido = entrega?.pedidos;
+
+    const pregunta = pedido?.metodo_pago === 'efectivo'
+        ? `¿Se entregó y se cobraron ${formatearPrecio(pedido.total)} en efectivo?`
+        : '¿Se entregó este pedido? (ya estaba pago por transferencia)';
+
+    if (!confirm(pregunta)) {
         return;
     }
 
     boton.disabled = true;
 
-    const ids = entregasTablero
-        .filter((entrega) => entrega.repartidor_id === boton.dataset.cerrarRuta && entrega.estado === 'asignada')
-        .map((entrega) => entrega.id);
-
-    const { error } = await supabaseCliente
-        .from('entregas')
-        .update({ cerrada_en: new Date().toISOString() })
-        .in('id', ids);
+    const { error } = await supabaseCliente.rpc('marcar_entregado_vendedor', {
+        p_entrega_id: boton.dataset.marcarEntregado
+    });
 
     if (error) {
-        alert('No pudimos cerrar la ruta. Intentá de nuevo.');
+        alert(error.message || 'No pudimos marcar la entrega. Intentá de nuevo.');
         boton.disabled = false;
         return;
     }
@@ -669,6 +778,7 @@ function renderizarTablero() {
                 <div class="tarjeta-pedido-tablero tarjeta-seleccionable ${pedidosSeleccionados.has(pedido.id) ? 'seleccionada' : ''} ${claseUrgenciaPedido(pedido)}"
                     draggable="true" data-pedido-click="${pedido.id}">
                     ${etiquetaSuscripcionPedido(pedido)}
+                    ${pedido.intento_fallido_motivo ? `<span class="etiqueta-urgencia">✖ Intento fallido: ${escaparHtml(pedido.intento_fallido_motivo)}</span>` : ''}
                     <strong>${escaparHtml(pedido.usuarios?.nombre || '')} ${escaparHtml(pedido.usuarios?.apellido || '')}</strong>
                     <span>${escaparHtml(pedido.direccion_calle)} ${escaparHtml(pedido.direccion_numero || '')}, ${escaparHtml(pedido.direccion_ciudad)}</span>
                     <span>${escaparHtml(resumenItemsPedido(pedido))}</span>
@@ -705,16 +815,17 @@ function renderizarTablero() {
             ${repartidorEnRuta ? '<p class="aviso-repartidor-en-ruta">En ruta, no le puedes asignar pedidos ahora mismo</p>' : ''}
             <div class="zona-drop">
                 ${entregasDelRepartidor.map((entrega) => {
-            const puedeMoverse = entrega.estado === 'asignada' && !entrega.cerrada_en;
+            const puedeMoverse = entrega.estado === 'asignada';
             const nombreCliente = `${entrega.pedidos.usuarios?.nombre || ''} ${entrega.pedidos.usuarios?.apellido || ''}`;
             const direccion = `${entrega.pedidos.direccion_calle} ${entrega.pedidos.direccion_numero || ''}, ${entrega.pedidos.direccion_ciudad}`;
             const etiqueta = `
                         <span class="etiqueta-estado-producto ${entrega.estado === 'en_camino' ? 'en_camino' : 'asignada'}">
-                            ${entrega.estado === 'en_camino' ? 'Enviado (no se puede mover)' : entrega.cerrada_en ? 'Ruta cerrada' : 'Asignada'}
+                            ${entrega.estado === 'en_camino' ? 'Enviado (no se puede mover)' : 'Asignada'}
                         </span>
                     `;
 
-            const items = `<span>${escaparHtml(resumenItemsPedido(entrega.pedidos))}</span>`;
+            const items = `<span>${escaparHtml(resumenItemsPedido(entrega.pedidos))}</span>
+                <button type="button" class="btn btn-secundario btn-chico btn-marcar-entregado" data-marcar-entregado="${entrega.id}">✔ Entregado</button>`;
 
             if (!puedeMoverse) {
                 return `
@@ -762,7 +873,7 @@ async function moverPedidoEnTablero(datos, idRepartidorDestino, idRuta, orden) {
         if (entregaId) {
             ({ error } = await supabaseCliente
                 .from('entregas')
-                .update({ repartidor_id: null, ruta_id: null, orden: null })
+                .update({ repartidor_id: null, ruta_id: null, orden: null, cerrada_en: null })
                 .eq('id', entregaId));
         }
         if (!error) {
@@ -774,7 +885,7 @@ async function moverPedidoEnTablero(datos, idRepartidorDestino, idRuta, orden) {
     } else if (entregaId) {
         ({ error } = await supabaseCliente
             .from('entregas')
-            .update({ repartidor_id: idRepartidorDestino, ruta_id: idRuta || null, orden: orden ?? null })
+            .update({ repartidor_id: idRepartidorDestino, ruta_id: idRuta || null, orden: orden ?? null, cerrada_en: null })
             .eq('id', entregaId));
 
         if (!error) {
@@ -839,7 +950,11 @@ async function moverGrupoEnTablero(items, idRepartidorDestino) {
 
 function habilitarDragAndDrop() {
     document.querySelectorAll('[data-pedido-click]').forEach((tarjeta) => {
-        tarjeta.addEventListener('click', () => {
+        tarjeta.addEventListener('click', (evento) => {
+            if (evento.target.closest('[data-marcar-entregado]')) {
+                return;
+            }
+
             const id = tarjeta.dataset.pedidoClick;
             if (pedidosSeleccionados.has(id)) {
                 pedidosSeleccionados.delete(id);
@@ -1250,6 +1365,8 @@ function renderizarCobros() {
 }
 
 async function cargarCobros() {
+    cargarResumenDia();
+
     const estado = document.getElementById('estado-cobros');
 
     const { data, error } = await supabaseCliente.rpc('obtener_cobros_distribuidora', {

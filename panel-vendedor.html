@@ -449,6 +449,8 @@
                     <button type="button" class="btn btn-secundario" id="btn-exportar-cobros">Descargar Excel</button>
                 </div>
 
+                <div class="resumen-hoy-repartidor" id="resumen-dia-vendedor"></div>
+
                 <div class="resumen-cobros" id="resumen-cobros"></div>
 
                 <p class="estado-productos-panel oculto" id="estado-cobros"></p>
@@ -565,6 +567,14 @@
         </div>
     </div>
 
+    <div class="modal-fondo oculto" id="modal-cuenta-suscripcion" role="dialog" aria-modal="true">
+        <div class="modal-producto modal-cuenta">
+            <button type="button" class="boton-cerrar-modal" id="boton-cerrar-modal-cuenta" aria-label="Cerrar ventana">×</button>
+            <h2>Cuenta de la suscripción</h2>
+            <div id="contenido-cuenta-suscripcion"></div>
+        </div>
+    </div>
+
     <div class="modal-fondo oculto" id="modal-detalle-repartidor" role="dialog" aria-modal="true"
         aria-labelledby="titulo-modal-repartidor">
         <div class="modal-producto">
@@ -656,6 +666,7 @@
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
     <script src="js/ubicacion-negocio.js"></script>
+    <script src="js/cuenta-suscripcion.js"></script>
     <script src="js/panel-vendedor.js"></script>
     <script src="js/hojas-ruta.js"></script>
     <script src="js/hoja-ruta-pdf.js"></script>

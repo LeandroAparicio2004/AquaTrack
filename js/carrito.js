@@ -1291,85 +1291,6 @@ function obtenerDatosDireccion() {
     };
 }
 
-async function crearPedidosDesdeCarrito(
-    sesion,
-    resumen,
-    metodoPago,
-    idPagoTransferencia = null
-) {
-    const direccion = obtenerDatosDireccion();
-    const pedidosCreados = [];
-
-    for (const grupo of resumen.grupos) {
-        const { data: pedido, error: errorPedido } =
-            await supabaseCliente
-                .from('pedidos')
-                .insert({
-                    cliente_id: sesion.user.id,
-                    distribuidora_id: grupo.id,
-
-                    direccion_calle: direccion.calle,
-                    direccion_numero: direccion.numero,
-                    direccion_ciudad: direccion.ciudad,
-                    direccion_provincia: direccion.provincia,
-                    direccion_referencia:
-                        direccion.referencia,
-
-                    latitud:
-                        direccion.latitud,
-                    longitud:
-                        direccion.longitud,
-
-                    subtotal: grupo.subtotal,
-                    descuento_envases: grupo.descuento,
-                    total: grupo.total,
-                    envases_devueltos: grupo.envases,
-                    metodo_pago: metodoPago,
-                    pago_transferencia_id:
-                        idPagoTransferencia || null
-                })
-                .select('id')
-                .single();
-
-        if (errorPedido || !pedido) {
-            throw new Error(
-                'No pudimos crear uno de los pedidos.'
-            );
-        }
-
-        pedidosCreados.push(pedido.id);
-
-        const detalles = grupo.productos.map((producto) => {
-            const cantidad =
-                Number(producto.cantidad) || 0;
-
-            const precio =
-                Number(producto.precio) || 0;
-
-            return {
-                pedido_id: pedido.id,
-                producto_id: producto.id,
-                cantidad,
-                precio_unitario: precio,
-                subtotal: precio * cantidad
-            };
-        });
-
-        const { error: errorDetalles } =
-            await supabaseCliente
-                .from('detalles_pedidos')
-                .insert(detalles);
-
-        if (errorDetalles) {
-            throw new Error(
-                'El pedido se creó, pero no pudimos guardar sus productos.'
-            );
-        }
-    }
-
-    return pedidosCreados;
-}
-
 document
     .getElementById('formulario-checkout')
     .addEventListener('submit', async (evento) => {
@@ -1463,40 +1384,40 @@ document
                 }
             }
 
-            let idPagoCreado = null;
+            const direccion = obtenerDatosDireccion();
 
-            if (metodoSeleccionado.value === 'transferencia') {
-                const comisionConfigurada = Number(
-                    configuracionPagoAquaTrack?.comision_porcentaje
-                ) || 5;     // Porce%
+            const items = resumen.grupos.flatMap((grupo) =>
+                grupo.productos.map((producto) => ({
+                    producto_id: producto.id,
+                    cantidad: Number(producto.cantidad) || 0,
+                    envases: Number(producto.envases_devueltos) || 0
+                }))
+            );
 
-                const { data: pago, error: errorPago } =
-                    await supabaseCliente
-                        .from('pagos_transferencia')
-                        .insert({
-                            cliente_id: session.user.id,
-                            monto_total: resumen.total,
-                            comision_porcentaje: comisionConfigurada
-                        })
-                        .select('id')
-                        .single();
+            const { data: resultado, error: errorPedido } =
+                await supabaseCliente.rpc('crear_pedidos_carrito', {
+                    p_items: items,
+                    p_calle: direccion.calle,
+                    p_numero: direccion.numero,
+                    p_ciudad: direccion.ciudad,
+                    p_provincia: direccion.provincia,
+                    p_referencia: direccion.referencia,
+                    p_latitud: direccion.latitud,
+                    p_longitud: direccion.longitud,
+                    p_metodo_pago: metodoSeleccionado.value
+                });
 
-                if (errorPago || !pago) {
-                    throw new Error(
-                        'No pudimos iniciar el pago por transferencia.'
-                    );
-                }
-
-                idPagoCreado = pago.id;
-                localStorage.setItem('aquatrack_pago_pendiente', idPagoCreado);
+            if (errorPedido || !resultado) {
+                throw new Error(
+                    errorPedido?.message || 'No pudimos crear el pedido.'
+                );
             }
 
-            await crearPedidosDesdeCarrito(
-                session,
-                resumen,
-                metodoSeleccionado.value,
-                idPagoCreado
-            );
+            const idPagoCreado = resultado.pago_id;
+
+            if (idPagoCreado) {
+                localStorage.setItem('aquatrack_pago_pendiente', idPagoCreado);
+            }
 
             localStorage.removeItem(
                 'aquatrack_carrito'
@@ -1504,7 +1425,7 @@ document
 
             if (metodoSeleccionado.value === 'transferencia') {
                 idPagoTransferenciaActual = idPagoCreado;
-                mostrarPasoComprobante(resumen.total);
+                mostrarPasoComprobante(resultado.total);
                 return;
             }
 

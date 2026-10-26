@@ -1,11 +1,11 @@
-function textoPagoHojaRuta(pedido, pagos) {
+function textoPagoHojaRuta(pedido, pagos, dinero) {
     if (pedido.metodo_pago !== 'transferencia') {
-        return 'EFECTIVO\nCOBRAR AL ENTREGAR';
+        return `COBRAR ${dinero(pedido.total)}\n(efectivo)`;
     }
 
     return pagos[pedido.pago_transferencia_id] === 'confirmado'
-        ? 'TRANSFERENCIA\nYA PAGADO'
-        : 'TRANSFERENCIA\nPAGO POR VERIFICAR';
+        ? 'PAGADO\n(transferencia)'
+        : 'NO COBRAR\n(transferencia en verificación)';
 }
 
 async function generarHojaRutaPdf(idRepartidor, boton) {
@@ -75,15 +75,14 @@ async function generarHojaRutaPdf(idRepartidor, boton) {
                 pedido.direccion_referencia ? `(${pedido.direccion_referencia})` : ''
             ].filter(Boolean).join(', ');
 
+            const cliente = `${pedido.usuarios?.nombre || ''} ${pedido.usuarios?.apellido || ''}`.trim();
+            const referencia = String(pedido.id).slice(-6).toUpperCase();
+
             return [
                 indice + 1,
-                destino,
-                `${pedido.usuarios?.nombre || ''} ${pedido.usuarios?.apellido || ''}`.trim(),
-                pedido.usuarios?.telefono || '-',
-                (pedido.detalles_pedidos || []).map((d) => `${d.cantidad} x ${d.productos?.nombre || 'Producto'}`).join('\n'),
-                cantidad,
-                dinero(pedido.total),
-                textoPagoHojaRuta(pedido, pagos),
+                `${cliente}\n${destino}\nTel: ${pedido.usuarios?.telefono || '-'}`,
+                `${(pedido.detalles_pedidos || []).map((d) => `${d.cantidad} x ${d.productos?.nombre || 'Producto'}`).join('\n')}\nRef. ${referencia}`,
+                textoPagoHojaRuta(pedido, pagos, dinero),
                 ''
             ];
         });
@@ -95,28 +94,24 @@ async function generarHojaRutaPdf(idRepartidor, boton) {
         documento.text(`Hoja de ruta - ${distribuidoraActual.nombre}`, 14, 15);
         documento.setFontSize(10);
         documento.text(`Repartidor: ${nombreRepartidor}`, 14, 22);
-        documento.text(`Fecha: ${fecha}`, 14, 27);
-        documento.text(`Paradas: ${entregas.length}   |   Bidones/productos: ${totalBidones}`, 14, 32);
+        documento.text(`Fecha: ${fecha}`, 14, 27);        documento.text(`Paradas: ${entregas.length}   |   Bidones: ${totalBidones}`, 14, 32);
 
         documento.autoTable({
             startY: 36,
-            head: [['N.', 'Destino', 'Cliente', 'Teléfono', 'Pedido', 'Cant.', 'Monto', 'Pago', 'Firma de recibido']],
+            head: [['N.', 'Cliente y dirección', 'Pedido', 'Cobrar', 'Firma del cliente']],
             body: filas,
-            styles: { fontSize: 8.5, cellPadding: 2, valign: 'middle', lineColor: [150, 150, 150], lineWidth: 0.2 },
+            styles: { fontSize: 9, cellPadding: 2.5, valign: 'middle', lineColor: [150, 150, 150], lineWidth: 0.2 },
             headStyles: { fillColor: [11, 113, 143], textColor: 255 },
             columnStyles: {
-                0: { cellWidth: 9, halign: 'center' },
-                1: { cellWidth: 55 },
-                2: { cellWidth: 35 },
-                3: { cellWidth: 26 },
-                4: { cellWidth: 45 },
-                5: { cellWidth: 12, halign: 'center' },
-                6: { cellWidth: 22, halign: 'right' },
-                7: { cellWidth: 32 },
-                8: { cellWidth: 'auto' }
+                0: { cellWidth: 10, halign: 'center' },
+                1: { cellWidth: 90 },
+                2: { cellWidth: 50 },
+                3: { cellWidth: 40 },
+                4: { cellWidth: 'auto' }
             },
-            bodyStyles: { minCellHeight: 16 }
+            bodyStyles: { minCellHeight: 20 }
         });
+
 
         let y = documento.lastAutoTable.finalY + 8;
 
