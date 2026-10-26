@@ -75,6 +75,30 @@ function actualizarMarcadorRepartidor(latitud, longitud) {
     }
 }
 
+let destinoSeguimiento = null;
+
+function textoFechaEntrega(fecha) {
+    const hoy = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Argentina/Buenos_Aires' });
+
+    if (fecha === hoy) {
+        return 'hoy';
+    }
+
+    return new Date(`${fecha}T00:00:00`).toLocaleDateString('es-AR', { weekday: 'long', day: '2-digit', month: '2-digit' });
+}
+
+function minutosEstimados(latitudA, longitudA, latitudB, longitudB) {
+    const radio = 6371;
+    const rad = (grados) => grados * Math.PI / 180;
+    const dLat = rad(latitudB - latitudA);
+    const dLon = rad(longitudB - longitudA);
+    const a = Math.sin(dLat / 2) ** 2
+        + Math.cos(rad(latitudA)) * Math.cos(rad(latitudB)) * Math.sin(dLon / 2) ** 2;
+    const km = 2 * radio * Math.asin(Math.sqrt(a));
+
+    return Math.round((km * 1.4 / 25) * 60);
+}
+
 async function consultarUbicacionRepartidor() {
     if (!idEntregaActual) {
         return;
@@ -96,6 +120,14 @@ async function consultarUbicacionRepartidor() {
     }
 
     actualizarMarcadorRepartidor(data.latitud, data.longitud);
+
+    if (destinoSeguimiento && !Number.isNaN(destinoSeguimiento.latitud)) {
+        const minutos = minutosEstimados(data.latitud, data.longitud, destinoSeguimiento.latitud, destinoSeguimiento.longitud);
+
+        document.getElementById('texto-ayuda-estado').textContent = minutos < 2
+            ? 'Tu repartidor está llegando a tu dirección.'
+            : `Tu repartidor está en camino. Llega en unos ${minutos} minutos (aproximado).`;
+    }
     notaMapa.textContent = 'Última actualización: ' + new Date(data.registrado_en).toLocaleTimeString('es-AR');
 }
 
@@ -151,7 +183,7 @@ async function cargarSeguimiento() {
         .from('pedidos')
         .select(`
             id, estado, direccion_calle, direccion_numero, direccion_ciudad, direccion_referencia,
-            latitud, longitud, total,
+            latitud, longitud, total, fecha_entrega,
             detalles_pedidos ( cantidad, precio_unitario, productos ( nombre ) ),
             entregas ( id, estado, repartidor_id, usuarios!entregas_repartidor_id_fkey ( nombre, apellido, telefono ) )
         `)
@@ -169,7 +201,15 @@ async function cargarSeguimiento() {
     const etiquetaEstado = document.getElementById('etiqueta-estado-pedido');
     etiquetaEstado.textContent = etiquetasEstadoPedidoSeguimiento[pedido.estado] || pedido.estado;
     etiquetaEstado.className = `etiqueta-estado-pedido ${pedido.estado}`;
-    document.getElementById('texto-ayuda-estado').textContent = ayudaEstadoSeguimiento[pedido.estado] || '';
+    destinoSeguimiento = { latitud: Number(pedido.latitud), longitud: Number(pedido.longitud) };
+
+    let textoAyuda = ayudaEstadoSeguimiento[pedido.estado] || '';
+
+    if ((pedido.estado === 'pendiente' || pedido.estado === 'asignado') && pedido.fecha_entrega) {
+        textoAyuda += ` Entrega prevista: ${textoFechaEntrega(pedido.fecha_entrega)}.`;
+    }
+
+    document.getElementById('texto-ayuda-estado').textContent = textoAyuda;
 
     const direccionTexto = [
         `${pedido.direccion_calle} ${pedido.direccion_numero || ''}`.trim(),

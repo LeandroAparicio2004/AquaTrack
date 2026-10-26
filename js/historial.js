@@ -66,6 +66,10 @@ function renderizarHistorial() {
 
                     <div class="acciones-historial">
                         <a href="ticket.html?pedido=${pedido.id}">Ver ticket</a>
+                        ${botonCancelarPedido(pedido)}
+                        ${['asignado', 'en_camino', 'entregado'].includes(pedido.estado)
+                ? `<a href="chat.html?soporte=1&amp;texto=${encodeURIComponent('Hola, tengo un problema con el pedido #' + pedido.id.slice(0, 8).toUpperCase())}">Tuve un problema</a>`
+                : ''}
                         ${obtenerBotonResena(pedido)}
                         ${(pedido.detalles_pedidos || []).length > 0 ? `<button type="button" class="boton-repetir-historial" data-repetir-pedido="${pedido.id}">Repetir pedido</button>` : ''}
                         ${puedeSeguirEnVivo ? `<a href="seguimiento.html?pedido=${pedido.id}">Seguir en vivo</a>` : ''}
@@ -75,6 +79,48 @@ function renderizarHistorial() {
         `;
     }).join('');
 }
+
+function botonCancelarPedido(pedido) {
+    const pagoVerificado = pedido.pagos_transferencia?.estado === 'confirmado';
+
+    if (pedido.estado !== 'pendiente' || pagoVerificado) {
+        return '';
+    }
+
+    return `<button type="button" class="boton-cancelar-historial" data-cancelar-pedido="${pedido.id}">Cancelar pedido</button>`;
+}
+
+document.getElementById('lista-historial').addEventListener('click', async (evento) => {
+    const boton = evento.target.closest('[data-cancelar-pedido]');
+
+    if (!boton) {
+        return;
+    }
+
+    if (!confirm('¿Querés cancelar este pedido?')) {
+        return;
+    }
+
+    boton.disabled = true;
+
+    const { error } = await supabaseCliente.rpc('cancelar_pedido_cliente', {
+        p_pedido_id: boton.dataset.cancelarPedido
+    });
+
+    if (error) {
+        alert(error.message || 'No pudimos cancelar el pedido. Probá de nuevo.');
+        boton.disabled = false;
+        return;
+    }
+
+    const pedido = pedidosHistorial.find((item) => item.id === boton.dataset.cancelarPedido);
+
+    if (pedido) {
+        pedido.estado = 'cancelado';
+    }
+
+    renderizarHistorial();
+});
 
 function textoPagoHistorial(pedido) {
     if (pedido.estado === 'cancelado') {
