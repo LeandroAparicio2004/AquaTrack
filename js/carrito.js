@@ -561,8 +561,7 @@ function renderizarItems() {
                     <h3>${escaparHtml(producto.nombre)}</h3>
 
                     <p>
-                        ${escaparHtml(producto.capacidad_litros)}
-                        litros — ${formatearPrecio(precio)} c/u
+                        ${producto.capacidad_litros ? `${escaparHtml(producto.capacidad_litros)} litros — ` : ''}${formatearPrecio(precio)} c/u
                     </p>
 
                     ${descuentoPorEnvase > 0
@@ -609,7 +608,7 @@ function renderizarItems() {
 
                 <div class="control-envases-item">
                     <label for="envases-${escaparHtml(producto.id)}">
-                        Envases devueltos
+                        ¿Cuanto envaces devuelve?
                     </label>
 
                     <input

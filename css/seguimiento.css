@@ -37,6 +37,12 @@
   letter-spacing: -0.03em;
 }
 
+@media (max-width: 620px) {
+  .encabezado-seguimiento h1 {
+    font-size: 1.55rem;
+  }
+}
+
 .estado-seguimiento {
   display: flex;
   flex-direction: column;

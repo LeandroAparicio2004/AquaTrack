@@ -1028,7 +1028,7 @@ async function cargarSuscripciones() {
         return `
             <div class="tarjeta-suscripcion">
                 <div class="info-suscripcion">
-                    <h3>${escaparHtml(producto?.nombre || 'Producto')} (${producto?.capacidad_litros || '?'}L) x${suscripcion.cantidad}</h3>
+                    <h3>${escaparHtml(producto?.nombre || 'Producto')}${producto?.capacidad_litros ? ` (${producto.capacidad_litros}L)` : ''} x${suscripcion.cantidad}</h3>
                     <p>${escaparHtml(suscripcion.distribuidoras?.nombre || 'AquaTrack')} — ${etiquetasFrecuencia[suscripcion.frecuencia] || suscripcion.frecuencia}${suscripcion.dias_semana && suscripcion.dias_semana.length ? ' (' + textoDiasSuscripcion(suscripcion.dias_semana) + ')' : ''}</p>
                     <p>Estimado por entrega: ${formatearPrecio(totalEstimado)}</p>
                     ${suscripcion.metodo_pago === 'transferencia' && suscripcion.pagada_hasta && (suscripcion.estado !== 'cancelada' || idsConEntregasPendientes.has(suscripcion.id))
@@ -1044,9 +1044,7 @@ async function cargarSuscripciones() {
 
                 <div class="detalle-suscripcion">
                     <span class="etiqueta-estado-pedido ${suscripcion.estado}">${etiquetasEstadoSuscripcion[suscripcion.estado] || suscripcion.estado}</span>
-                    <div class="acciones-suscripcion">${(suscripcion.estado !== 'cancelada' || idsConEntregasPendientes.has(suscripcion.id))
-                ? `<button type="button" class="boton-reactivar-suscripcion" data-calendario="${suscripcion.id}" data-frecuencia="${suscripcion.frecuencia}" data-dias="${(suscripcion.dias_semana || []).join(',')}" data-proxima="${suscripcion.proxima_entrega || ''}" data-metodo="${suscripcion.metodo_pago}" data-estado="${suscripcion.estado}">Ver calendario</button>`
-                : ''}<button type="button" class="boton-reactivar-suscripcion" data-cuenta="${suscripcion.id}">Ver cuenta</button>${acciones}</div>
+                    <div class="acciones-suscripcion"><button type="button" class="boton-reactivar-suscripcion" data-cuenta="${suscripcion.id}">Ver cuenta</button>${acciones}</div>
                 </div>
             </div>
         `;

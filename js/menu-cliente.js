@@ -14,18 +14,25 @@
 
     const pagina = window.location.pathname.split('/').pop() || 'index.html';
 
-    function claseActiva(archivo) {
-        return pagina === archivo ? ' activa' : '';
+    const paginasPorOpcion = {
+        productos: ['index.html', 'productos.html', 'carrito.html'],
+        pedidos: ['historial.html', 'seguimiento.html', 'ticket.html'],
+        suscripciones: ['suscripciones.html'],
+        cuenta: ['perfil.html', 'ayuda.html', 'chat.html']
+    };
+
+    function claseActiva(opcion) {
+        return paginasPorOpcion[opcion].includes(pagina) ? ' activa' : '';
     }
 
     const barra = document.createElement('nav');
     barra.className = 'barra-inferior-cliente';
     barra.setAttribute('aria-label', 'Menú principal');
     barra.innerHTML = `
-        <a href="productos.html" class="tab-cliente${claseActiva('productos.html')}">${iconos.productos}<span>Productos</span></a>
-        <a href="historial.html" class="tab-cliente${claseActiva('historial.html')}">${iconos.pedidos}<span>Pedidos</span></a>
-        <a href="suscripciones.html" class="tab-cliente${claseActiva('suscripciones.html')}">${iconos.suscripciones}<span>Suscripciones</span></a>
-        <button type="button" class="tab-cliente" id="tab-cuenta">${iconos.cuenta}<span>Cuenta</span></button>
+        <a href="productos.html" class="tab-cliente${claseActiva('productos')}">${iconos.productos}<span>Productos</span></a>
+        <a href="historial.html" class="tab-cliente${claseActiva('pedidos')}">${iconos.pedidos}<span>Pedidos</span></a>
+        <a href="suscripciones.html" class="tab-cliente${claseActiva('suscripciones')}">${iconos.suscripciones}<span>Suscripciones</span></a>
+        <button type="button" class="tab-cliente${claseActiva('cuenta')}" id="tab-cuenta">${iconos.cuenta}<span>Cuenta</span></button>
     `;
     document.body.appendChild(barra);
 

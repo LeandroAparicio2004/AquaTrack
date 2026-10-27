@@ -70,7 +70,61 @@
                 <h1 id="nombre-distribuidora">Cargando...</h1>
             </div>
 
-            <div class="panel-pestanas" role="tablist">
+            <div class="panel-grupos" role="tablist">
+                <button type="button" class="panel-grupo activo" data-grupo="inicio" role="tab">Inicio</button>
+                <button type="button" class="panel-grupo" data-grupo="pedidos" role="tab">Pedidos <span class="insignia-urgente" id="insignia-asignar" hidden></span></button>
+                <button type="button" class="panel-grupo" data-grupo="productos" role="tab">Productos</button>
+                <button type="button" class="panel-grupo" data-grupo="suscripciones" role="tab">Suscripciones</button>
+                <button type="button" class="panel-grupo" data-grupo="cobros" role="tab">Cobros</button>
+                <button type="button" class="panel-grupo" data-grupo="negocio" role="tab">Mi negocio</button>
+            </div>
+
+            <div class="panel-subpestanas" data-grupo="inicio" hidden>
+                <button type="button" class="panel-pestana activa" data-pestana="inicio">Inicio</button>
+            </div>
+            <div class="panel-subpestanas" data-grupo="pedidos" hidden>
+                <button type="button" class="panel-pestana" data-pestana="asignar">Por asignar</button>
+                <button type="button" class="panel-pestana" data-pestana="pedidos">Todos los pedidos</button>
+            </div>
+            <div class="panel-subpestanas" data-grupo="productos" hidden>
+                <button type="button" class="panel-pestana" data-pestana="productos">Mis productos</button>
+            </div>
+            <div class="panel-subpestanas" data-grupo="suscripciones" hidden>
+                <button type="button" class="panel-pestana" data-pestana="suscripciones">Suscripciones</button>
+            </div>
+            <div class="panel-subpestanas" data-grupo="cobros" hidden>
+                <button type="button" class="panel-pestana" data-pestana="cobros">Cobros</button>
+                <button type="button" class="panel-pestana" data-pestana="rutas">Hojas de ruta</button>
+            </div>
+            <div class="panel-subpestanas" data-grupo="negocio" hidden>
+                <button type="button" class="panel-pestana" data-pestana="perfil">Perfil del negocio</button>
+                <button type="button" class="panel-pestana" data-pestana="repartidores">Repartidores</button>
+                <button type="button" class="panel-pestana" data-pestana="publicidad">Publicidad</button>
+            </div>
+
+            <section class="panel-seccion" id="seccion-inicio" role="tabpanel">
+                <div class="panel-seccion-encabezado">
+                    <h2>Resumen del día</h2>
+                </div>
+                <div class="inicio-tarjetas">
+                    <button type="button" class="inicio-tarjeta" data-ir="asignar" id="inicio-tarjeta-por-asignar">
+                        <span class="inicio-numero" id="inicio-por-asignar">–</span>
+                        <span class="inicio-titulo">Pedidos por asignar</span>
+                        <span class="inicio-ayuda">Tocá para asignarlos</span>
+                    </button>
+                    <button type="button" class="inicio-tarjeta" data-ir="cobros">
+                        <span class="inicio-numero" id="inicio-efectivo">–</span>
+                        <span class="inicio-titulo">Efectivo por recibir</span>
+                        <span class="inicio-ayuda">Lo que te deben rendir los repartidores</span>
+                    </button>
+                    <button type="button" class="inicio-tarjeta" data-ir="suscripciones" id="inicio-tarjeta-atrasadas">
+                        <span class="inicio-numero" id="inicio-atrasadas">–</span>
+                        <span class="inicio-titulo">Suscripciones atrasadas</span>
+                        <span class="inicio-ayuda">Clientes con un mes sin pagar</span>
+                    </button>
+                </div>
+                <a href="metricas-vendedor.html" class="btn btn-secundario inicio-metricas">Ver métricas</a>
+            </section>
                 <button type="button" class="panel-pestana activa" data-pestana="productos" role="tab"
                     aria-selected="true">Mis Productos</button>
                 <button type="button" class="panel-pestana" data-pestana="pedidos" role="tab"
@@ -91,7 +145,7 @@
                     de ruta</button>
             </div>
 
-            <section class="panel-seccion" id="seccion-productos" role="tabpanel">
+            <section class="panel-seccion oculto" id="seccion-productos" role="tabpanel">
                 <div class="panel-seccion-encabezado">
                     <h2>Mis Productos</h2>
                     <button type="button" class="btn btn-principal" id="btn-agregar-producto">+ Agregar

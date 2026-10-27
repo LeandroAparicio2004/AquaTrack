@@ -318,3 +318,32 @@
 .boton-cancelar-historial:hover {
   background: #fee2e2;
 }
+
+.acciones-historial {
+  flex-wrap: wrap;
+}
+
+.acciones-historial a,
+.acciones-historial button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .acciones-historial {
+    width: 100%;
+  }
+
+  .acciones-historial a,
+  .acciones-historial button {
+    flex: 1 1 auto;
+  }
+}

@@ -600,8 +600,8 @@ async function cargarResumenDia() {
                 <span>
                     Efectivo ${formatearPrecio(efectivo)} · Transferencia ${formatearPrecio(transferencia)}
                     ${pendiente > 0
-            ? `<button type="button" class="btn btn-principal btn-chico" data-recibir-efectivo="${id}" data-monto="${pendiente}">Recibí ${formatearPrecio(pendiente)}</button>`
-            : '<em>· efectivo recibido ✔</em>'}
+                ? `<button type="button" class="btn btn-principal btn-chico" data-recibir-efectivo="${id}" data-monto="${pendiente}">Recibí ${formatearPrecio(pendiente)}</button>`
+                : '<em>· efectivo recibido ✔</em>'}
                 </span>
             </div>
         `;
@@ -1259,11 +1259,13 @@ async function cargarResenasPanel() {
 inicializarPanel().then(() => {
     cargarInsigniaAsignar();
     cargarResenasPanel();
+    cargarInicio();
     abrirPestanaDesdeHash();
 });
 
 const pestanas = document.querySelectorAll('.panel-pestana');
 const secciones = {
+    inicio: document.getElementById('seccion-inicio'),
     productos: document.getElementById('seccion-productos'),
     pedidos: document.getElementById('seccion-pedidos'),
     asignar: document.getElementById('seccion-asignar'),
@@ -1300,6 +1302,10 @@ pestanas.forEach((pestana) => {
         Object.entries(secciones).forEach(([nombre, seccion]) => {
             seccion.classList.toggle('oculto', nombre !== pestana.dataset.pestana);
         });
+
+        if (pestana.dataset.pestana === 'inicio') {
+            cargarInicio();
+        }
 
         if (pestana.dataset.pestana === 'perfil') {
             mostrarMapaNegocio();
@@ -2489,4 +2495,76 @@ document.getElementById('btn-enviar-comprobante-anuncio').addEventListener('clic
     } finally {
         btn.disabled = false;
     }
+});
+
+// ---------- Inicio y pestañas agrupadas ----------
+async function cargarInicio() {
+    if (!distribuidoraActual) {
+        return;
+    }
+
+    const hoy = new Date().toLocaleDateString('en-CA');
+
+    const [pendientes, entregadas, suscripciones] = await Promise.all([
+        supabaseCliente
+            .from('pedidos')
+            .select('id', { count: 'exact', head: true })
+            .eq('distribuidora_id', distribuidoraActual.id)
+            .eq('estado', 'pendiente')
+            .or(`fecha_entrega.is.null,fecha_entrega.lte.${hoy}`),
+        supabaseCliente
+            .from('entregas')
+            .select('monto_cobrado, pedidos!inner ( distribuidora_id )')
+            .eq('pedidos.distribuidora_id', distribuidoraActual.id)
+            .eq('estado', 'entregada')
+            .is('rendida_en', null),
+        supabaseCliente
+            .from('suscripciones')
+            .select('id')
+            .eq('distribuidora_id', distribuidoraActual.id)
+            .in('estado', ['activa', 'pausada'])
+    ]);
+
+    const efectivo = (entregadas.data || []).reduce((suma, e) => suma + Number(e.monto_cobrado || 0), 0);
+
+    document.getElementById('inicio-por-asignar').textContent = pendientes.count || 0;
+    document.getElementById('inicio-efectivo').textContent = formatearPrecio(efectivo);
+    document.getElementById('inicio-tarjeta-por-asignar').classList.toggle('con-alerta', (pendientes.count || 0) > 0);
+
+    const cuentas = await Promise.all((suscripciones.data || []).map((s) => obtenerCuentaSuscripcion(s.id)));
+    const atrasadas = cuentas.filter((c) => c?.meses?.some((mes) => mes.atrasado)).length;
+
+    document.getElementById('inicio-atrasadas').textContent = atrasadas;
+    document.getElementById('inicio-tarjeta-atrasadas').classList.toggle('con-alerta', atrasadas > 0);
+}
+
+function sincronizarGrupoActivo() {
+    const activa = document.querySelector('.panel-pestana.activa');
+    const grupo = activa?.closest('.panel-subpestanas')?.dataset.grupo;
+
+    document.querySelectorAll('.panel-grupo').forEach((boton) => {
+        const esActivo = boton.dataset.grupo === grupo;
+        boton.classList.toggle('activo', esActivo);
+        boton.setAttribute('aria-selected', esActivo ? 'true' : 'false');
+    });
+
+    document.querySelectorAll('.panel-subpestanas').forEach((contenedor) => {
+        contenedor.hidden = !(contenedor.dataset.grupo === grupo && contenedor.children.length > 1);
+    });
+}
+
+document.querySelectorAll('.panel-pestana').forEach((pestana) => {
+    pestana.addEventListener('click', sincronizarGrupoActivo);
+});
+
+document.querySelectorAll('.panel-grupo').forEach((grupo) => {
+    grupo.addEventListener('click', () => {
+        document.querySelector(`.panel-subpestanas[data-grupo="${grupo.dataset.grupo}"] .panel-pestana`)?.click();
+    });
+});
+
+document.querySelectorAll('[data-ir]').forEach((tarjeta) => {
+    tarjeta.addEventListener('click', () => {
+        document.querySelector(`.panel-pestana[data-pestana="${tarjeta.dataset.ir}"]`)?.click();
+    });
 });

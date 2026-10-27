@@ -1131,6 +1131,18 @@ body {
         display: none;
     }
 
+    .panel-nav {
+        gap: 8px;
+    }
+
+    .panel-nav a.btn-secundario[href="metricas-vendedor.html"] {
+        display: none;
+    }
+
+    .encabezado-interno {
+        gap: 8px;
+    }
+
     .panel-seccion-encabezado {
         flex-direction: column;
         align-items: flex-start;
@@ -1949,4 +1961,99 @@ body {
 
 .cuenta-fila.hecha strong {
     color: #1d7a4b;
+}
+
+.inicio-metricas {
+    display: none;
+    margin-top: 16px;
+}
+
+@media (max-width: 560px) {
+    .inicio-metricas {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .tablero-entregas {
+        flex-direction: column;
+        overflow-x: visible;
+    }
+
+    .columna-tablero {
+        flex: 0 0 auto;
+        min-height: 0;
+    }
+
+    #modal-no-pude {
+        align-items: end;
+        padding: 0;
+    }
+
+    #modal-no-pude .modal-validacion-entrega {
+        max-width: none;
+        border-radius: 18px 18px 0 0;
+    }
+}
+
+@media (max-width: 360px) {
+    .panel-marca .logo {
+        font-size: 1.1rem;
+    }
+
+    .panel-nav {
+        gap: 4px;
+    }
+
+    .panel-nav .btn-icono-circular,
+    .panel-nav .btn-tema {
+        width: 32px;
+        height: 32px;
+    }
+
+    .panel-nav .btn-peligro {
+        padding: 8px 8px;
+        font-size: 0.85rem;
+    }
+}
+
+.tarjeta-pedido-tablero .etiqueta-urgencia {
+    color: #fff;
+}
+
+.opciones-no-pude {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.opcion-no-pude {
+    width: 100%;
+    padding: 16px;
+    border: 2px solid var(--color-borde-panel);
+    border-radius: 12px;
+    background: var(--color-superficie-panel);
+    color: var(--color-texto-panel);
+    font-family: var(--fuente-base);
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+}
+
+.opcion-no-pude.elegida {
+    border-color: var(--color-acento-panel);
+    background: var(--color-acento-suave-panel);
+    color: var(--color-acento-panel);
+}
+
+.acciones-no-pude {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.acciones-no-pude .btn {
+    width: 100%;
+    justify-content: center;
 }

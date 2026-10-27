@@ -17,7 +17,7 @@ function formatearPrecio(valor) {
 }
 
 const etiquetasEstadoPedidoSeguimiento = {
-    pendiente: 'Pendiente de asignación',
+    pendiente: 'Preparando pedido',
     asignado: 'Asignado a un repartidor',
     en_camino: 'En camino',
     entregado: 'Entregado',
@@ -244,16 +244,22 @@ async function cargarSeguimiento() {
         return;
     }
 
-    dibujarMapaBase(Number(pedido.latitud), Number(pedido.longitud));
-
     if (entrega && entrega.estado === 'en_camino') {
+        dibujarMapaBase(Number(pedido.latitud), Number(pedido.longitud));
         idEntregaActual = entrega.id;
         notaMapa.textContent = 'Buscando la ubicación de tu repartidor...';
         iniciarPollingUbicacion();
-    } else if (entrega && entrega.estado === 'asignada') {
-        notaMapa.textContent = 'Tu repartidor todavía no salió a entregar.';
+        return;
+    }
+
+    document.getElementById('mapa-seguimiento').classList.add('oculto');
+
+    if (entrega && entrega.estado === 'asignada') {
+        notaMapa.textContent = 'Tu repartidor todavía no salió a entregar. El mapa aparece cuando sale.';
+    } else if (pedido.estado === 'entregado' || pedido.estado === 'cancelado') {
+        notaMapa.textContent = '';
     } else {
-        notaMapa.textContent = 'El seguimiento en vivo se activa cuando el repartidor sale a entregar.';
+        notaMapa.textContent = 'El mapa en vivo aparece cuando el repartidor sale a entregar.';
     }
 }
 
