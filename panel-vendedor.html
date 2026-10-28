@@ -125,26 +125,7 @@
                 </div>
                 <a href="metricas-vendedor.html" class="btn btn-secundario inicio-metricas">Ver métricas</a>
             </section>
-                <button type="button" class="panel-pestana activa" data-pestana="productos" role="tab"
-                    aria-selected="true">Mis Productos</button>
-                <button type="button" class="panel-pestana" data-pestana="pedidos" role="tab"
-                    aria-selected="false">Pedidos</button>
-                <button type="button" class="panel-pestana" data-pestana="asignar" role="tab"
-                    aria-selected="false">Asignar Entregas <span class="insignia-urgente" id="insignia-asignar" hidden></span></button>
-                <button type="button" class="panel-pestana" data-pestana="repartidores" role="tab"
-                    aria-selected="false">Repartidores</button>
-                <button type="button" class="panel-pestana" data-pestana="suscripciones" role="tab"
-                    aria-selected="false">Suscripciones</button>
-                <button type="button" class="panel-pestana" data-pestana="perfil" role="tab"
-                    aria-selected="false">Perfil del negocio</button>
-                <button type="button" class="panel-pestana" data-pestana="publicidad" role="tab"
-                    aria-selected="false">Publicidad</button>
-                <button type="button" class="panel-pestana" data-pestana="cobros" role="tab"
-                    aria-selected="false">Cobros</button>
-                <button type="button" class="panel-pestana" data-pestana="rutas" role="tab" aria-selected="false">Hojas
-                    de ruta</button>
-            </div>
-
+            
             <section class="panel-seccion oculto" id="seccion-productos" role="tabpanel">
                 <div class="panel-seccion-encabezado">
                     <h2>Mis Productos</h2>
@@ -183,7 +164,18 @@
 
                 <p class="estado-productos-panel oculto" id="estado-tablero"></p>
 
+                <p class="ayuda-tablero">Tocá los pedidos para seleccionarlos y elegí abajo a quién asignarlos.</p>
+
                 <div class="tablero-entregas" id="tablero-entregas"></div>
+
+                <div class="barra-asignacion oculto" id="barra-asignacion">
+                    <div class="barra-asignacion-cabecera">
+                        <strong id="texto-seleccion">0 seleccionados</strong>
+                        <button type="button" class="btn btn-secundario btn-chico" id="btn-limpiar-seleccion">Cancelar</button>
+                    </div>
+                    <button type="button" class="btn btn-principal" id="btn-elegir-repartidor">Asignar a…</button>
+                    <div class="barra-asignacion-opciones oculto" id="opciones-asignacion"></div>
+                </div>
             </section>
 
             <section class="panel-seccion oculto" id="seccion-repartidores" role="tabpanel">

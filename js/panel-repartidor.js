@@ -165,54 +165,50 @@ async function cargarMisEntregas() {
             </p>
         `).join('');
 
+        const direccionTexto = `${pedido.direccion_calle || ''} ${pedido.direccion_numero || ''}, ${pedido.direccion_ciudad || ''}`.trim();
+        const urlComoLlegar = tieneUbicacion
+            ? `https://www.google.com/maps/dir/?api=1&destination=${pedido.latitud},${pedido.longitud}`
+            : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(direccionTexto)}`;
+        const telefono = (pedido.usuarios?.telefono || '').replace(/[^\d+]/g, '');
+
         const tarjeta = document.createElement('article');
-        tarjeta.className = 'tarjeta-producto-panel';
+        tarjeta.className = 'tarjeta-entrega';
         tarjeta.innerHTML = `
-            <div class="numero-parada-repartidor">${tieneUbicacion ? indice + 1 : '—'}</div>
-            <div>
-                <div class="tarjeta-producto-panel-superior">
-                    <h3>${escaparHtml(nombreCliente)}</h3>
-                    <span class="etiqueta-estado-producto ${claseEstadoEntrega(entrega.estado)}">
-                        ${etiquetasEstadoEntrega[entrega.estado]}
-                    </span>
-                </div>
-                ${pedido.usuarios?.dni ? `<p class="tarjeta-producto-panel-descripcion">DNI: ${escaparHtml(pedido.usuarios.dni)}</p>` : ''}
-                ${pedido.usuarios?.telefono ? `
-                    <p class="tarjeta-producto-panel-descripcion fila-telefono-repartidor">
-                        Tel: ${escaparHtml(pedido.usuarios.telefono)}
-                        <button type="button" class="btn-copiar-telefono" data-copiar-telefono="${escaparHtml(pedido.usuarios.telefono)}" aria-label="Copiar teléfono" title="Copiar teléfono">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="9" y="9" width="11" height="11" rx="2"></rect>
-                                <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path>
-                            </svg>
-                        </button>
-                    </p>
-                ` : ''}
-                <p class="tarjeta-producto-panel-descripcion">
-                    ${escaparHtml(pedido.direccion_calle)} ${escaparHtml(pedido.direccion_numero || '')},
-                    ${escaparHtml(pedido.direccion_ciudad)}
-                    ${pedido.direccion_referencia ? `— ${escaparHtml(pedido.direccion_referencia)}` : ''}
-                </p>
-                ${!tieneUbicacion ? '<p class="tarjeta-producto-panel-descripcion">Sin ubicación guardada (no aparece en el mapa)</p>' : ''}
-                ${itemsHtml}
+            <div class="entrega-cabecera">
+                <span class="numero-parada-repartidor">${tieneUbicacion ? indice + 1 : '—'}</span>
+                <h3>${escaparHtml(nombreCliente)}</h3>
+                <span class="etiqueta-estado-producto ${claseEstadoEntrega(entrega.estado)}">
+                    ${etiquetasEstadoEntrega[entrega.estado]}
+                </span>
             </div>
-            <div>
-                <div class="tarjeta-producto-panel-detalle">
-                    <span>${pedido.metodo_pago === 'transferencia' ? 'Transferencia' : 'Efectivo'}</span>
+
+            <p class="entrega-direccion">
+                ${escaparHtml(direccionTexto)}
+                ${pedido.direccion_referencia ? `<br><span>${escaparHtml(pedido.direccion_referencia)}</span>` : ''}
+            </p>
+            ${!tieneUbicacion ? '<p class="entrega-aviso">Sin ubicación guardada: no aparece en el mapa.</p>' : ''}
+
+            <div class="entrega-cobro">
+                <div>
+                    <p class="entrega-items">${(pedido.detalles_pedidos || []).map((item) => `${item.cantidad}x ${escaparHtml(item.productos?.nombre || 'Producto')}`).join(' · ')}</p>
+                    ${pedido.usuarios?.dni ? `<p class="entrega-dni">DNI: ${escaparHtml(pedido.usuarios.dni)}</p>` : ''}
+                </div>
+                <div class="entrega-monto">
+                    <span>${pedido.metodo_pago === 'transferencia' ? 'Ya pagó (transferencia)' : 'Cobrar en efectivo'}</span>
                     <strong>${formatearPrecio(pedido.total)}</strong>
                 </div>
-                <div class="tarjeta-producto-panel-acciones">
-                    ${entrega.estado === 'en_camino'
-                ? `<button type="button" class="btn btn-principal btn-chico" data-confirmar-entrega="${entrega.id}">Confirmar entrega</button>
-                   <button type="button" class="btn btn-secundario btn-chico" data-no-pude-entregar="${entrega.id}">No pude entregar</button>`
-                : ''}
-                    <button type="button" class="btn-icono-circular" data-chat-cliente="${pedido.cliente_id}" aria-label="Chatear con el cliente" title="Chatear con el cliente">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
-                        </svg>
-                    </button>
-                </div>
             </div>
+
+            <div class="entrega-contacto">
+                <a class="btn btn-secundario" href="${urlComoLlegar}" target="_blank" rel="noopener">Cómo llegar</a>
+                ${telefono ? `<a class="btn btn-secundario" href="tel:${telefono}">Llamar</a>` : ''}
+                <button type="button" class="btn btn-secundario" data-chat-cliente="${pedido.cliente_id}">Mensaje</button>
+            </div>
+
+            ${entrega.estado === 'en_camino' ? `
+                <button type="button" class="btn btn-principal entrega-confirmar" data-confirmar-entrega="${entrega.id}">Confirmar entrega</button>
+                <button type="button" class="entrega-no-pude" data-no-pude-entregar="${entrega.id}">No pude entregar</button>
+            ` : ''}
         `;
 
         lista.appendChild(tarjeta);
@@ -350,33 +346,59 @@ document.getElementById('lista-entregas-repartidor').addEventListener('click', (
     abrirModalValidacionEntrega(botonConfirmar.dataset.confirmarEntrega);
 });
 
-document.getElementById('lista-entregas-repartidor').addEventListener('click', async (evento) => {
+let entregaNoPude = null;
+let motivoNoPude = null;
+
+function cerrarModalNoPude() {
+    document.getElementById('modal-no-pude').classList.add('oculto');
+    entregaNoPude = null;
+    motivoNoPude = null;
+}
+
+document.getElementById('lista-entregas-repartidor').addEventListener('click', (evento) => {
     const boton = evento.target.closest('[data-no-pude-entregar]');
     if (!boton) return;
 
-    const opciones = ['No estaba', 'No atiende', 'Dirección incorrecta', 'Otro'];
-    const eleccion = prompt(
-        '¿Por qué no pudiste entregar?\n\n1 = No estaba\n2 = No atiende\n3 = Dirección incorrecta\n4 = Otro\n\nEscribí el número:'
-    );
-    const motivo = opciones[Number(eleccion) - 1];
+    entregaNoPude = boton.dataset.noPudeEntregar;
+    motivoNoPude = null;
+    document.querySelectorAll('.opcion-no-pude').forEach((opcion) => opcion.classList.remove('elegida'));
+    document.getElementById('boton-confirmar-no-pude').disabled = true;
+    document.getElementById('mensaje-no-pude').classList.add('oculto');
+    document.getElementById('modal-no-pude').classList.remove('oculto');
+});
 
-    if (!motivo) return;
+document.getElementById('opciones-no-pude').addEventListener('click', (evento) => {
+    const opcion = evento.target.closest('.opcion-no-pude');
+    if (!opcion) return;
 
-    if (!confirm(`Vas a devolver este pedido al vendedor (${motivo}). ¿Seguro?`)) return;
+    motivoNoPude = opcion.dataset.motivo;
+    document.querySelectorAll('.opcion-no-pude').forEach((otra) => otra.classList.toggle('elegida', otra === opcion));
+    document.getElementById('boton-confirmar-no-pude').disabled = false;
+});
 
+document.getElementById('boton-cerrar-modal-no-pude').addEventListener('click', cerrarModalNoPude);
+document.getElementById('boton-cancelar-no-pude').addEventListener('click', cerrarModalNoPude);
+
+document.getElementById('boton-confirmar-no-pude').addEventListener('click', async () => {
+    if (!entregaNoPude || !motivoNoPude) return;
+
+    const boton = document.getElementById('boton-confirmar-no-pude');
     boton.disabled = true;
 
     const { error } = await supabaseCliente.rpc('no_pude_entregar', {
-        p_entrega_id: boton.dataset.noPudeEntregar,
-        p_motivo: motivo
+        p_entrega_id: entregaNoPude,
+        p_motivo: motivoNoPude
     });
 
     if (error) {
-        alert(error.message || 'No pudimos devolver el pedido. Intentá de nuevo.');
+        const mensaje = document.getElementById('mensaje-no-pude');
+        mensaje.textContent = error.message || 'No pudimos devolver el pedido. Intentá de nuevo.';
+        mensaje.className = 'mensaje-estado error';
         boton.disabled = false;
         return;
     }
 
+    cerrarModalNoPude();
     await cargarMisEntregas();
 });
 

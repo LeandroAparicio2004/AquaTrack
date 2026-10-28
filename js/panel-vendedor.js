@@ -806,7 +806,7 @@ function renderizarTablero() {
                     ${pedido.intento_fallido_motivo ? `<span class="etiqueta-urgencia">✖ Intento fallido: ${escaparHtml(pedido.intento_fallido_motivo)}</span>` : ''}
                     <strong>${escaparHtml(pedido.usuarios?.nombre || '')} ${escaparHtml(pedido.usuarios?.apellido || '')}</strong>
                     <span>${escaparHtml(pedido.direccion_calle)} ${escaparHtml(pedido.direccion_numero || '')}, ${escaparHtml(pedido.direccion_ciudad)}</span>
-                    <span>${escaparHtml(resumenItemsPedido(pedido))}</span>
+                    <span class="items-tarjeta-tablero">${escaparHtml(resumenItemsPedido(pedido))}</span>
                 </div>
             `).join('')}
         </div>
@@ -849,8 +849,11 @@ function renderizarTablero() {
                         </span>
                     `;
 
-            const items = `<span>${escaparHtml(resumenItemsPedido(entrega.pedidos))}</span>
-                <button type="button" class="btn btn-secundario btn-chico btn-marcar-entregado" data-marcar-entregado="${entrega.id}">✔ Entregado</button>`;
+            const items = `<span class="items-tarjeta-tablero">${escaparHtml(resumenItemsPedido(entrega.pedidos))}</span>
+                <div class="pie-tarjeta-tablero">
+                    ${etiqueta}
+                    <button type="button" class="btn btn-secundario btn-chico btn-marcar-entregado" data-marcar-entregado="${entrega.id}">✔ Entregado</button>
+                </div>`;
 
             if (!puedeMoverse) {
                 return `
@@ -858,7 +861,6 @@ function renderizarTablero() {
                                 <strong>${escaparHtml(nombreCliente)}</strong>
                                 <span>${escaparHtml(direccion)}</span>
                                 ${items}
-                                ${etiqueta}
                             </div>
                         `;
             }
@@ -869,7 +871,6 @@ function renderizarTablero() {
                             <strong>${escaparHtml(nombreCliente)}</strong>
                             <span>${escaparHtml(direccion)}</span>
                             ${items}
-                            ${etiqueta}
                         </div>
                     `;
         }).join('')}
@@ -888,7 +889,84 @@ function renderizarTablero() {
     }
 
     habilitarDragAndDrop();
+    actualizarBarraAsignacion();
 }
+
+function actualizarBarraAsignacion() {
+    const barra = document.getElementById('barra-asignacion');
+    const cantidad = pedidosSeleccionados.size;
+
+    barra.classList.toggle('oculto', cantidad === 0);
+
+    if (cantidad === 0) {
+        return;
+    }
+
+    document.getElementById('texto-seleccion').textContent =
+        `${cantidad} seleccionado${cantidad === 1 ? '' : 's'}`;
+
+    const filas = repartidoresTablero.map((miembro) => {
+        const paradas = entregasTablero.filter((entrega) => entrega.repartidor_id === miembro.usuario_id).length;
+        const enRuta = entregasTablero.some(
+            (entrega) => entrega.repartidor_id === miembro.usuario_id && entrega.estado === 'en_camino'
+        );
+        const nombre = `${miembro.usuarios?.nombre || ''} ${miembro.usuarios?.apellido || ''}`.trim();
+
+        return `
+            <button type="button" class="opcion-repartidor" data-asignar-a="${miembro.usuario_id}" data-nombre="${escaparHtml(nombre.toLowerCase())}" ${enRuta ? 'disabled' : ''}>
+                <span>${escaparHtml(nombre)}</span>
+                <small>${enRuta ? 'En ruta' : `${paradas} parada${paradas === 1 ? '' : 's'}`}</small>
+            </button>
+        `;
+    }).join('');
+
+    document.getElementById('opciones-asignacion').innerHTML = `
+        ${repartidoresTablero.length > 6 ? '<input type="search" class="buscar-repartidor" id="buscar-repartidor" placeholder="Buscar repartidor" autocomplete="off">' : ''}
+        ${filas}
+        <button type="button" class="opcion-repartidor opcion-devolver" data-asignar-a="sin-asignar">
+            <span>Devolver a "Sin asignar"</span>
+        </button>
+    `;
+}
+
+document.getElementById('btn-limpiar-seleccion').addEventListener('click', () => {
+    pedidosSeleccionados.clear();
+    renderizarTablero();
+});
+
+document.getElementById('btn-elegir-repartidor').addEventListener('click', () => {
+    document.getElementById('opciones-asignacion').classList.toggle('oculto');
+});
+
+document.getElementById('opciones-asignacion').addEventListener('input', (evento) => {
+    if (evento.target.id !== 'buscar-repartidor') {
+        return;
+    }
+
+    const texto = evento.target.value.trim().toLowerCase();
+
+    document.querySelectorAll('#opciones-asignacion [data-nombre]').forEach((fila) => {
+        fila.hidden = !fila.dataset.nombre.includes(texto);
+    });
+});
+
+document.getElementById('opciones-asignacion').addEventListener('click', async (evento) => {
+    const boton = evento.target.closest('[data-asignar-a]');
+
+    if (!boton) {
+        return;
+    }
+
+    const destino = boton.dataset.asignarA;
+
+    const items = Array.from(pedidosSeleccionados).map((idPedido) => ({
+        pedidoId: idPedido,
+        entregaId: mapaEntregaPorPedido[idPedido] || null
+    }));
+
+    document.querySelectorAll('#opciones-asignacion button').forEach((otro) => { otro.disabled = true; });
+    await moverGrupoEnTablero(items, destino === 'sin-asignar' ? null : destino);
+});
 
 async function moverPedidoEnTablero(datos, idRepartidorDestino, idRuta, orden) {
     const { pedidoId, entregaId } = datos;
@@ -1001,6 +1079,13 @@ function habilitarDragAndDrop() {
             }));
 
             evento.dataTransfer.setData('text/plain', JSON.stringify(payload));
+
+            const fantasma = document.createElement('div');
+            fantasma.className = 'fantasma-arrastre';
+            fantasma.textContent = `${idsAMover.length} pedido${idsAMover.length === 1 ? '' : 's'}`;
+            document.body.appendChild(fantasma);
+            evento.dataTransfer.setDragImage(fantasma, 20, 20);
+            setTimeout(() => fantasma.remove(), 0);
         });
     });
 
