@@ -118,3 +118,7 @@ Nuevas Tareas:
 - A4: Resumen en Excel de todo movimiento monetario - Terminado
 
 Revisar la altura {Mapa} 
+
+ficha para repartidor, debe de mostrar hoja de ruta: envios, prodcutos llevados (el cliente debe de firmar las entregas) {Caso de no tener dispositivo (obligatorio implementar)}{
+    debe de aparecer en el panel donde se le asigna un cliente al repartidor - Panel-Vendedor
+}
