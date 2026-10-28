@@ -591,6 +591,24 @@ async function inicializarChat() {
     suscribirseAConversacionesGlobal();
 
     const parametros = new URLSearchParams(window.location.search);
+
+    if (parametros.get('soporte') === '1') {
+        const idTicket = await crearTicketSoporte();
+
+        if (idTicket) {
+            await cargarConversaciones();
+            await abrirConversacion(idTicket);
+
+            const textoInicial = parametros.get('texto');
+
+            if (textoInicial) {
+                const campoMensaje = document.getElementById('input-mensaje');
+                campoMensaje.value = textoInicial;
+                campoMensaje.focus();
+            }
+        }
+    }
+
     const usuarioDestino = parametros.get('usuario');
     if (usuarioDestino && usuarioDestino !== usuarioActualId) {
         const idConversacion = await buscarOCrearConversacion(usuarioDestino);

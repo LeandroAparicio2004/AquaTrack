@@ -19,6 +19,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="css/comunes.css">
+  <link rel="stylesheet" href="css/menu-cliente.css">
   <link rel="stylesheet" href="css/inicio.css">
   <link rel="stylesheet" href="css/seguimiento.css">
   <link rel="stylesheet" href="css/suscripciones.css">
@@ -53,6 +54,7 @@
           <a href="historial.html" class="enlace-nav">Mis pedidos</a>
           <a href="suscripciones.html" class="enlace-nav">Suscripciones</a>
 <a href="perfil.html" class="enlace-nav">Mi perfil</a>
+          <a href="ayuda.html" class="enlace-nav">Ayuda</a>
           <a href="chat.html" class="btn-icono-circular" aria-label="Mensajes" title="Mensajes">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
               stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -129,15 +131,35 @@
         </div>
 
         <div class="campo">
-          <label for="frecuencia-suscripcion">Frecuencia</label>
-          <select id="frecuencia-suscripcion" required>
+          <label>¿Cada cuánto querés recibirlo?</label>
+          <div class="opciones-grandes-suscripcion" id="opciones-frecuencia">
+            <button type="button" data-frecuencia="semanal">Todas las semanas</button>
+            <button type="button" data-frecuencia="quincenal">Cada 2 semanas</button>
+            <button type="button" data-frecuencia="mensual" class="activo">Una vez al mes</button>
+          </div>
+          <select id="frecuencia-suscripcion" required style="display: none;">
             <option value="semanal">Semanal</option>
             <option value="quincenal">Quincenal</option>
             <option value="mensual" selected>Mensual</option>
           </select>
         </div>
 
-        <div class="campo">
+        <div class="campo" id="campo-dias-suscripcion">
+          <label id="etiqueta-dias-suscripcion">¿Qué día querés recibirlo?</label>
+          <div class="dias-semana-suscripcion" id="dias-semana-suscripcion">
+            <button type="button" data-dia="1">Lunes</button>
+            <button type="button" data-dia="2">Martes</button>
+            <button type="button" data-dia="3">Miércoles</button>
+            <button type="button" data-dia="4">Jueves</button>
+            <button type="button" data-dia="5">Viernes</button>
+            <button type="button" data-dia="6">Sábado</button>
+            <button type="button" data-dia="7">Domingo</button>
+          </div>
+        </div>
+
+        <div class="primera-entrega-auto" id="primera-entrega-auto">Primero elegí la distribuidora.</div>
+
+        <div class="campo" style="display: none;">
           <label>Primera entrega</label>
           <input type="hidden" id="fecha-suscripcion" required>
 
@@ -171,6 +193,11 @@
         </div>
 
         <div class="paso-suscripcion oculto" data-paso-suscripcion="2">
+        <div class="direcciones-guardadas" id="direcciones-guardadas-suscripcion" hidden>
+          <p class="titulo-direcciones-guardadas">Tus direcciones guardadas</p>
+          <div class="lista-direcciones-guardadas" id="lista-direcciones-guardadas-suscripcion"></div>
+        </div>
+
         <div class="campo campo-direccion-mapa">
           <label for="buscador-direccion-suscripcion">Buscá tu dirección</label>
           <input type="text" id="buscador-direccion-suscripcion" placeholder="Ej: Piedra Blanca" autocomplete="off">
@@ -224,12 +251,12 @@
           </label>
           <label class="opcion-pago-suscripcion">
             <input type="radio" name="metodo-pago-suscripcion" value="transferencia">
-            Transferencia (pagás por adelantado)
+            Transferencia a AquaTrack (un solo pago por el plan)
           </label>
         </div>
 
         <div class="campo" id="campo-meses-suscripcion" style="display: none;">
-          <label for="meses-suscripcion">Meses a pagar por adelantado</label>
+          <label for="meses-suscripcion">Duración del plan</label>
           <select id="meses-suscripcion">
             <option value="1">1 mes</option>
             <option value="2">2 meses</option>
@@ -250,6 +277,15 @@
     </div>
   </div>
 
+  <div class="modal-fondo oculto" id="modal-cuenta-suscripcion" role="dialog" aria-modal="true">
+    <div class="modal-suscripcion">
+      <button type="button" class="boton-cerrar-modal" id="boton-cerrar-modal-cuenta" aria-label="Cerrar ventana">×</button>
+      <h2>Cuenta de tu suscripción</h2>
+      <p class="subtitulo-modal-suscripcion">Todo lo que se entregó y se pagó, entrega por entrega.</p>
+      <div id="contenido-cuenta-suscripcion"></div>
+    </div>
+  </div>
+
   <div class="modal-fondo oculto" id="modal-renovar" role="dialog" aria-modal="true"
     aria-labelledby="titulo-modal-renovar">
     <div class="modal-suscripcion modal-renovar-contenido">
@@ -257,7 +293,7 @@
         aria-label="Cerrar ventana">×</button>
 
       <h2 id="titulo-modal-renovar">Renovar suscripción</h2>
-      <p class="subtitulo-modal-suscripcion">Elegí cuántos meses querés pagar por adelantado.</p>
+      <p class="subtitulo-modal-suscripcion">Elegí por cuántos meses querés renovar tu plan.</p>
 
       <div class="opciones-meses-renovar" id="opciones-meses-renovar">
         <button type="button" class="opcion-mes-renovar seleccionada" data-meses="1">1 mes</button>
@@ -304,8 +340,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="js/supabase-config.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="js/suscripciones.js"></script>
+  <script src="js/cuenta-suscripcion.js"></script>
+<script src="js/suscripciones.js"></script>
   <script src="js/tema.js"></script>
+  <script src="js/menu-cliente.js"></script>
 </body>
 
 </html>

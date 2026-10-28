@@ -18,6 +18,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="css/comunes.css">
+  <link rel="stylesheet" href="css/menu-cliente.css">
   <link rel="stylesheet" href="css/inicio.css">
   <link rel="stylesheet" href="css/seguimiento.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
@@ -39,6 +40,7 @@
           <a href="historial.html" class="enlace-nav">Mis pedidos</a>
           <a href="suscripciones.html" class="enlace-nav">Suscripciones</a>
           <a href="perfil.html" class="enlace-nav">Mi perfil</a>
+          <a href="ayuda.html" class="enlace-nav">Ayuda</a>
           <button type="button" class="btn btn-secundario btn-peligro" id="boton-cerrar-sesion">Salir</button>
         </div>
         <button type="button" class="btn-tema" id="btn-tema" aria-label="Cambiar tema"></button>
@@ -92,7 +94,7 @@
         </div>
 
         <form class="tarjeta-perfil tarjeta-ancha" id="formulario-direccion" novalidate>
-          <h2>Agregar dirección</h2>
+          <h2 id="titulo-formulario-direccion">Agregar dirección</h2>
 
           <div class="campo-perfil">
             <label for="alias-direccion">Nombre (ej: Casa, Trabajo)</label>
@@ -137,6 +139,7 @@
 
           <p class="mensaje-perfil" id="mensaje-direccion"></p>
           <button type="submit" class="btn btn-principal" id="btn-guardar-direccion">Guardar dirección</button>
+          <button type="button" class="btn btn-secundario oculto" id="btn-cancelar-edicion">Cancelar edición</button>
         </form>
       </section>
     </div>
@@ -147,6 +150,7 @@
   <script src="js/supabase-config.js"></script>
   <script src="js/perfil.js"></script>
   <script src="js/tema.js"></script>
+  <script src="js/menu-cliente.js"></script>
 </body>
 
 </html>

@@ -155,3 +155,51 @@
   font-size: 0.9rem;
   opacity: 0.8;
 }
+
+.acciones-direccion-perfil {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@media (min-width: 900px) {
+  #formulario-datos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 20px;
+    max-width: 720px;
+  }
+
+  #formulario-datos h2,
+  #formulario-datos .mensaje-perfil,
+  #formulario-datos .btn {
+    grid-column: 1 / -1;
+  }
+
+  #formulario-datos .btn {
+    justify-self: start;
+  }
+}
+
+.fila-perfil > .campo-perfil {
+  min-width: 0;
+}
+
+.campo-perfil input {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (max-width: 480px) {
+  .fila-perfil {
+    grid-template-columns: 1fr;
+  }
+}
+
+#btn-cancelar-edicion {
+  margin-top: 10px;
+}
+
+#btn-cancelar-edicion.oculto {
+  display: none;
+}

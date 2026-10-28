@@ -77,6 +77,15 @@
             </section>
 
             <section class="panel-seccion oculto" id="seccion-pagos" role="tabpanel">
+                <div class="panel-seccion-encabezado">
+                    <h2>Pagos por transferencia</h2>
+
+                    <select id="filtro-pagos" class="filtro-pedidos" aria-label="Filtrar pagos">
+                        <option value="pendientes">Por hacer</option>
+                        <option value="pagados">Ya pagados</option>
+                        <option value="todos">Todos</option>
+                    </select>
+                </div>
                 <p class="estado-productos-panel oculto" id="estado-pagos"></p>
                 <div class="lista-pagos-transferencia" id="lista-pagos-transferencia"></div>
             </section>

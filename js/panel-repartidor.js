@@ -27,14 +27,85 @@ function claseEstadoEntrega(estado) {
     return estado === 'en_camino' ? 'en_camino' : 'asignada';
 }
 
+async function cargarResumenHoy() {
+    const contenedor = document.getElementById('resumen-hoy-repartidor');
+
+    if (!contenedor) {
+        return;
+    }
+
+    const inicio = new Date();
+    inicio.setHours(0, 0, 0, 0);
+    const desde = inicio.toISOString();
+
+    const [{ data: entregadas }, { data: fallidas }] = await Promise.all([
+        supabaseCliente
+            .from('entregas')
+            .select(`
+                id, entregada_en, monto_cobrado,
+                pedidos ( total, metodo_pago, direccion_calle, direccion_numero,
+                    usuarios!pedidos_cliente_id_fkey ( nombre, apellido ) )
+            `)
+            .eq('repartidor_id', usuarioActual.id)
+            .eq('estado', 'entregada')
+            .gte('entregada_en', desde)
+            .order('entregada_en', { ascending: false }),
+        supabaseCliente
+            .from('intentos_entrega')
+            .select('id, motivo, creado_en')
+            .eq('repartidor_id', usuarioActual.id)
+            .gte('creado_en', desde)
+            .order('creado_en', { ascending: false })
+    ]);
+
+    const hechas = entregadas || [];
+    const noHechas = fallidas || [];
+
+    if (hechas.length === 0 && noHechas.length === 0) {
+        contenedor.innerHTML = '';
+        return;
+    }
+
+    const efectivo = hechas.reduce((suma, e) => suma + Number(e.monto_cobrado || 0), 0);
+    const transferencia = hechas
+        .filter((e) => e.pedidos?.metodo_pago === 'transferencia')
+        .reduce((suma, e) => suma + Number(e.pedidos?.total || 0), 0);
+
+    const hora = (fecha) => new Date(fecha).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+
+    contenedor.innerHTML = `
+        <h3>Hoy</h3>
+        <div class="resumen-hoy-totales">
+            <div><span>Efectivo cobrado (para entregar al vendedor)</span><strong>${formatearPrecio(efectivo)}</strong></div>
+            <div><span>Ya pagado por transferencia</span><strong>${formatearPrecio(transferencia)}</strong></div>
+            <div><span>Entregas hechas</span><strong>${hechas.length}</strong></div>
+            <div><span>No entregadas</span><strong>${noHechas.length}</strong></div>
+        </div>
+        ${hechas.map((e) => `
+            <div class="fila-resumen-hoy">
+                <span>✔ ${escaparHtml(e.pedidos?.usuarios?.nombre || '')} ${escaparHtml(e.pedidos?.usuarios?.apellido || '')} · ${escaparHtml(e.pedidos?.direccion_calle || '')} ${escaparHtml(e.pedidos?.direccion_numero || '')}</span>
+                <span>${e.pedidos?.metodo_pago === 'efectivo' ? 'Efectivo ' + formatearPrecio(e.monto_cobrado) : 'Transferencia'} · ${hora(e.entregada_en)}</span>
+            </div>
+        `).join('')}
+        ${noHechas.map((i) => `
+            <div class="fila-resumen-hoy fila-no-entregada">
+                <span>✖ No entregado: ${escaparHtml(i.motivo)}</span>
+                <span>${hora(i.creado_en)}</span>
+            </div>
+        `).join('')}
+    `;
+}
+
 async function cargarMisEntregas() {
+    cargarResumenHoy();
+
     const estadoVacio = document.getElementById('estado-entregas-repartidor');
     const lista = document.getElementById('lista-entregas-repartidor');
 
     const { data, error } = await supabaseCliente
         .from('entregas')
         .select(`
-            id, estado, asignada_en,
+            id, estado, asignada_en, cerrada_en,
             pedidos (
                 id, cliente_id, direccion_calle, direccion_numero, direccion_ciudad, direccion_referencia,
                 latitud, longitud, total, metodo_pago,
@@ -58,7 +129,12 @@ async function cargarMisEntregas() {
     });
 
     const barraSalir = document.getElementById('barra-salir-repartir');
-    barraSalir.classList.toggle('oculto', !(data || []).some((entrega) => entrega.estado === 'asignada'));
+    const asignadas = (data || []).filter((entrega) => entrega.estado === 'asignada');
+    const botonSalir = document.getElementById('btn-salir-repartir');
+
+    barraSalir.classList.toggle('oculto', asignadas.length === 0);
+    botonSalir.disabled = false;
+    botonSalir.textContent = 'Salir a repartir';
 
     const ordenConUbicacion = await dibujarMapaEntregas(data || []);
     const sinUbicacion = (data || []).filter((entrega) => !entrega.pedidos?.latitud || !entrega.pedidos?.longitud);
@@ -89,53 +165,50 @@ async function cargarMisEntregas() {
             </p>
         `).join('');
 
+        const direccionTexto = `${pedido.direccion_calle || ''} ${pedido.direccion_numero || ''}, ${pedido.direccion_ciudad || ''}`.trim();
+        const urlComoLlegar = tieneUbicacion
+            ? `https://www.google.com/maps/dir/?api=1&destination=${pedido.latitud},${pedido.longitud}`
+            : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(direccionTexto)}`;
+        const telefono = (pedido.usuarios?.telefono || '').replace(/[^\d+]/g, '');
+
         const tarjeta = document.createElement('article');
-        tarjeta.className = 'tarjeta-producto-panel';
+        tarjeta.className = 'tarjeta-entrega';
         tarjeta.innerHTML = `
-            <div class="numero-parada-repartidor">${tieneUbicacion ? indice + 1 : '—'}</div>
-            <div>
-                <div class="tarjeta-producto-panel-superior">
-                    <h3>${escaparHtml(nombreCliente)}</h3>
-                    <span class="etiqueta-estado-producto ${claseEstadoEntrega(entrega.estado)}">
-                        ${etiquetasEstadoEntrega[entrega.estado]}
-                    </span>
-                </div>
-                ${pedido.usuarios?.dni ? `<p class="tarjeta-producto-panel-descripcion">DNI: ${escaparHtml(pedido.usuarios.dni)}</p>` : ''}
-                ${pedido.usuarios?.telefono ? `
-                    <p class="tarjeta-producto-panel-descripcion fila-telefono-repartidor">
-                        Tel: ${escaparHtml(pedido.usuarios.telefono)}
-                        <button type="button" class="btn-copiar-telefono" data-copiar-telefono="${escaparHtml(pedido.usuarios.telefono)}" aria-label="Copiar teléfono" title="Copiar teléfono">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="9" y="9" width="11" height="11" rx="2"></rect>
-                                <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path>
-                            </svg>
-                        </button>
-                    </p>
-                ` : ''}
-                <p class="tarjeta-producto-panel-descripcion">
-                    ${escaparHtml(pedido.direccion_calle)} ${escaparHtml(pedido.direccion_numero || '')},
-                    ${escaparHtml(pedido.direccion_ciudad)}
-                    ${pedido.direccion_referencia ? `— ${escaparHtml(pedido.direccion_referencia)}` : ''}
-                </p>
-                ${!tieneUbicacion ? '<p class="tarjeta-producto-panel-descripcion">Sin ubicación guardada (no aparece en el mapa)</p>' : ''}
-                ${itemsHtml}
+            <div class="entrega-cabecera">
+                <span class="numero-parada-repartidor">${tieneUbicacion ? indice + 1 : '—'}</span>
+                <h3>${escaparHtml(nombreCliente)}</h3>
+                <span class="etiqueta-estado-producto ${claseEstadoEntrega(entrega.estado)}">
+                    ${etiquetasEstadoEntrega[entrega.estado]}
+                </span>
             </div>
-            <div>
-                <div class="tarjeta-producto-panel-detalle">
-                    <span>${pedido.metodo_pago === 'transferencia' ? 'Transferencia' : 'Efectivo'}</span>
+
+            <p class="entrega-direccion">
+                ${escaparHtml(direccionTexto)}
+                ${pedido.direccion_referencia ? `<br><span>${escaparHtml(pedido.direccion_referencia)}</span>` : ''}
+            </p>
+            ${!tieneUbicacion ? '<p class="entrega-aviso">Sin ubicación guardada: no aparece en el mapa.</p>' : ''}
+
+            <div class="entrega-cobro">
+                <div>
+                    <p class="entrega-items">${(pedido.detalles_pedidos || []).map((item) => `${item.cantidad}x ${escaparHtml(item.productos?.nombre || 'Producto')}`).join(' · ')}</p>
+                    ${pedido.usuarios?.dni ? `<p class="entrega-dni">DNI: ${escaparHtml(pedido.usuarios.dni)}</p>` : ''}
+                </div>
+                <div class="entrega-monto">
+                    <span>${pedido.metodo_pago === 'transferencia' ? 'Ya pagó (transferencia)' : 'Cobrar en efectivo'}</span>
                     <strong>${formatearPrecio(pedido.total)}</strong>
                 </div>
-                <div class="tarjeta-producto-panel-acciones">
-                    ${entrega.estado === 'en_camino'
-                ? `<button type="button" class="btn btn-principal btn-chico" data-confirmar-entrega="${entrega.id}">Confirmar entrega</button>`
-                : ''}
-                    <button type="button" class="btn-icono-circular" data-chat-cliente="${pedido.cliente_id}" aria-label="Chatear con el cliente" title="Chatear con el cliente">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
-                        </svg>
-                    </button>
-                </div>
             </div>
+
+            <div class="entrega-contacto">
+                <a class="btn btn-secundario" href="${urlComoLlegar}" target="_blank" rel="noopener">Cómo llegar</a>
+                ${telefono ? `<a class="btn btn-secundario" href="tel:${telefono}">Llamar</a>` : ''}
+                <button type="button" class="btn btn-secundario" data-chat-cliente="${pedido.cliente_id}">Mensaje</button>
+            </div>
+
+            ${entrega.estado === 'en_camino' ? `
+                <button type="button" class="btn btn-principal entrega-confirmar" data-confirmar-entrega="${entrega.id}">Confirmar entrega</button>
+                <button type="button" class="entrega-no-pude" data-no-pude-entregar="${entrega.id}">No pude entregar</button>
+            ` : ''}
         `;
 
         lista.appendChild(tarjeta);
@@ -273,6 +346,62 @@ document.getElementById('lista-entregas-repartidor').addEventListener('click', (
     abrirModalValidacionEntrega(botonConfirmar.dataset.confirmarEntrega);
 });
 
+let entregaNoPude = null;
+let motivoNoPude = null;
+
+function cerrarModalNoPude() {
+    document.getElementById('modal-no-pude').classList.add('oculto');
+    entregaNoPude = null;
+    motivoNoPude = null;
+}
+
+document.getElementById('lista-entregas-repartidor').addEventListener('click', (evento) => {
+    const boton = evento.target.closest('[data-no-pude-entregar]');
+    if (!boton) return;
+
+    entregaNoPude = boton.dataset.noPudeEntregar;
+    motivoNoPude = null;
+    document.querySelectorAll('.opcion-no-pude').forEach((opcion) => opcion.classList.remove('elegida'));
+    document.getElementById('boton-confirmar-no-pude').disabled = true;
+    document.getElementById('mensaje-no-pude').classList.add('oculto');
+    document.getElementById('modal-no-pude').classList.remove('oculto');
+});
+
+document.getElementById('opciones-no-pude').addEventListener('click', (evento) => {
+    const opcion = evento.target.closest('.opcion-no-pude');
+    if (!opcion) return;
+
+    motivoNoPude = opcion.dataset.motivo;
+    document.querySelectorAll('.opcion-no-pude').forEach((otra) => otra.classList.toggle('elegida', otra === opcion));
+    document.getElementById('boton-confirmar-no-pude').disabled = false;
+});
+
+document.getElementById('boton-cerrar-modal-no-pude').addEventListener('click', cerrarModalNoPude);
+document.getElementById('boton-cancelar-no-pude').addEventListener('click', cerrarModalNoPude);
+
+document.getElementById('boton-confirmar-no-pude').addEventListener('click', async () => {
+    if (!entregaNoPude || !motivoNoPude) return;
+
+    const boton = document.getElementById('boton-confirmar-no-pude');
+    boton.disabled = true;
+
+    const { error } = await supabaseCliente.rpc('no_pude_entregar', {
+        p_entrega_id: entregaNoPude,
+        p_motivo: motivoNoPude
+    });
+
+    if (error) {
+        const mensaje = document.getElementById('mensaje-no-pude');
+        mensaje.textContent = error.message || 'No pudimos devolver el pedido. Intentá de nuevo.';
+        mensaje.className = 'mensaje-estado error';
+        boton.disabled = false;
+        return;
+    }
+
+    cerrarModalNoPude();
+    await cargarMisEntregas();
+});
+
 function codigoManualDePedido(idPedido) {
     return (idPedido || '').slice(0, 8).toUpperCase();
 }
@@ -373,16 +502,16 @@ async function procesarCodigoValidacion(codigoIngresado) {
     }
 
     await detenerEscanerQr();
-    await confirmarEntregaValidada();
+    await confirmarEntregaValidada(valorLimpio);
 }
 
-async function confirmarEntregaValidada() {
+async function confirmarEntregaValidada(codigo) {
     const idEntrega = entregaSeleccionadaValidacion;
 
-    const { error } = await supabaseCliente
-        .from('entregas')
-        .update({ estado: 'entregada', entregada_en: new Date().toISOString() })
-        .eq('id', idEntrega);
+    const { error } = await supabaseCliente.rpc('confirmar_entrega', {
+        p_entrega_id: idEntrega,
+        p_codigo: codigo
+    });
 
     if (error) {
         mostrarMensajeValidacion('No pudimos confirmar la entrega. Intentá de nuevo.', 'error');
@@ -421,7 +550,7 @@ document.getElementById('btn-salir-repartir').addEventListener('click', async ()
         .eq('estado', 'asignada');
 
     if (error) {
-        alert('No pudimos iniciar el reparto. Intentá de nuevo.');
+        alert('No pudimos iniciar el reparto. Intente nuevamente.');
         boton.disabled = false;
         return;
     }

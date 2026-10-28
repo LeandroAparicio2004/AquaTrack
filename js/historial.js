@@ -13,7 +13,7 @@ function formatearFecha(valor) {
 }
 
 const etiquetasEstadoPedidoHistorial = {
-    pendiente: 'Pendiente de asignación',
+    pendiente: 'Preparando Pedido',
     asignado: 'Asignado a un repartidor',
     en_camino: 'En camino',
     entregado: 'Entregado',
@@ -57,6 +57,7 @@ function renderizarHistorial() {
                     <span class="numero-pedido-historial">Pedido #${pedido.id.slice(0, 8).toUpperCase()}</span>
                     <span class="distribuidora-historial">${pedido.distribuidoras?.nombre || 'AquaTrack'}</span>
                     <span class="fecha-historial">${formatearFecha(pedido.creado_en)}</span>
+                    ${textoPagoHistorial(pedido)}
                 </div>
 
                 <div class="detalle-historial">
@@ -65,6 +66,10 @@ function renderizarHistorial() {
 
                     <div class="acciones-historial">
                         <a href="ticket.html?pedido=${pedido.id}">Ver ticket</a>
+                        ${botonCancelarPedido(pedido)}
+                        ${['asignado', 'en_camino', 'entregado'].includes(pedido.estado)
+                ? `<a href="chat.html?soporte=1&amp;texto=${encodeURIComponent('Hola, tengo un problema con el pedido #' + pedido.id.slice(0, 8).toUpperCase())}">Tuve un problema</a>`
+                : ''}
                         ${obtenerBotonResena(pedido)}
                         ${(pedido.detalles_pedidos || []).length > 0 ? `<button type="button" class="boton-repetir-historial" data-repetir-pedido="${pedido.id}">Repetir pedido</button>` : ''}
                         ${puedeSeguirEnVivo ? `<a href="seguimiento.html?pedido=${pedido.id}">Seguir en vivo</a>` : ''}
@@ -73,6 +78,85 @@ function renderizarHistorial() {
             </div>
         `;
     }).join('');
+}
+
+function botonCancelarPedido(pedido) {
+    const pagoVerificado = pedido.pagos_transferencia?.estado === 'confirmado';
+
+    if (pedido.estado !== 'pendiente' || pagoVerificado) {
+        return '';
+    }
+
+    return `<button type="button" class="boton-cancelar-historial" data-cancelar-pedido="${pedido.id}">Cancelar pedido</button>`;
+}
+
+document.getElementById('lista-historial').addEventListener('click', async (evento) => {
+    const boton = evento.target.closest('[data-cancelar-pedido]');
+
+    if (!boton) {
+        return;
+    }
+
+    if (!confirm('¿Querés cancelar este pedido?')) {
+        return;
+    }
+
+    boton.disabled = true;
+
+    const { error } = await supabaseCliente.rpc('cancelar_pedido_cliente', {
+        p_pedido_id: boton.dataset.cancelarPedido
+    });
+
+    if (error) {
+        alert(error.message || 'No pudimos cancelar el pedido. Probá de nuevo.');
+        boton.disabled = false;
+        return;
+    }
+
+    const pedido = pedidosHistorial.find((item) => item.id === boton.dataset.cancelarPedido);
+
+    if (pedido) {
+        pedido.estado = 'cancelado';
+    }
+
+    renderizarHistorial();
+});
+
+function textoPagoHistorial(pedido) {
+    if (pedido.estado === 'cancelado') {
+        return '';
+    }
+
+    const listaEntregas = Array.isArray(pedido.entregas) ? pedido.entregas : (pedido.entregas ? [pedido.entregas] : []);
+    const entrega = listaEntregas.find((item) => item.estado === 'entregada');
+    let pago;
+
+    if (pedido.metodo_pago === 'efectivo') {
+        pago = entrega && entrega.monto_cobrado != null
+            ? `Efectivo · cobrado ${formatearPrecio(entrega.monto_cobrado)}`
+            : 'Efectivo · se paga al recibir';
+    } else {
+        const estadoPago = pedido.pagos_transferencia?.estado;
+        pago = estadoPago === 'confirmado'
+            ? 'Transferencia · pago verificado'
+            : estadoPago === 'rechazado'
+                ? 'Transferencia · pago rechazado'
+                : 'Transferencia · en verificación';
+    }
+
+    const entregado = pedido.estado === 'entregado' && entrega?.entregada_en
+        ? ` · Entregado el ${formatearFecha(entrega.entregada_en)}`
+        : '';
+
+    const clase = pago.includes('rechazado')
+        ? 'rechazado'
+        : (pago.includes('cobrado') || pago.includes('verificado'))
+            ? 'cobrado'
+            : pago.includes('verificación')
+                ? 'verificando'
+                : 'por-cobrar';
+
+    return `<span class="chip-pago-historial ${clase}">${pago}</span>${entregado ? `<span class="fecha-historial">${entregado.replace(' · ', '')}</span>` : ''}`;
 }
 
 function obtenerResenaPedido(pedido) {
@@ -307,7 +391,9 @@ async function cargarHistorial() {
     const { data: pedidos, error } = await supabaseCliente
         .from('pedidos')
         .select(`
-            id, estado, total, creado_en,
+            id, estado, total, creado_en, metodo_pago,
+            pagos_transferencia ( estado ),
+            entregas ( estado, entregada_en, monto_cobrado ),
             distribuidoras ( nombre ),
             detalles_pedidos ( producto_id, cantidad ),
             resenas ( estrellas_distribuidora, estrellas_repartidor )

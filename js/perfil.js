@@ -196,10 +196,64 @@ document.getElementById('sugerencias-perfil').addEventListener('click', (evento)
     }
 });
 
+let direccionesPerfil = [];
+let direccionEditandoId = null;
+
+function salirModoEdicion() {
+    direccionEditandoId = null;
+    document.getElementById('titulo-formulario-direccion').textContent = 'Agregar dirección';
+    document.getElementById('btn-guardar-direccion').textContent = 'Guardar dirección';
+    document.getElementById('btn-cancelar-edicion').classList.add('oculto');
+}
+
+document.getElementById('lista-direcciones-perfil').addEventListener('click', (evento) => {
+    const boton = evento.target.closest('[data-editar-direccion]');
+
+    if (!boton) {
+        return;
+    }
+
+    const d = direccionesPerfil.find((item) => item.id === boton.dataset.editarDireccion);
+
+    if (!d) {
+        return;
+    }
+
+    direccionEditandoId = d.id;
+    document.getElementById('alias-direccion').value = d.alias || '';
+    document.getElementById('calle-perfil').value = d.calle || '';
+    document.getElementById('numero-perfil').value = d.numero || '';
+    document.getElementById('ciudad-perfil').value = d.ciudad || '';
+    document.getElementById('provincia-perfil').value = d.provincia || 'Catamarca';
+    document.getElementById('referencia-perfil').value = d.referencia || '';
+
+    if (d.latitud && d.longitud) {
+        ponerMarcadorPerfil(Number(d.latitud), Number(d.longitud));
+    }
+
+    document.getElementById('titulo-formulario-direccion').textContent = 'Editar dirección';
+    document.getElementById('btn-guardar-direccion').textContent = 'Guardar cambios';
+    document.getElementById('btn-cancelar-edicion').classList.remove('oculto');
+    document.getElementById('formulario-direccion').scrollIntoView({ behavior: 'smooth' });
+});
+
+document.getElementById('btn-cancelar-edicion').addEventListener('click', () => {
+    salirModoEdicion();
+    document.getElementById('formulario-direccion').reset();
+    document.getElementById('provincia-perfil').value = 'Catamarca';
+    document.getElementById('latitud-perfil').value = '';
+    document.getElementById('longitud-perfil').value = '';
+
+    if (marcadorPerfil) {
+        marcadorPerfil.remove();
+        marcadorPerfil = null;
+    }
+});
+
 async function cargarDireccionesPerfil() {
     const { data, error } = await supabaseCliente
         .from('direcciones_guardadas')
-        .select('id, alias, calle, numero, ciudad, provincia, referencia')
+        .select('id, alias, calle, numero, ciudad, provincia, referencia, latitud, longitud')
         .order('creado_en', { ascending: true });
 
     const lista = document.getElementById('lista-direcciones-perfil');
@@ -215,13 +269,18 @@ async function cargarDireccionesPerfil() {
         return data;
     }
 
+    direccionesPerfil = data;
+
     lista.innerHTML = data.map((d) => `
         <div class="item-direccion-perfil">
             <div>
                 <strong>${escaparHtmlPerfil(d.alias)}</strong>
                 <span>${escaparHtmlPerfil([d.calle, d.numero].filter(Boolean).join(' '))}, ${escaparHtmlPerfil(d.ciudad)}</span>
             </div>
-            <button type="button" class="btn btn-secundario btn-peligro" data-borrar-direccion="${d.id}">Eliminar</button>
+            <div class="acciones-direccion-perfil">
+                <button type="button" class="btn btn-secundario" data-editar-direccion="${d.id}">Editar</button>
+                <button type="button" class="btn btn-secundario btn-peligro" data-borrar-direccion="${d.id}">Eliminar</button>
+            </div>
         </div>
     `).join('');
 
@@ -271,7 +330,7 @@ document.getElementById('formulario-direccion').addEventListener('submit', async
 
     const actuales = await cargarDireccionesPerfil();
 
-    if (actuales.length >= MAX_DIRECCIONES) {
+    if (!direccionEditandoId && actuales.length >= MAX_DIRECCIONES) {
         mostrarMensajePerfil('mensaje-direccion', `Podés guardar hasta ${MAX_DIRECCIONES} direcciones.`, 'error');
         return;
     }
@@ -279,7 +338,7 @@ document.getElementById('formulario-direccion').addEventListener('submit', async
     const boton = document.getElementById('btn-guardar-direccion');
     boton.disabled = true;
 
-    const { error } = await supabaseCliente.from('direcciones_guardadas').insert({
+    const datosDireccion = {
         alias,
         calle,
         numero: document.getElementById('numero-perfil').value.trim(),
@@ -288,7 +347,12 @@ document.getElementById('formulario-direccion').addEventListener('submit', async
         referencia: document.getElementById('referencia-perfil').value.trim(),
         latitud: Number(latitud),
         longitud: Number(longitud)
-    });
+    };
+
+    const tablaDirecciones = supabaseCliente.from('direcciones_guardadas');
+    const { error } = direccionEditandoId
+        ? await tablaDirecciones.update(datosDireccion).eq('id', direccionEditandoId)
+        : await tablaDirecciones.insert(datosDireccion);
 
     boton.disabled = false;
 
@@ -307,7 +371,9 @@ document.getElementById('formulario-direccion').addEventListener('submit', async
         marcadorPerfil = null;
     }
 
-    mostrarMensajePerfil('mensaje-direccion', 'Dirección guardada.', 'exito');
+    const mensajeOk = direccionEditandoId ? 'Dirección actualizada.' : 'Dirección guardada.';
+    salirModoEdicion();
+    mostrarMensajePerfil('mensaje-direccion', mensajeOk, 'exito');
     cargarDireccionesPerfil();
 });
 

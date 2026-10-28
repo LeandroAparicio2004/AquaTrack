@@ -38,7 +38,9 @@ async function cargarTicket() {
         .from('pedidos')
         .select(`
             id, direccion_calle, direccion_numero, direccion_ciudad, direccion_referencia,
-            subtotal, descuento_envases, total,
+            subtotal, descuento_envases, total, estado, metodo_pago,
+            pagos_transferencia ( estado ),
+            entregas ( estado, monto_cobrado ),
             usuarios!pedidos_cliente_id_fkey ( nombre, apellido, dni ),
             distribuidoras ( nombre ),
             detalles_pedidos ( cantidad, precio_unitario, subtotal, productos ( nombre ) )
@@ -52,6 +54,35 @@ async function cargarTicket() {
     }
 
     pedidoActualTicket = pedido;
+
+    const listaEntregas = Array.isArray(pedido.entregas) ? pedido.entregas : (pedido.entregas ? [pedido.entregas] : []);
+    const cobradoEnEfectivo = listaEntregas.some((item) => item.estado === 'entregada' && item.monto_cobrado != null);
+    const estadoPago = pedido.pagos_transferencia?.estado;
+    const sello = document.getElementById('sello-pago-ticket');
+    let claseSello = 'por-cobrar';
+    let textoSello = 'Por cobrar al recibir';
+
+    if (pedido.estado === 'cancelado') {
+        claseSello = 'rechazado';
+        textoSello = 'Cancelado';
+    } else if (pedido.metodo_pago === 'efectivo') {
+        if (cobradoEnEfectivo) {
+            claseSello = 'cobrado';
+            textoSello = 'Cobrado';
+        }
+    } else if (estadoPago === 'confirmado') {
+        claseSello = 'cobrado';
+        textoSello = 'Pagado';
+    } else if (estadoPago === 'rechazado') {
+        claseSello = 'rechazado';
+        textoSello = 'Pago rechazado';
+    } else {
+        claseSello = 'verificando';
+        textoSello = 'Pago en verificación';
+    }
+
+    sello.className = `sello-pago-ticket ${claseSello}`;
+    sello.textContent = textoSello;
 
     document.getElementById('distribuidora-ticket').textContent = `Pedido a ${pedido.distribuidoras?.nombre || ''}`;
     document.getElementById('nombre-ticket').textContent = pedido.usuarios?.nombre || '';

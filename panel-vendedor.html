@@ -18,6 +18,7 @@
         rel="stylesheet">
     <link rel="stylesheet" href="css/comunes.css">
     <link rel="stylesheet" href="css/panel-vendedor.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <link rel="stylesheet" href="css/calendario-vendedor.css">
 </head>
 
@@ -69,28 +70,63 @@
                 <h1 id="nombre-distribuidora">Cargando...</h1>
             </div>
 
-            <div class="panel-pestanas" role="tablist">
-                <button type="button" class="panel-pestana activa" data-pestana="productos" role="tab"
-                    aria-selected="true">Mis Productos</button>
-                <button type="button" class="panel-pestana" data-pestana="pedidos" role="tab"
-                    aria-selected="false">Pedidos</button>
-                <button type="button" class="panel-pestana" data-pestana="asignar" role="tab"
-                    aria-selected="false">Asignar Entregas <span class="insignia-urgente" id="insignia-asignar" hidden></span></button>
-                <button type="button" class="panel-pestana" data-pestana="repartidores" role="tab"
-                    aria-selected="false">Repartidores</button>
-                <button type="button" class="panel-pestana" data-pestana="suscripciones" role="tab"
-                    aria-selected="false">Suscripciones</button>
-                <button type="button" class="panel-pestana" data-pestana="perfil" role="tab"
-                    aria-selected="false">Perfil del negocio</button>
-                <button type="button" class="panel-pestana" data-pestana="publicidad" role="tab"
-                    aria-selected="false">Publicidad</button>
-                <button type="button" class="panel-pestana" data-pestana="cobros" role="tab"
-                    aria-selected="false">Cobros</button>
-                <button type="button" class="panel-pestana" data-pestana="rutas" role="tab" aria-selected="false">Hojas
-                    de ruta</button>
+            <div class="panel-grupos" role="tablist">
+                <button type="button" class="panel-grupo activo" data-grupo="inicio" role="tab">Inicio</button>
+                <button type="button" class="panel-grupo" data-grupo="pedidos" role="tab">Pedidos <span class="insignia-urgente" id="insignia-asignar" hidden></span></button>
+                <button type="button" class="panel-grupo" data-grupo="productos" role="tab">Productos</button>
+                <button type="button" class="panel-grupo" data-grupo="suscripciones" role="tab">Suscripciones</button>
+                <button type="button" class="panel-grupo" data-grupo="cobros" role="tab">Cobros</button>
+                <button type="button" class="panel-grupo" data-grupo="negocio" role="tab">Mi negocio</button>
             </div>
 
-            <section class="panel-seccion" id="seccion-productos" role="tabpanel">
+            <div class="panel-subpestanas" data-grupo="inicio" hidden>
+                <button type="button" class="panel-pestana activa" data-pestana="inicio">Inicio</button>
+            </div>
+            <div class="panel-subpestanas" data-grupo="pedidos" hidden>
+                <button type="button" class="panel-pestana" data-pestana="asignar">Por asignar</button>
+                <button type="button" class="panel-pestana" data-pestana="pedidos">Todos los pedidos</button>
+            </div>
+            <div class="panel-subpestanas" data-grupo="productos" hidden>
+                <button type="button" class="panel-pestana" data-pestana="productos">Mis productos</button>
+            </div>
+            <div class="panel-subpestanas" data-grupo="suscripciones" hidden>
+                <button type="button" class="panel-pestana" data-pestana="suscripciones">Suscripciones</button>
+            </div>
+            <div class="panel-subpestanas" data-grupo="cobros" hidden>
+                <button type="button" class="panel-pestana" data-pestana="cobros">Cobros</button>
+                <button type="button" class="panel-pestana" data-pestana="rutas">Hojas de ruta</button>
+            </div>
+            <div class="panel-subpestanas" data-grupo="negocio" hidden>
+                <button type="button" class="panel-pestana" data-pestana="perfil">Perfil del negocio</button>
+                <button type="button" class="panel-pestana" data-pestana="repartidores">Repartidores</button>
+                <button type="button" class="panel-pestana" data-pestana="publicidad">Publicidad</button>
+            </div>
+
+            <section class="panel-seccion" id="seccion-inicio" role="tabpanel">
+                <div class="panel-seccion-encabezado">
+                    <h2>Resumen del día</h2>
+                </div>
+                <div class="inicio-tarjetas">
+                    <button type="button" class="inicio-tarjeta" data-ir="asignar" id="inicio-tarjeta-por-asignar">
+                        <span class="inicio-numero" id="inicio-por-asignar">–</span>
+                        <span class="inicio-titulo">Pedidos por asignar</span>
+                        <span class="inicio-ayuda">Tocá para asignarlos</span>
+                    </button>
+                    <button type="button" class="inicio-tarjeta" data-ir="cobros">
+                        <span class="inicio-numero" id="inicio-efectivo">–</span>
+                        <span class="inicio-titulo">Efectivo por recibir</span>
+                        <span class="inicio-ayuda">Lo que te deben rendir los repartidores</span>
+                    </button>
+                    <button type="button" class="inicio-tarjeta" data-ir="suscripciones" id="inicio-tarjeta-atrasadas">
+                        <span class="inicio-numero" id="inicio-atrasadas">–</span>
+                        <span class="inicio-titulo">Suscripciones atrasadas</span>
+                        <span class="inicio-ayuda">Clientes con un mes sin pagar</span>
+                    </button>
+                </div>
+                <a href="metricas-vendedor.html" class="btn btn-secundario inicio-metricas">Ver métricas</a>
+            </section>
+            
+            <section class="panel-seccion oculto" id="seccion-productos" role="tabpanel">
                 <div class="panel-seccion-encabezado">
                     <h2>Mis Productos</h2>
                     <button type="button" class="btn btn-principal" id="btn-agregar-producto">+ Agregar
@@ -128,7 +164,18 @@
 
                 <p class="estado-productos-panel oculto" id="estado-tablero"></p>
 
+                <p class="ayuda-tablero">Tocá los pedidos para seleccionarlos y elegí abajo a quién asignarlos.</p>
+
                 <div class="tablero-entregas" id="tablero-entregas"></div>
+
+                <div class="barra-asignacion oculto" id="barra-asignacion">
+                    <div class="barra-asignacion-cabecera">
+                        <strong id="texto-seleccion">0 seleccionados</strong>
+                        <button type="button" class="btn btn-secundario btn-chico" id="btn-limpiar-seleccion">Cancelar</button>
+                    </div>
+                    <button type="button" class="btn btn-principal" id="btn-elegir-repartidor">Asignar a…</button>
+                    <div class="barra-asignacion-opciones oculto" id="opciones-asignacion"></div>
+                </div>
             </section>
 
             <section class="panel-seccion oculto" id="seccion-repartidores" role="tabpanel">
@@ -322,6 +369,17 @@
                                 </div>
                             </div>
 
+                            <div class="campo">
+                                <label for="buscador-negocio">Ubicación en el mapa</label>
+                                <input type="text" id="buscador-negocio" placeholder="Buscá la dirección del negocio" autocomplete="off">
+                                <div id="sugerencias-negocio" class="sugerencias-negocio" hidden></div>
+                                <button type="button" class="btn btn-secundario" id="btn-mi-ubicacion-negocio">Usar mi ubicación actual</button>
+                                <p class="estado-ubicacion-negocio" id="estado-ubicacion-negocio"></p>
+                            </div>
+                            <div id="mapa-negocio" class="mapa-negocio"></div>
+                            <input type="hidden" id="latitud-negocio">
+                            <input type="hidden" id="longitud-negocio">
+
                             <div class="campo campo-checkbox">
                                 <label>
                                     <input type="checkbox" id="acepta-efectivo" checked>
@@ -436,6 +494,8 @@
                     <h2>Cobros</h2>
                     <button type="button" class="btn btn-secundario" id="btn-exportar-cobros">Descargar Excel</button>
                 </div>
+
+                <div class="resumen-hoy-repartidor" id="resumen-dia-vendedor"></div>
 
                 <div class="resumen-cobros" id="resumen-cobros"></div>
 
@@ -553,6 +613,14 @@
         </div>
     </div>
 
+    <div class="modal-fondo oculto" id="modal-cuenta-suscripcion" role="dialog" aria-modal="true">
+        <div class="modal-producto modal-cuenta">
+            <button type="button" class="boton-cerrar-modal" id="boton-cerrar-modal-cuenta" aria-label="Cerrar ventana">×</button>
+            <h2>Cuenta de la suscripción</h2>
+            <div id="contenido-cuenta-suscripcion"></div>
+        </div>
+    </div>
+
     <div class="modal-fondo oculto" id="modal-detalle-repartidor" role="dialog" aria-modal="true"
         aria-labelledby="titulo-modal-repartidor">
         <div class="modal-producto">
@@ -637,12 +705,17 @@
             </div>
         </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="js/supabase-config.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+    <script src="js/ubicacion-negocio.js"></script>
+    <script src="js/cuenta-suscripcion.js"></script>
     <script src="js/panel-vendedor.js"></script>
     <script src="js/hojas-ruta.js"></script>
+    <script src="js/hoja-ruta-pdf.js"></script>
     <script src="js/tema.js"></script>
 </body>
 

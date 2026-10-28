@@ -40,9 +40,27 @@ let fechaSuscripcionElegida = null;
 let distribuidorasCupo = {};
 let pasoSuscripcion = 1;
 let distribuidorasMaximo = {};
+let diasSuscripcion = [];
 
-function sumarPeriodoSuscripcion(clave, frecuencia) {
+const nombresDiasSuscripcion = ['', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+
+function textoDiasSuscripcion(dias) {
+    return (dias || []).map((dia) => nombresDiasSuscripcion[dia]).join(' · ');
+}
+
+function sumarPeriodoSuscripcion(clave, frecuencia, dias = []) {
     const [anio, mes, dia] = clave.split('-').map(Number);
+
+    if (frecuencia === 'semanal' && dias.length > 0) {
+        for (let paso = 1; paso <= 7; paso++) {
+            const candidata = new Date(anio, mes - 1, dia + paso);
+            const diaIso = candidata.getDay() === 0 ? 7 : candidata.getDay();
+
+            if (dias.includes(diaIso)) {
+                return formatearClaveFechaSuscripcion(candidata);
+            }
+        }
+    }
 
     if (frecuencia === 'semanal' || frecuencia === 'quincenal') {
         return formatearClaveFechaSuscripcion(
@@ -54,7 +72,7 @@ function sumarPeriodoSuscripcion(clave, frecuencia) {
     return formatearClaveFechaSuscripcion(new Date(anio, mes, Math.min(dia, ultimoDiaProximoMes)));
 }
 
-function calcularFechasEntrega(inicio, frecuencia, hastaClave) {
+function calcularFechasEntrega(inicio, frecuencia, hastaClave, dias = diasSuscripcion) {
     const fechas = [];
 
     if (!inicio) {
@@ -65,7 +83,7 @@ function calcularFechasEntrega(inicio, frecuencia, hastaClave) {
 
     while (actual <= hastaClave && fechas.length < 400) {
         fechas.push(actual);
-        actual = sumarPeriodoSuscripcion(actual, frecuencia);
+        actual = sumarPeriodoSuscripcion(actual, frecuencia, dias);
     }
 
     return fechas;
@@ -149,24 +167,19 @@ function etiquetaMesSuscripcion(fecha) {
 function iniciarCalendarioSuscripcion(idDistribuidora) {
     fechaSuscripcionElegida = null;
     document.getElementById('fecha-suscripcion').value = '';
-    document.getElementById('fecha-elegida-suscripcion').classList.add('oculto');
-    mesSuscripcionActual = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
-
-    const calendario = document.getElementById('calendario-suscripcion-cliente');
-    const textoAyuda = document.getElementById('texto-sin-distribuidora-fecha');
 
     if (!idDistribuidora) {
-        calendario.classList.add('oculto');
-        textoAyuda.classList.remove('oculto');
-        return;
+        diasSuscripcion = [];
     }
 
-    textoAyuda.classList.add('oculto');
-    calendario.classList.remove('oculto');
-    cargarCalendarioSuscripcion(idDistribuidora);
+    actualizarPantallaFrecuencia();
+    recalcularPrimeraEntrega();
 }
 
 async function cargarCalendarioSuscripcion(idDistribuidora) {
+    recalcularPrimeraEntrega();
+    return;
+
     const grilla = document.getElementById('grilla-calendario-suscripcion');
     grilla.innerHTML = '';
 
@@ -204,6 +217,8 @@ async function cargarCalendarioSuscripcion(idDistribuidora) {
     const cupo = distribuidorasCupo[idDistribuidora];
     const hoyClave = formatearClaveFechaSuscripcion(new Date());
 
+    let primeraLibre = null;
+
     for (let i = 0; i < primerDiaMes.getDay(); i++) {
         const celdaVacia = document.createElement('div');
         celdaVacia.className = 'dia-calendario-cliente dia-vacio-cliente';
@@ -216,7 +231,10 @@ async function cargarCalendarioSuscripcion(idDistribuidora) {
         const info = mapaDisponibilidad[clave] || { cantidad: 0, bloqueado: false };
         const esPasado = clave < hoyClave;
         const lleno = !info.bloqueado && cupo != null && info.cantidad >= cupo;
-        const noDisponible = esPasado || info.bloqueado || lleno;
+        const diaIso = fecha.getDay() === 0 ? 7 : fecha.getDay();
+        const frecuenciaElegida = document.getElementById('frecuencia-suscripcion').value;
+        const noEsDiaElegido = frecuenciaElegida === 'semanal' && diasSuscripcion.length > 0 && !diasSuscripcion.includes(diaIso);
+        const noDisponible = esPasado || info.bloqueado || lleno || noEsDiaElegido;
 
         const celda = document.createElement('div');
         celda.className = 'dia-calendario-cliente';
@@ -234,7 +252,27 @@ async function cargarCalendarioSuscripcion(idDistribuidora) {
             celda.classList.add('dia-entrega-suscripcion');
         }
 
+        if (!noDisponible && !primeraLibre) {
+            primeraLibre = clave;
+        }
+
         grilla.appendChild(celda);
+    }
+
+    if (
+        !fechaSuscripcionElegida &&
+        primeraLibre &&
+        diasSuscripcion.length > 0 &&
+        document.getElementById('frecuencia-suscripcion').value === 'semanal'
+    ) {
+        fechaSuscripcionElegida = primeraLibre;
+        document.getElementById('fecha-suscripcion').value = primeraLibre;
+
+        const fechaElegida = document.getElementById('fecha-elegida-suscripcion');
+        fechaElegida.textContent = `Primera entrega: ${formatearFecha(primeraLibre)} (podés cambiarla en el calendario)`;
+        fechaElegida.classList.remove('oculto');
+
+        await cargarCalendarioSuscripcion(idDistribuidora);
     }
 }
 
@@ -255,12 +293,135 @@ function seleccionarFechaSuscripcion(clave, celda) {
     cargarCalendarioSuscripcion(document.getElementById('distribuidora-suscripcion').value);
 }
 
-document.getElementById('frecuencia-suscripcion').addEventListener('change', () => {
-    const idDistribuidora = document.getElementById('distribuidora-suscripcion').value;
+function actualizarPantallaFrecuencia() {
+    const frecuencia = document.getElementById('frecuencia-suscripcion').value;
 
-    if (idDistribuidora) {
-        cargarCalendarioSuscripcion(idDistribuidora);
+    document.getElementById('etiqueta-dias-suscripcion').textContent = frecuencia === 'semanal'
+        ? '¿Qué días querés recibirlo? (podés marcar más de uno)'
+        : '¿Qué día querés recibirlo?';
+
+    document.querySelectorAll('#opciones-frecuencia button').forEach((boton) => {
+        boton.classList.toggle('activo', boton.dataset.frecuencia === frecuencia);
+    });
+
+    document.querySelectorAll('#dias-semana-suscripcion button').forEach((boton) => {
+        boton.classList.toggle('activo', diasSuscripcion.includes(Number(boton.dataset.dia)));
+    });
+}
+
+let consultaPrimeraEntrega = 0;
+
+async function recalcularPrimeraEntrega() {
+    const caja = document.getElementById('primera-entrega-auto');
+    const idDistribuidora = document.getElementById('distribuidora-suscripcion').value;
+    const numeroConsulta = ++consultaPrimeraEntrega;
+
+    fechaSuscripcionElegida = null;
+    document.getElementById('fecha-suscripcion').value = '';
+    caja.classList.remove('lista');
+
+    if (!idDistribuidora) {
+        caja.textContent = 'Primero elegí la distribuidora.';
+        return;
     }
+
+    if (diasSuscripcion.length === 0) {
+        caja.textContent = 'Tocá el día que te queda cómodo y te mostramos tu primera entrega.';
+        return;
+    }
+
+    caja.textContent = 'Buscando tu primera entrega...';
+
+    const hoy = new Date();
+    const dias = 70;
+    const desde = formatearClaveFechaSuscripcion(new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + 1));
+    const hasta = formatearClaveFechaSuscripcion(new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + dias));
+
+    const { data, error } = await supabaseCliente.rpc('obtener_disponibilidad_calendario', {
+        p_distribuidora_id: idDistribuidora,
+        p_desde: desde,
+        p_hasta: hasta
+    });
+
+    if (numeroConsulta !== consultaPrimeraEntrega) {
+        return;
+    }
+
+    if (error) {
+        caja.textContent = 'No pudimos buscar las fechas. Probá de nuevo.';
+        return;
+    }
+
+    const mapa = {};
+    (data || []).forEach((fila) => {
+        mapa[fila.fecha] = fila;
+    });
+
+    const cupo = distribuidorasCupo[idDistribuidora];
+
+    for (let i = 1; i <= dias; i++) {
+        const fecha = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() + i);
+        const diaIso = fecha.getDay() === 0 ? 7 : fecha.getDay();
+
+        if (!diasSuscripcion.includes(diaIso)) {
+            continue;
+        }
+
+        const clave = formatearClaveFechaSuscripcion(fecha);
+        const info = mapa[clave] || { cantidad: 0, bloqueado: false };
+
+        if (info.bloqueado || (cupo != null && info.cantidad >= cupo)) {
+            continue;
+        }
+
+        fechaSuscripcionElegida = clave;
+        document.getElementById('fecha-suscripcion').value = clave;
+
+        const texto = fecha.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
+        caja.textContent = `Tu primera entrega: ${texto}`;
+        caja.classList.add('lista');
+        return;
+    }
+
+    caja.textContent = 'No hay fechas libres con esos días. Probá con otro día.';
+}
+
+document.getElementById('opciones-frecuencia').addEventListener('click', (evento) => {
+    const boton = evento.target.closest('[data-frecuencia]');
+
+    if (!boton) {
+        return;
+    }
+
+    document.getElementById('frecuencia-suscripcion').value = boton.dataset.frecuencia;
+
+    if (boton.dataset.frecuencia !== 'semanal' && diasSuscripcion.length > 1) {
+        diasSuscripcion = [diasSuscripcion[0]];
+    }
+
+    actualizarPantallaFrecuencia();
+    recalcularPrimeraEntrega();
+});
+
+document.getElementById('dias-semana-suscripcion').addEventListener('click', (evento) => {
+    const boton = evento.target.closest('[data-dia]');
+
+    if (!boton) {
+        return;
+    }
+
+    const dia = Number(boton.dataset.dia);
+
+    if (document.getElementById('frecuencia-suscripcion').value !== 'semanal') {
+        diasSuscripcion = [dia];
+    } else {
+        diasSuscripcion = diasSuscripcion.includes(dia)
+            ? diasSuscripcion.filter((item) => item !== dia)
+            : [...diasSuscripcion, dia].sort((a, b) => a - b);
+    }
+
+    actualizarPantallaFrecuencia();
+    recalcularPrimeraEntrega();
 });
 
 document.getElementById('btn-mes-anterior-suscripcion').addEventListener('click', () => {
@@ -415,6 +576,56 @@ document.getElementById('sugerencias-direccion-suscripcion').addEventListener('c
     }
 });
 
+let direccionesGuardadasSuscripcion = [];
+
+async function cargarDireccionesGuardadasSuscripcion() {
+    const { data } = await supabaseCliente
+        .from('direcciones_guardadas')
+        .select('id, alias, calle, numero, ciudad, provincia, referencia, latitud, longitud')
+        .order('creado_en', { ascending: true });
+
+    direccionesGuardadasSuscripcion = data || [];
+
+    document.getElementById('direcciones-guardadas-suscripcion').hidden = direccionesGuardadasSuscripcion.length === 0;
+
+    document.getElementById('lista-direcciones-guardadas-suscripcion').innerHTML = direccionesGuardadasSuscripcion.map((d) => `
+        <button type="button" class="chip-direccion-guardada" data-direccion-guardada-suscripcion="${d.id}">
+            <strong>${escaparHtml(d.alias)}</strong>
+            <span>${escaparHtml([d.calle, d.numero].filter(Boolean).join(' '))}</span>
+        </button>
+    `).join('');
+}
+
+document.getElementById('lista-direcciones-guardadas-suscripcion').addEventListener('click', (evento) => {
+    const boton = evento.target.closest('[data-direccion-guardada-suscripcion]');
+
+    if (!boton) {
+        return;
+    }
+
+    const d = direccionesGuardadasSuscripcion.find((item) => item.id === boton.dataset.direccionGuardadaSuscripcion);
+
+    if (!d) {
+        return;
+    }
+
+    document.getElementById('buscador-direccion-suscripcion').value = [d.calle, d.numero, d.ciudad].filter(Boolean).join(', ');
+    document.getElementById('calle-suscripcion').value = d.calle || '';
+    document.getElementById('numero-suscripcion').value = d.numero || '';
+    document.getElementById('ciudad-suscripcion').value = d.ciudad || '';
+    document.getElementById('provincia-suscripcion').value = d.provincia || 'Catamarca';
+    document.getElementById('referencia-suscripcion').value = d.referencia || '';
+    document.getElementById('estado-direccion-suscripcion').textContent = `Usando tu dirección "${d.alias}".`;
+
+    if (d.latitud && d.longitud) {
+        colocarMarcadorSuscripcion(d.latitud, d.longitud);
+    }
+
+    document.querySelectorAll('#lista-direcciones-guardadas-suscripcion .chip-direccion-guardada').forEach((chip) => {
+        chip.classList.toggle('activa', chip === boton);
+    });
+});
+
 const titulosPasoSuscripcion = { 1: 'Plan', 2: 'Entrega', 3: 'Pago' };
 
 function irAPasoSuscripcion(numero) {
@@ -433,6 +644,10 @@ function irAPasoSuscripcion(numero) {
 
     if (numero === 2 && mapaSuscripcion) {
         setTimeout(() => mapaSuscripcion.invalidateSize(), 100);
+    }
+
+    if (numero === 2) {
+        cargarDireccionesGuardadasSuscripcion();
     }
 
     if (numero === 3) {
@@ -474,12 +689,13 @@ function renderizarResumenSuscripcion() {
         const entregas = calcularFechasEntrega(fechaSuscripcionElegida, frecuencia, finPeriodo)
             .filter((fecha) => fecha < finPeriodo);
 
-        detallePago = `Pagás ${meses} ${meses === 1 ? 'mes' : 'meses'} por adelantado: ` +
-            `<b>${entregas.length} entregas × ${formatearPrecio(porEntrega)} = ${formatearPrecio(entregas.length * porEntrega)}</b>`;
+        detallePago = `Plan de ${meses} ${meses === 1 ? 'mes' : 'meses'}: ` +
+            `<b>${entregas.length} entregas × ${formatearPrecio(porEntrega)} = ${formatearPrecio(entregas.length * porEntrega)}</b><br>` +
+            'Pagás ese total con una sola transferencia. Cada entrega queda detallada en tu suscripción.';
     }
 
     document.getElementById('resumen-suscripcion').innerHTML = `
-        <strong>${cantidad} × ${escaparHtml(producto.nombre)} · ${etiquetasFrecuenciaResumen[frecuencia]}</strong>
+        <strong>${cantidad} × ${escaparHtml(producto.nombre)} · ${etiquetasFrecuenciaResumen[frecuencia]}${frecuencia === 'semanal' && diasSuscripcion.length ? ' (' + textoDiasSuscripcion(diasSuscripcion) + ')' : ''}</strong>
         Por entrega: ${formatearPrecio(porEntrega)}<br>
         Próximas entregas: ${proximas.map(formatearFecha).join(' · ')}<br>
         ${detallePago}
@@ -507,7 +723,7 @@ function validarPasoSuscripcion(numero) {
         }
 
         if (!fechaSuscripcionElegida) {
-            mostrarMensajeSuscripcion('Elegí la fecha de la primera entrega en el calendario.', 'error');
+            mostrarMensajeSuscripcion('Elige qué día quieres recibir tu pedido.', 'error');
             return false;
         }
     }
@@ -631,7 +847,8 @@ document.getElementById('formulario-suscripcion').addEventListener('submit', asy
             p_referencia: referencia || null,
             p_latitud: Number(latitud),
             p_longitud: Number(longitud),
-            p_meses: meses
+            p_meses: meses,
+            p_dias: frecuencia === 'semanal' && diasSuscripcion.length ? diasSuscripcion : null
         });
 
         if (errorPago || !idPago) {
@@ -665,7 +882,8 @@ document.getElementById('formulario-suscripcion').addEventListener('submit', asy
             direccion_referencia: referencia || null,
             latitud: Number(latitud),
             longitud: Number(longitud),
-            metodo_pago: metodoPago
+            metodo_pago: metodoPago,
+            dias_semana: frecuencia === 'semanal' && diasSuscripcion.length ? diasSuscripcion : null
         });
 
     if (error) {
@@ -750,7 +968,7 @@ async function cargarSuscripciones() {
         .from('suscripciones')
         .select(`
             id, cantidad, envases_devueltos, frecuencia, fecha_inicio, proxima_entrega, estado, ultimo_pedido_id,
-            metodo_pago, pagada_hasta,
+            metodo_pago, pagada_hasta, dias_semana,
             distribuidoras ( nombre ),
             productos ( nombre, capacidad_litros, precio )
         `)
@@ -810,8 +1028,8 @@ async function cargarSuscripciones() {
         return `
             <div class="tarjeta-suscripcion">
                 <div class="info-suscripcion">
-                    <h3>${escaparHtml(producto?.nombre || 'Producto')} (${producto?.capacidad_litros || '?'}L) x${suscripcion.cantidad}</h3>
-                    <p>${escaparHtml(suscripcion.distribuidoras?.nombre || 'AquaTrack')} — ${etiquetasFrecuencia[suscripcion.frecuencia] || suscripcion.frecuencia}</p>
+                    <h3>${escaparHtml(producto?.nombre || 'Producto')}${producto?.capacidad_litros ? ` (${producto.capacidad_litros}L)` : ''} x${suscripcion.cantidad}</h3>
+                    <p>${escaparHtml(suscripcion.distribuidoras?.nombre || 'AquaTrack')} — ${etiquetasFrecuencia[suscripcion.frecuencia] || suscripcion.frecuencia}${suscripcion.dias_semana && suscripcion.dias_semana.length ? ' (' + textoDiasSuscripcion(suscripcion.dias_semana) + ')' : ''}</p>
                     <p>Estimado por entrega: ${formatearPrecio(totalEstimado)}</p>
                     ${suscripcion.metodo_pago === 'transferencia' && suscripcion.pagada_hasta && (suscripcion.estado !== 'cancelada' || idsConEntregasPendientes.has(suscripcion.id))
                 ? `<p>Entregas pagas hasta: ${formatearFecha(suscripcion.pagada_hasta)}</p>`
@@ -826,9 +1044,7 @@ async function cargarSuscripciones() {
 
                 <div class="detalle-suscripcion">
                     <span class="etiqueta-estado-pedido ${suscripcion.estado}">${etiquetasEstadoSuscripcion[suscripcion.estado] || suscripcion.estado}</span>
-                    <div class="acciones-suscripcion">${(suscripcion.estado !== 'cancelada' || idsConEntregasPendientes.has(suscripcion.id))
-                ? `<button type="button" class="boton-reactivar-suscripcion" data-calendario="${suscripcion.id}" data-frecuencia="${suscripcion.frecuencia}" data-proxima="${suscripcion.proxima_entrega || ''}" data-metodo="${suscripcion.metodo_pago}" data-estado="${suscripcion.estado}">Ver calendario</button>`
-                : ''}${acciones}</div>
+                    <div class="acciones-suscripcion"><button type="button" class="boton-reactivar-suscripcion" data-cuenta="${suscripcion.id}">Ver cuenta</button>${acciones}</div>
                 </div>
             </div>
         `;
@@ -983,7 +1199,8 @@ async function abrirCalendarioEntregas(boton) {
         calcularFechasEntrega(
             boton.dataset.proxima,
             boton.dataset.frecuencia,
-            formatearClaveFechaSuscripcion(limite)
+            formatearClaveFechaSuscripcion(limite),
+            boton.dataset.dias ? boton.dataset.dias.split(',').map(Number) : []
         ).forEach((clave) => {
             if (clave >= hoy && !fechas[clave]) {
                 estimadas.add(clave);
@@ -1011,7 +1228,21 @@ async function abrirCalendarioEntregas(boton) {
     renderizarCalendarioEntregas();
 }
 
-document.getElementById('lista-suscripciones').addEventListener('click', (evento) => {
+document.getElementById('lista-suscripciones').addEventListener('click', async (evento) => {
+    const botonCuenta = evento.target.closest('[data-cuenta]');
+
+    if (botonCuenta) {
+        const contenido = document.getElementById('contenido-cuenta-suscripcion');
+        contenido.innerHTML = '<p class="estado-suscripciones">Cargando cuenta...</p>';
+        document.getElementById('modal-cuenta-suscripcion').classList.remove('oculto');
+
+        const cuenta = await obtenerCuentaSuscripcion(botonCuenta.dataset.cuenta);
+        contenido.innerHTML = cuenta
+            ? htmlCuentaSuscripcion(cuenta)
+            : '<p class="estado-suscripciones">No pudimos cargar la cuenta. Probá de nuevo.</p>';
+        return;
+    }
+
     const boton = evento.target.closest('[data-calendario]');
 
     if (boton) {
@@ -1029,6 +1260,10 @@ document.getElementById('btn-mes-siguiente-entregas').addEventListener('click', 
     const { mes } = calendarioEntregas;
     calendarioEntregas.mes = new Date(mes.getFullYear(), mes.getMonth() + 1, 1);
     renderizarCalendarioEntregas();
+});
+
+document.getElementById('boton-cerrar-modal-cuenta').addEventListener('click', () => {
+    document.getElementById('modal-cuenta-suscripcion').classList.add('oculto');
 });
 
 document.getElementById('boton-cerrar-modal-entregas').addEventListener('click', () => {

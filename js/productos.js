@@ -207,6 +207,7 @@ function renderizarProductos() {
         const tarjeta = document.createElement('article');
 
         tarjeta.className = 'tarjeta-producto';
+        tarjeta.dataset.id = producto.id;
 
         tarjeta.innerHTML = `
       <button type="button" class="boton-favorito${favoritosIds.has(producto.id) ? ' activo' : ''}"
@@ -334,6 +335,10 @@ async function cargarProductos() {
         nombre,
         ciudad,
         provincia,
+        calle,
+        numero,
+        latitud,
+        longitud,
         estado
       )
     `)
@@ -490,6 +495,8 @@ listaProductos.addEventListener('click', (evento) => {
 
     agregarProducto(boton.dataset.agregarProducto);
 });
+
+activarDetalleProductos(listaProductos, () => productosDisponibles);
 
 buscadorProductos.addEventListener('input', renderizarProductos);
 document.querySelector('.filtros-lateral').addEventListener('change', renderizarProductos);

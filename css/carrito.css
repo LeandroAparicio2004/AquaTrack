@@ -343,7 +343,7 @@
 
 .resumen-paso-1 {
   max-width: 420px;
-  margin-top: 18px;
+  margin: 18px auto 0;
   padding: 18px;
   border: 1px solid var(--color-borde-inicio);
   border-radius: 14px;
@@ -486,8 +486,16 @@
 
 #btn-continuar-datos {
   width: 100%;
-  max-width: 470px;
-  margin: 0 auto;
+  max-width: 420px;
+  min-height: 52px;
+  margin: 16px auto 0;
+}
+
+@media (max-width: 620px) {
+  .resumen-paso-1,
+  #btn-continuar-datos {
+    max-width: none;
+  }
 }
 
 .resumen-final {
@@ -679,20 +687,82 @@
     grid-template-columns: 1fr;
   }
 
+  .item-carrito {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "info quitar"
+      "cantidad subtotal"
+      "envases envases";
+    align-items: center;
+    gap: 14px 12px;
+    padding: 16px;
+  }
+
+  .item-carrito-foto {
+    display: none;
+  }
+
   .item-carrito-info {
-    order: 1;
+    grid-area: info;
+    min-width: 0;
   }
 
-  .item-carrito-cantidad {
-    order: 3;
+  .item-carrito-info h3 {
+    font-size: 1.05rem;
   }
 
-  .item-carrito-subtotal {
-    order: 4;
+  .item-carrito-info p {
+    font-size: 0.9rem;
   }
 
   .item-carrito-quitar {
-    order: 5;
+    grid-area: quitar;
+    align-self: start;
+    width: 44px;
+    height: 44px;
+  }
+
+  .item-carrito-cantidad {
+    grid-area: cantidad;
+    gap: 12px;
+  }
+
+  .item-carrito-cantidad button {
+    width: 44px;
+    height: 44px;
+    font-size: 1.3rem;
+  }
+
+  .item-carrito-cantidad span {
+    min-width: 24px;
+    font-size: 1.1rem;
+  }
+
+  .item-carrito-subtotal {
+    grid-area: subtotal;
+    font-size: 1.2rem;
+  }
+
+  .control-envases-item {
+    grid-area: envases;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-borde-inicio);
+  }
+
+  .control-envases-item label {
+    font-size: 0.9rem;
+  }
+
+  .control-envases-item input {
+    width: 90px;
+    min-height: 44px;
+    font-size: 1rem;
   }
 }
 
