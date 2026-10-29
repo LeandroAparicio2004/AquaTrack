@@ -591,6 +591,7 @@ document.getElementById('btn-exportar-movimientos').addEventListener('click', ()
 
 const pestanas = document.querySelectorAll('.panel-pestana');
 const secciones = {
+    inicio: document.getElementById('seccion-inicio'),
     pendientes: document.getElementById('seccion-pendientes'),
     todas: document.getElementById('seccion-todas'),
     pagos: document.getElementById('seccion-pagos'),
@@ -615,6 +616,10 @@ pestanas.forEach((pestana) => {
         Object.entries(secciones).forEach(([nombre, seccion]) => {
             seccion.classList.toggle('oculto', nombre !== pestana.dataset.pestana);
         });
+
+        if (pestana.dataset.pestana === 'inicio') {
+            cargarInicio();
+        }
 
         if (pestana.dataset.pestana === 'todas' && !seccionTodasCargada) {
             seccionTodasCargada = true;
@@ -663,6 +668,7 @@ async function inicializarPanel() {
     document.getElementById('panel-main').classList.remove('oculto');
 
     cargarPendientes();
+    cargarInicio();
 }
 
 function abrirPestanaDesdeHash() {
@@ -683,7 +689,6 @@ document.getElementById('boton-cerrar-sesion').addEventListener('click', async (
 });
 
 // ---------- Publicidad (admin) ----------
-
 function formatearFechaAdmin(valor) {
     if (!valor) return '—';
     return new Date(valor).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -852,4 +857,67 @@ document.getElementById('lista-publicidad-admin').addEventListener('click', asyn
 
         await cargarPublicidadAdmin();
     }
+});
+
+function pintarInsignia(id, cantidad) {
+    const insignia = document.getElementById(id);
+
+    if (insignia) {
+        insignia.textContent = cantidad;
+        insignia.hidden = !cantidad;
+    }
+}
+
+async function cargarInicio() {
+    const [distribuidoras, pagos, anuncios] = await Promise.all([
+        supabaseCliente.from('distribuidoras').select('id', { count: 'exact', head: true }).eq('estado', 'pendiente_aprobacion'),
+        supabaseCliente.from('pagos_transferencia').select('id', { count: 'exact', head: true }).eq('estado', 'pendiente'),
+        supabaseCliente.from('anuncios').select('id', { count: 'exact', head: true }).eq('estado', 'pendiente_aprobacion')
+    ]);
+
+    const cantidades = {
+        distribuidoras: distribuidoras.count || 0,
+        pagos: pagos.count || 0,
+        anuncios: anuncios.count || 0
+    };
+
+    Object.entries(cantidades).forEach(([clave, cantidad]) => {
+        document.getElementById(`inicio-${clave}`).textContent = cantidad;
+        document.getElementById(`inicio-tarjeta-${clave}`).classList.toggle('con-alerta', cantidad > 0);
+    });
+
+    pintarInsignia('insignia-distribuidoras', cantidades.distribuidoras);
+    pintarInsignia('insignia-dinero', cantidades.pagos);
+    pintarInsignia('insignia-publicidad', cantidades.anuncios);
+}
+
+function sincronizarGrupoActivo() {
+    const activa = document.querySelector('.panel-pestana.activa');
+    const grupo = activa?.closest('.panel-subpestanas')?.dataset.grupo;
+
+    document.querySelectorAll('.panel-grupo').forEach((boton) => {
+        const esActivo = boton.dataset.grupo === grupo;
+        boton.classList.toggle('activo', esActivo);
+        boton.setAttribute('aria-selected', esActivo ? 'true' : 'false');
+    });
+
+    document.querySelectorAll('.panel-subpestanas').forEach((contenedor) => {
+        contenedor.hidden = !(contenedor.dataset.grupo === grupo && contenedor.children.length > 1);
+    });
+}
+
+document.querySelectorAll('.panel-pestana').forEach((pestana) => {
+    pestana.addEventListener('click', sincronizarGrupoActivo);
+});
+
+document.querySelectorAll('.panel-grupo').forEach((grupo) => {
+    grupo.addEventListener('click', () => {
+        document.querySelector(`.panel-subpestanas[data-grupo="${grupo.dataset.grupo}"] .panel-pestana`)?.click();
+    });
+});
+
+document.querySelectorAll('[data-ir]').forEach((tarjeta) => {
+    tarjeta.addEventListener('click', () => {
+        document.querySelector(`.panel-pestana[data-pestana="${tarjeta.dataset.ir}"]`)?.click();
+    });
 });

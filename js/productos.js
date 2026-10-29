@@ -149,7 +149,39 @@ function crearBloqueImagen(producto) {
   `;
 }
 
+let distribuidoraFiltradaId = null;
+let distribuidoraFiltradaNombre = '';
+
+function filtrarPorDistribuidora(id, nombre) {
+    distribuidoraFiltradaId = id || null;
+    distribuidoraFiltradaNombre = nombre || '';
+    renderizarProductos();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function actualizarChipDistribuidora() {
+    let chip = document.getElementById('chip-distribuidora');
+
+    if (!distribuidoraFiltradaId) {
+        chip?.remove();
+        return;
+    }
+
+    if (!chip) {
+        chip = document.createElement('div');
+        chip.id = 'chip-distribuidora';
+        chip.className = 'chip-distribuidora';
+        listaProductos.parentNode.insertBefore(chip, listaProductos);
+    }
+
+    chip.innerHTML = `
+        <span>Mostrando solo: <strong>${escaparHtml(distribuidoraFiltradaNombre || 'esta distribuidora')}</strong></span>
+        <button type="button" data-quitar-distribuidora>Ver todas ✕</button>
+    `;
+}
+
 function renderizarProductos() {
+    actualizarChipDistribuidora();
     const textoBusqueda = buscadorProductos.value.trim().toLowerCase();
     const capacidadSeleccionada = valorFiltro('capacidad');
     const tipoSeleccionado = valorFiltro('tipo');
@@ -179,8 +211,9 @@ function renderizarProductos() {
             (tipoSeleccionado === 'individuales' && !producto.es_combo);
 
         const coincideFavorito = !soloFavoritos || favoritosIds.has(producto.id);
+        const coincideDistribuidora = !distribuidoraFiltradaId || distribuidora.id === distribuidoraFiltradaId;
 
-        return coincideBusqueda && coincideCapacidad && coincideTipo && coincideFavorito;
+        return coincideBusqueda && coincideCapacidad && coincideTipo && coincideFavorito && coincideDistribuidora;
     });
 
     listaProductos.innerHTML = '';
@@ -225,7 +258,7 @@ function renderizarProductos() {
       </div>
 
       <p class="nombre-distribuidora">
-        ${escaparHtml(distribuidora.nombre || 'Distribuidora local')}
+        <button type="button" class="enlace-distribuidora" data-filtrar-distribuidora="${escaparHtml(distribuidora.id || '')}" data-nombre="${escaparHtml(distribuidora.nombre || '')}">${escaparHtml(distribuidora.nombre || 'Distribuidora local')}</button>
         ${crearBloqueCalificacion(distribuidora.id)}
       </p>
 
@@ -520,6 +553,7 @@ window.matchMedia('(min-width: 821px)').addEventListener('change', (evento) => {
 });
 
 document.getElementById('limpiar-filtros').addEventListener('click', () => {
+    distribuidoraFiltradaId = null;
     buscadorProductos.value = '';
     filtroFavoritos.checked = false;
     document.querySelectorAll('.filtros-lateral input[type="radio"][value="todas"], .filtros-lateral input[type="radio"][value="todos"]')
@@ -591,5 +625,25 @@ cargarProductos().then(() => {
         buscadorProductos.value = busqueda;
         renderizarProductos();
     }
+
+    const idDistribuidora = parametros.get('distribuidora');
+    if (idDistribuidora) {
+        const producto = productosDisponibles.find((item) => obtenerDistribuidora(item).id === idDistribuidora);
+        filtrarPorDistribuidora(idDistribuidora, obtenerDistribuidora(producto || {}).nombre);
+    }
 });
 verificarSesion();
+
+listaProductos.addEventListener('click', (evento) => {
+    const boton = evento.target.closest('[data-filtrar-distribuidora]');
+
+    if (boton && boton.dataset.filtrarDistribuidora) {
+        filtrarPorDistribuidora(boton.dataset.filtrarDistribuidora, boton.dataset.nombre);
+    }
+});
+
+document.addEventListener('click', (evento) => {
+    if (evento.target.closest('[data-quitar-distribuidora]')) {
+        filtrarPorDistribuidora(null, '');
+    }
+});

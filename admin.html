@@ -53,20 +53,53 @@
                 <h1>Panel de Administración</h1>
             </div>
 
-            <div class="panel-pestanas" role="tablist">
-                <button type="button" class="panel-pestana activa" data-pestana="pendientes" role="tab"
-                    aria-selected="true">Pendientes</button>
-                <button type="button" class="panel-pestana" data-pestana="todas" role="tab"
-                    aria-selected="false">Todas las distribuidoras</button>
-                <button type="button" class="panel-pestana" data-pestana="pagos" role="tab"
-                    aria-selected="false">Pagos por transferencia</button>
-                <button type="button" class="panel-pestana" data-pestana="movimientos" role="tab"
-                    aria-selected="false">Movimientos</button>
-                <button type="button" class="panel-pestana" data-pestana="publicidad" role="tab"
-                    aria-selected="false">Publicidad</button>
+            <div class="panel-grupos dos-columnas" role="tablist">
+                <button type="button" class="panel-grupo activo" data-grupo="inicio" role="tab">Inicio</button>
+                <button type="button" class="panel-grupo" data-grupo="distribuidoras" role="tab">Distribuidoras <span class="insignia-urgente" id="insignia-distribuidoras" hidden></span></button>
+                <button type="button" class="panel-grupo" data-grupo="dinero" role="tab">Dinero <span class="insignia-urgente" id="insignia-dinero" hidden></span></button>
+                <button type="button" class="panel-grupo" data-grupo="publicidad" role="tab">Publicidad <span class="insignia-urgente" id="insignia-publicidad" hidden></span></button>
             </div>
 
-            <section class="panel-seccion" id="seccion-pendientes" role="tabpanel">
+            <div class="panel-subpestanas" data-grupo="inicio" hidden>
+                <button type="button" class="panel-pestana activa" data-pestana="inicio">Inicio</button>
+            </div>
+            <div class="panel-subpestanas" data-grupo="distribuidoras" hidden>
+                <button type="button" class="panel-pestana" data-pestana="pendientes">Por aprobar</button>
+                <button type="button" class="panel-pestana" data-pestana="todas">Todas</button>
+            </div>
+            <div class="panel-subpestanas" data-grupo="dinero" hidden>
+                <button type="button" class="panel-pestana" data-pestana="pagos">Pagos por transferencia</button>
+                <button type="button" class="panel-pestana" data-pestana="movimientos">Movimientos</button>
+            </div>
+            <div class="panel-subpestanas" data-grupo="publicidad" hidden>
+                <button type="button" class="panel-pestana" data-pestana="publicidad">Publicidad</button>
+            </div>
+
+            <section class="panel-seccion" id="seccion-inicio" role="tabpanel">
+                <div class="panel-seccion-encabezado">
+                    <h2>Qué hay para hacer</h2>
+                </div>
+                <div class="inicio-tarjetas">
+                    <button type="button" class="inicio-tarjeta" data-ir="pendientes" id="inicio-tarjeta-distribuidoras">
+                        <span class="inicio-numero" id="inicio-distribuidoras">–</span>
+                        <span class="inicio-titulo">Distribuidoras por aprobar</span>
+                        <span class="inicio-ayuda">Solicitudes nuevas</span>
+                    </button>
+                    <button type="button" class="inicio-tarjeta" data-ir="pagos" id="inicio-tarjeta-pagos">
+                        <span class="inicio-numero" id="inicio-pagos">–</span>
+                        <span class="inicio-titulo">Pagos por verificar</span>
+                        <span class="inicio-ayuda">Transferencias de clientes</span>
+                    </button>
+                    <button type="button" class="inicio-tarjeta" data-ir="publicidad" id="inicio-tarjeta-anuncios">
+                        <span class="inicio-numero" id="inicio-anuncios">–</span>
+                        <span class="inicio-titulo">Anuncios por revisar</span>
+                        <span class="inicio-ayuda">Publicidad pendiente</span>
+                    </button>
+                </div>
+                <a href="metricas-admin.html" class="btn btn-secundario inicio-metricas">Ver métricas</a>
+            </section>
+
+            <section class="panel-seccion oculto" id="seccion-pendientes" role="tabpanel">
                 <p class="estado-productos-panel oculto" id="estado-pendientes"></p>
                 <div class="grilla-productos-panel" id="lista-pendientes"></div>
             </section>

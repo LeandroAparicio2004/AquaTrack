@@ -39,6 +39,20 @@ function obtenerModalDetalle() {
             cerrarDetalleProducto();
         }
 
+        const verDistribuidora = evento.target.closest('[data-ver-distribuidora]');
+
+        if (verDistribuidora && verDistribuidora.dataset.verDistribuidora) {
+            const idDistribuidora = verDistribuidora.dataset.verDistribuidora;
+            cerrarDetalleProducto();
+
+            if (typeof filtrarPorDistribuidora === 'function') {
+                filtrarPorDistribuidora(idDistribuidora, verDistribuidora.dataset.nombre);
+            } else {
+                window.location.href = `productos.html?distribuidora=${encodeURIComponent(idDistribuidora)}`;
+            }
+            return;
+        }
+
         const agregar = evento.target.closest('[data-agregar-detalle]');
 
         if (agregar) {
@@ -93,7 +107,7 @@ async function abrirDetalleProducto(producto) {
             ? `<img class="detalle-foto" src="${escaparHtml(producto.foto_url)}" alt="${escaparHtml(producto.nombre)}">`
             : ''}
 
-      <p class="nombre-distribuidora">${escaparHtml(distribuidora.nombre || 'Distribuidora local')}</p>
+      <p class="nombre-distribuidora"><button type="button" class="enlace-distribuidora" data-ver-distribuidora="${escaparHtml(distribuidora.id || '')}" data-nombre="${escaparHtml(distribuidora.nombre || '')}">${escaparHtml(distribuidora.nombre || 'Distribuidora local')}</button></p>
       <h2>${escaparHtml(producto.nombre)}</h2>
       <p class="detalle-descripcion">${escaparHtml(producto.descripcion || 'Agua mineral a domicilio.')}</p>
 

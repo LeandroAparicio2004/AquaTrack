@@ -111,4 +111,13 @@ Falta{
     Bloquear o suspender a un cliente o repartidor, no solo a distribuidoras.
     Registro de acciones (quién aprobó o rechazó qué y cuándo), para dar transparencia.
     Controlar el efectivo: ver cuánto efectivo cobró cada distribuidora y cuánto confirmó recibir.
+} 
+
+Asignar pedido{
+    Los pedidos se ven muuy extensos, es molesto. La solucion: Se realizan grupos de envio, seria darle la posibilidad de q el vendedor ponga un limite x grupo, es decir como ejemplo: En 1 grupo estaran 5 envios, yo para asignar esos 5 envios al repartidor simplemente agarro "Grupo 1" y lo arrastro a la fila de el repartidor q quiero, se me entiende?? 
+    ahora mi duda, como hacemos para q eso sea mas comodo?? porque ponele q en el grupo haya un envio para la ciudad y otro para pirquitas, quedan en la loma del culo, lo ideal seria q se agrupen x ubicacion. Queria algo asi:
+    Juan (Piedra Blanca) _ Martin (Carrera) _ Leandro (Tercena): Esos 3 realizaron un pedido, esos 3 fueron asignados al grupo 1.
+    yo como Vendedor los asigno al repartidor0 (usamos el KanBan), el repartidor Visualiza los envios q tiene q realizar de forma individual, cada persona con su ubicacion, numero, asi como ahora... Noc si se me entiende o prefieres q busque otra explicacion.
+
+    En caso de q 1 persona mas Jose (Centro) viva lejos, se busca la manera q se lo empareje con gente q vive cerca o sus aproximidades.
 }
