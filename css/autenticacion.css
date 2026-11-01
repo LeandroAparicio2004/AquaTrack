@@ -69,14 +69,30 @@
 }
 
 .logo-flotante {
-    display: block;
-    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 22px;
 }
 
 .logo-flotante img {
-    height: 34px;
-    width: auto;
+    height: 170px;
+    width: 170px;
+    flex: none;
+    object-fit: cover;
     display: block;
+    border-radius: 50%;
+    box-shadow: 0 8px 24px rgba(14, 116, 144, 0.25);
+}
+
+@media (max-width: 560px) {
+    .logo-flotante {
+        margin-bottom: 16px;
+    }
+
+    .logo-flotante img {
+        height: 120px;
+        width: 120px;
+    }
 }
 
 .tarjeta-autenticacion {
