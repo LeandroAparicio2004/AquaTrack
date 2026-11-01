@@ -26,60 +26,78 @@ function mostrarMensaje(texto, tipo) {
   mensajeEstado.className = `mensaje-estado ${tipo}`;
 }
 
-// cuenta suspendida
-const { data: suspensiones } = await supabaseCliente.rpc('mi_suspension');
-
-if (suspensiones && suspensiones[0]) {
-  await supabaseCliente.auth.signOut();
-  mostrarSuspension(suspensiones[0]);
-  btnEnviar.disabled = false;
-  btnEnviar.textContent = 'Iniciar sesión';
-  return;
+function mostrarSuspension(suspension) {
+  const hasta = suspension.hasta
+    ? `hasta el ${new Date(suspension.hasta).toLocaleDateString('es-AR')}`
+    : 'hasta nuevo aviso';
+  mostrarMensaje(`Tu cuenta está suspendida ${hasta}. Motivo: ${suspension.motivo}`, 'error');
 }
-
-// redirige segun rol async (evento) => {
-evento.preventDefault();
-btnEnviar.disabled = true;
-btnEnviar.textContent = 'Ingresando...';
-
-const correo = document.getElementById('correo').value.trim();
-const contrasena = campoContrasena.value;
 
 try {
-  const { data, error } = await supabaseCliente.auth.signInWithPassword({ email: correo, password: contrasena });
+  const guardada = sessionStorage.getItem('aquatrack_suspension');
 
-  if (error) {
-    mostrarMensaje(
-      error.message?.toLowerCase().includes('email not confirmed')
-        ? 'Todavía no confirmaste tu correo. Revisá tu bandeja de entrada (y el spam).'
-        : 'Correo o contraseña incorrectos.',
-      'error'
-    );
+  if (guardada) {
+    sessionStorage.removeItem('aquatrack_suspension');
+    mostrarSuspension(JSON.parse(guardada));
+  }
+} catch {
+  // Sin almacenamiento de sesión: no se muestra el aviso previo.
+}
+
+formulario.addEventListener('submit', async (evento) => {
+  evento.preventDefault();
+  btnEnviar.disabled = true;
+  btnEnviar.textContent = 'Ingresando...';
+
+  const correo = document.getElementById('correo').value.trim();
+  const contrasena = campoContrasena.value;
+
+  try {
+    const { data, error } = await supabaseCliente.auth.signInWithPassword({ email: correo, password: contrasena });
+
+    if (error) {
+      mostrarMensaje(
+        error.message?.toLowerCase().includes('email not confirmed')
+          ? 'Todavía no confirmaste tu correo. Revisá tu bandeja de entrada (y el spam).'
+          : 'Correo o contraseña incorrectos.',
+        'error'
+      );
+      btnEnviar.disabled = false;
+      btnEnviar.textContent = 'Iniciar sesión';
+      return;
+    }
+
+    // cuenta suspendida
+    const { data: suspensiones } = await supabaseCliente.rpc('mi_suspension');
+
+    if (suspensiones && suspensiones[0]) {
+      await supabaseCliente.auth.signOut();
+      mostrarSuspension(suspensiones[0]);
+      btnEnviar.disabled = false;
+      btnEnviar.textContent = 'Iniciar sesión';
+      return;
+    }
+
+    // redirige segun rol
+    const { data: perfil } = await supabaseCliente
+      .from('usuarios')
+      .select('rol')
+      .eq('id', data.user.id)
+      .single();
+
+    const destinosPorRol = {
+      admin: 'admin.html',
+      vendedor: 'panel-vendedor.html',
+      repartidor: 'panel-repartidor.html'
+    };
+
+    const paginaDestino = destinosPorRol[perfil?.rol] || 'productos.html';
+
+    mostrarMensaje('¡Bienvenido! Redirigiendo...', 'exito');
+    setTimeout(() => { window.location.href = paginaDestino; }, 1200);
+  } catch (error) {
+    mostrarMensaje('No pudimos conectar con el servicio. Intentá nuevamente.', 'error');
     btnEnviar.disabled = false;
     btnEnviar.textContent = 'Iniciar sesión';
-    return;
   }
-
-  // redirige segun rol
-  const { data: perfil } = await supabaseCliente
-    .from('usuarios')
-    .select('rol')
-    .eq('id', data.user.id)
-    .single();
-
-  const destinosPorRol = {
-    admin: 'admin.html',
-    vendedor: 'panel-vendedor.html',
-    repartidor: 'panel-repartidor.html'
-  };
-
-  const paginaDestino = destinosPorRol[perfil?.rol] || 'productos.html';
-
-  mostrarMensaje('¡Bienvenido! Redirigiendo...', 'exito');
-  setTimeout(() => { window.location.href = paginaDestino; }, 1200);
-} catch (error) {
-  mostrarMensaje('No pudimos conectar con el servicio. Intentá nuevamente.', 'error');
-  btnEnviar.disabled = false;
-  btnEnviar.textContent = 'Iniciar sesión';
-}
-  });
+});
