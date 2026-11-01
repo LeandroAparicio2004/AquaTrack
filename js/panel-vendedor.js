@@ -507,6 +507,7 @@ async function cargarTableroEntregas() {
         .from('pedidos')
         .select(`
             id, suscripcion_id, fecha_entrega, direccion_calle, direccion_numero, direccion_ciudad,
+            latitud, longitud,
             intento_fallido_motivo,
             usuarios!pedidos_cliente_id_fkey ( nombre, apellido ),
             detalles_pedidos ( cantidad, productos ( nombre ) )
@@ -798,18 +799,7 @@ function renderizarTablero() {
                 ${seleccionadosSinAsignar > 0 ? seleccionadosSinAsignar + ' sel.' : pedidosSinAsignar.length}
             </span>
         </div>
-        <div class="zona-drop">
-            ${[...pedidosSinAsignar].sort((a, b) => puntajeUrgenciaPedido(b) - puntajeUrgenciaPedido(a)).map((pedido) => `
-                <div class="tarjeta-pedido-tablero tarjeta-seleccionable ${pedidosSeleccionados.has(pedido.id) ? 'seleccionada' : ''} ${claseUrgenciaPedido(pedido)}"
-                    draggable="true" data-pedido-click="${pedido.id}">
-                    ${etiquetaSuscripcionPedido(pedido)}
-                    ${pedido.intento_fallido_motivo ? `<span class="etiqueta-urgencia">✖ Intento fallido: ${escaparHtml(pedido.intento_fallido_motivo)}</span>` : ''}
-                    <strong>${escaparHtml(pedido.usuarios?.nombre || '')} ${escaparHtml(pedido.usuarios?.apellido || '')}</strong>
-                    <span>${escaparHtml(pedido.direccion_calle)} ${escaparHtml(pedido.direccion_numero || '')}, ${escaparHtml(pedido.direccion_ciudad)}</span>
-                    <span class="items-tarjeta-tablero">${escaparHtml(resumenItemsPedido(pedido))}</span>
-                </div>
-            `).join('')}
-        </div>
+        <div class="zona-drop">${htmlSinAsignar()}</div>
     `;
     tablero.appendChild(columnaSinAsignar);
 
@@ -889,6 +879,7 @@ function renderizarTablero() {
     }
 
     habilitarDragAndDrop();
+    habilitarGrupos();
     actualizarBarraAsignacion();
 }
 
@@ -2653,3 +2644,212 @@ document.querySelectorAll('[data-ir]').forEach((tarjeta) => {
         document.querySelector(`.panel-pestana[data-pestana="${tarjeta.dataset.ir}"]`)?.click();
     });
 });
+
+// ---------- Grupos de envio por cercacia ----------
+const claveTamanoGrupo = 'aquatrack_tamano_grupo';
+const claveModoTablero = 'aquatrack_modo_tablero';
+let gruposTablero = [];
+
+function leerAjuste(clave, defecto) {
+    try {
+        return localStorage.getItem(clave) || defecto;
+    } catch {
+        return defecto;
+    }
+}
+
+function guardarAjuste(clave, valor) {
+    try {
+        localStorage.setItem(clave, valor);
+    } catch {
+    }
+}
+
+function tamanoDeGrupo() {
+    const cantidad = Math.floor(Number(leerAjuste(claveTamanoGrupo, '5')));
+    return cantidad >= 2 && cantidad <= 20 ? cantidad : 5;
+}
+
+function modoDeTablero() {
+    return leerAjuste(claveModoTablero, 'grupos') === 'individual' ? 'individual' : 'grupos';
+}
+
+function distanciaKm(a, b) {
+    const aRadianes = (grados) => (grados * Math.PI) / 180;
+    const dLat = aRadianes(b.lat - a.lat);
+    const dLon = aRadianes(b.lon - a.lon);
+    const h = Math.sin(dLat / 2) ** 2
+        + Math.cos(aRadianes(a.lat)) * Math.cos(aRadianes(b.lat)) * Math.sin(dLon / 2) ** 2;
+
+    return 6371 * 2 * Math.asin(Math.sqrt(h));
+}
+
+function puntoDePedido(pedido) {
+    return { lat: Number(pedido.latitud), lon: Number(pedido.longitud) };
+}
+
+function armarGrupos(pedidos, tamano) {
+    const tieneUbicacion = (pedido) => pedido.latitud != null && pedido.longitud != null
+        && !Number.isNaN(Number(pedido.latitud)) && !Number.isNaN(Number(pedido.longitud));
+
+    const conUbicacion = pedidos.filter(tieneUbicacion);
+    const sinUbicacion = pedidos.filter((pedido) => !tieneUbicacion(pedido));
+    const grupos = [];
+    let restantes = [...conUbicacion];
+
+    const negocio = distribuidoraActual?.latitud != null && distribuidoraActual?.longitud != null
+        ? { lat: Number(distribuidoraActual.latitud), lon: Number(distribuidoraActual.longitud) }
+        : null;
+
+    while (restantes.length > 0) {
+        const origen = negocio || {
+            lat: restantes.reduce((suma, p) => suma + Number(p.latitud), 0) / restantes.length,
+            lon: restantes.reduce((suma, p) => suma + Number(p.longitud), 0) / restantes.length
+        };
+
+        // Se arranca por el pedido mas alejado y se le suman sus vecinos mas cercanos
+        const semilla = restantes.reduce(
+            (lejano, p) => (distanciaKm(puntoDePedido(p), origen) > distanciaKm(puntoDePedido(lejano), origen) ? p : lejano),
+            restantes[0]
+        );
+
+        const elegidos = [...restantes]
+            .sort((a, b) => distanciaKm(puntoDePedido(a), puntoDePedido(semilla)) - distanciaKm(puntoDePedido(b), puntoDePedido(semilla)))
+            .slice(0, tamano);
+
+        grupos.push(elegidos);
+        restantes = restantes.filter((p) => !elegidos.includes(p));
+    }
+
+    const porCiudad = {};
+    sinUbicacion.forEach((pedido) => {
+        const ciudad = pedido.direccion_ciudad || 'Sin ciudad';
+        porCiudad[ciudad] = porCiudad[ciudad] || [];
+        porCiudad[ciudad].push(pedido);
+    });
+
+    Object.values(porCiudad).forEach((lista) => {
+        for (let i = 0; i < lista.length; i += tamano) {
+            grupos.push(lista.slice(i, i + tamano));
+        }
+    });
+
+    return grupos
+        .map((lista) => ({
+            pedidos: lista,
+            urgencia: Math.max(...lista.map((pedido) => puntajeUrgenciaPedido(pedido)))
+        }))
+        .sort((a, b) => b.urgencia - a.urgencia);
+}
+
+function htmlTarjetaPedidoSinAsignar(pedido) {
+    return `
+        <div class="tarjeta-pedido-tablero tarjeta-seleccionable ${pedidosSeleccionados.has(pedido.id) ? 'seleccionada' : ''} ${claseUrgenciaPedido(pedido)}"
+            draggable="true" data-pedido-click="${pedido.id}">
+            ${etiquetaSuscripcionPedido(pedido)}
+            ${pedido.intento_fallido_motivo ? `<span class="etiqueta-urgencia">✖ Intento fallido: ${escaparHtml(pedido.intento_fallido_motivo)}</span>` : ''}
+            <strong>${escaparHtml(pedido.usuarios?.nombre || '')} ${escaparHtml(pedido.usuarios?.apellido || '')}</strong>
+            <span>${escaparHtml(pedido.direccion_calle)} ${escaparHtml(pedido.direccion_numero || '')}, ${escaparHtml(pedido.direccion_ciudad)}</span>
+            <span class="items-tarjeta-tablero">${escaparHtml(resumenItemsPedido(pedido))}</span>
+        </div>
+    `;
+}
+
+function htmlSinAsignar() {
+    if (pedidosSinAsignar.length === 0) {
+        return '';
+    }
+
+    if (modoDeTablero() === 'individual') {
+        gruposTablero = [];
+        return [...pedidosSinAsignar]
+            .sort((a, b) => puntajeUrgenciaPedido(b) - puntajeUrgenciaPedido(a))
+            .map(htmlTarjetaPedidoSinAsignar)
+            .join('');
+    }
+
+    gruposTablero = armarGrupos(pedidosSinAsignar, tamanoDeGrupo());
+
+    return gruposTablero.map((grupo, indice) => {
+        const seleccionado = grupo.pedidos.every((pedido) => pedidosSeleccionados.has(pedido.id));
+
+        return `
+            <div class="tarjeta-grupo tarjeta-seleccionable ${seleccionado ? 'seleccionada' : ''} ${grupo.urgencia > 0 ? 'pedido-urgente' : ''}"
+                draggable="true" data-grupo-click="${indice}">
+                <div class="grupo-cabecera">
+                    <strong>Grupo ${indice + 1}</strong>
+                    <span>${grupo.pedidos.length} envío${grupo.pedidos.length === 1 ? '' : 's'}</span>
+                    ${grupo.urgencia > 0 ? '<span class="etiqueta-urgencia">⚠ Urgente</span>' : ''}
+                </div>
+                <ul class="grupo-lista">
+                    ${grupo.pedidos.map((pedido) => `
+                        <li>
+                            <span>${escaparHtml(pedido.usuarios?.nombre || '')} ${escaparHtml(pedido.usuarios?.apellido || '')}</span>
+                            <small>${escaparHtml(pedido.direccion_ciudad || '')}</small>
+                        </li>
+                    `).join('')}
+                </ul>
+            </div>
+        `;
+    }).join('');
+}
+
+function habilitarGrupos() {
+    document.querySelectorAll('[data-grupo-click]').forEach((tarjeta) => {
+        const grupo = gruposTablero[Number(tarjeta.dataset.grupoClick)];
+
+        if (!grupo) {
+            return;
+        }
+
+        const ids = grupo.pedidos.map((pedido) => pedido.id);
+
+        tarjeta.addEventListener('click', () => {
+            const todosMarcados = ids.every((id) => pedidosSeleccionados.has(id));
+            ids.forEach((id) => (todosMarcados ? pedidosSeleccionados.delete(id) : pedidosSeleccionados.add(id)));
+            renderizarTablero();
+        });
+
+        tarjeta.addEventListener('dragstart', (evento) => {
+            const payload = ids.map((id) => ({ pedidoId: id, entregaId: null }));
+            evento.dataTransfer.setData('text/plain', JSON.stringify(payload));
+
+            const fantasma = document.createElement('div');
+            fantasma.className = 'fantasma-arrastre';
+            fantasma.textContent = `Grupo de ${ids.length} envíos`;
+            document.body.appendChild(fantasma);
+            evento.dataTransfer.setDragImage(fantasma, 20, 20);
+            setTimeout(() => fantasma.remove(), 0);
+        });
+    });
+}
+
+function sincronizarControlesGrupos() {
+    const modo = modoDeTablero();
+
+    document.querySelectorAll('.modo-tablero').forEach((boton) => {
+        boton.classList.toggle('activo', boton.dataset.modo === modo);
+    });
+
+    document.getElementById('tamano-grupo').value = tamanoDeGrupo();
+    document.getElementById('campo-tamano-grupo').hidden = modo !== 'grupos';
+}
+
+document.querySelectorAll('.modo-tablero').forEach((boton) => {
+    boton.addEventListener('click', () => {
+        guardarAjuste(claveModoTablero, boton.dataset.modo);
+        pedidosSeleccionados.clear();
+        sincronizarControlesGrupos();
+        renderizarTablero();
+    });
+});
+
+document.getElementById('tamano-grupo').addEventListener('change', (evento) => {
+    const cantidad = Math.floor(Number(evento.target.value));
+    guardarAjuste(claveTamanoGrupo, String(cantidad >= 2 && cantidad <= 20 ? cantidad : 5));
+    pedidosSeleccionados.clear();
+    sincronizarControlesGrupos();
+    renderizarTablero();
+});
+
+sincronizarControlesGrupos();

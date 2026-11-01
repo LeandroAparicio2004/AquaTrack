@@ -164,6 +164,17 @@
 
                 <p class="estado-productos-panel oculto" id="estado-tablero"></p>
 
+                <div class="controles-grupos">
+                    <div class="selector-modo" role="group" aria-label="Cómo ver los pedidos">
+                        <button type="button" class="modo-tablero" data-modo="grupos">Por grupos</button>
+                        <button type="button" class="modo-tablero" data-modo="individual">Uno por uno</button>
+                    </div>
+                    <label class="campo-tamano-grupo" id="campo-tamano-grupo">
+                        Envíos por grupo
+                        <input type="number" id="tamano-grupo" min="2" max="20" step="1" value="5" inputmode="numeric">
+                    </label>
+                </div>
+
                 <p class="ayuda-tablero">Tocá los pedidos para seleccionarlos y elegí abajo a quién asignarlos.</p>
 
                 <div class="tablero-entregas" id="tablero-entregas"></div>

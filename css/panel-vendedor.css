@@ -2639,3 +2639,133 @@ body {
         display: none;
     }
 }
+
+/* ---------- Grupos de envio ---------- */
+.controles-grupos {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.selector-modo {
+    display: inline-flex;
+    padding: 4px;
+    border: 1px solid var(--color-borde-panel);
+    border-radius: 999px;
+    background: var(--color-superficie-panel);
+}
+
+.modo-tablero {
+    padding: 8px 16px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--color-texto-secundario-panel);
+    font-family: var(--fuente-base);
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.modo-tablero.activo {
+    background: var(--color-acento-panel);
+    color: #fff;
+}
+
+.campo-tamano-grupo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--color-texto-panel);
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+.campo-tamano-grupo[hidden] {
+    display: none;
+}
+
+.campo-tamano-grupo input {
+    width: 70px;
+    padding: 8px 10px;
+    border: 1px solid var(--color-borde-panel);
+    border-radius: 10px;
+    background: var(--color-campo-panel);
+    color: var(--color-texto-panel);
+    font-family: inherit;
+    font-size: 1rem;
+    text-align: center;
+}
+
+.tarjeta-grupo {
+    position: relative;
+    margin-bottom: 12px;
+    padding: 14px 16px;
+    border: 1px solid var(--color-borde-panel);
+    border-radius: 12px;
+    background: var(--color-campo-panel);
+    cursor: grab;
+}
+
+.tarjeta-grupo.seleccionada {
+    border-color: var(--color-acento-panel);
+    background: var(--color-acento-suave-panel);
+}
+
+.tarjeta-grupo.pedido-urgente {
+    border-color: #ef4444;
+}
+
+.grupo-cabecera {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding-right: 34px;
+    margin-bottom: 8px;
+}
+
+.grupo-cabecera strong {
+    color: var(--color-texto-panel);
+    font-size: 1.05rem;
+}
+
+.grupo-cabecera span {
+    color: var(--color-texto-secundario-panel);
+    font-size: 0.85rem;
+}
+
+.grupo-cabecera .etiqueta-urgencia {
+    margin: 0;
+    color: #fff;
+}
+
+.grupo-lista {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.grupo-lista li {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 0.92rem;
+}
+
+.grupo-lista li span {
+    color: var(--color-texto-panel);
+    font-weight: 600;
+}
+
+.grupo-lista li small {
+    color: var(--color-texto-secundario-panel);
+    font-size: 0.82rem;
+    text-align: right;
+}
