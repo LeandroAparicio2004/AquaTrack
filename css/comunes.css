@@ -488,3 +488,39 @@ button:focus-visible {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+.logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.logo-mini {
+    width: 34px;
+    height: 34px;
+    flex: none;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+@media (max-width: 420px) {
+    .logo {
+        gap: 6px;
+    }
+
+    .logo-mini {
+        width: 26px;
+        height: 26px;
+    }
+}
+
+@media (max-width: 360px) {
+    .logo {
+        gap: 4px;
+    }
+
+    .logo-mini {
+        width: 20px;
+        height: 20px;
+    }
+}
