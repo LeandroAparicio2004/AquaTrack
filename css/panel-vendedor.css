@@ -2769,3 +2769,105 @@ body {
     font-size: 0.82rem;
     text-align: right;
 }
+
+/* ---------- Sanciones (admin) ---------- */
+.filtros-usuarios {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.filtros-usuarios input,
+.filtros-usuarios select,
+.modal-sancion select,
+.modal-sancion textarea {
+    padding: 12px;
+    border: 1px solid var(--color-borde-panel);
+    border-radius: 10px;
+    background: var(--color-campo-panel);
+    color: var(--color-texto-panel);
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+.filtros-usuarios input {
+    flex: 1 1 220px;
+}
+
+.lista-usuarios {
+    display: grid;
+    gap: 10px;
+}
+
+.tarjeta-usuario {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    border: 1px solid var(--color-borde-panel);
+    border-radius: 12px;
+    background: var(--color-superficie-panel);
+}
+
+.tarjeta-usuario.suspendido {
+    border-color: #ef4444;
+}
+
+.tarjeta-usuario small {
+    display: block;
+    margin-top: 4px;
+    color: var(--color-texto-secundario-panel);
+}
+
+.modal-sancion {
+    width: min(92vw, 420px);
+    padding: 20px;
+    border: 1px solid var(--color-borde-panel);
+    border-radius: 16px;
+    background: var(--color-superficie-panel);
+    color: var(--color-texto-panel);
+}
+
+.modal-sancion form {
+    display: grid;
+    gap: 14px;
+}
+
+.modal-sancion label {
+    display: grid;
+    gap: 6px;
+    font-weight: 600;
+}
+
+.modal-sancion h3,
+.detalle-sancion {
+    margin: 0;
+}
+
+.acciones-sancion {
+    display: flex;
+    gap: 10px;
+}
+
+.acciones-sancion .btn {
+    flex: 1;
+}
+
+.modal-sancion,
+.modal-sancion * {
+    box-sizing: border-box;
+}
+
+.modal-sancion select,
+.modal-sancion textarea {
+    width: 100%;
+    min-width: 0;
+}
+
+.modal-sancion .acciones-sancion .btn {
+    min-width: 0;
+    padding-inline: 8px;
+}

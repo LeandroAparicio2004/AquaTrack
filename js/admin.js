@@ -596,7 +596,8 @@ const secciones = {
     todas: document.getElementById('seccion-todas'),
     pagos: document.getElementById('seccion-pagos'),
     movimientos: document.getElementById('seccion-movimientos'),
-    publicidad: document.getElementById('seccion-publicidad-admin')
+    publicidad: document.getElementById('seccion-publicidad-admin'),
+    usuarios: document.getElementById('seccion-usuarios')
 };
 let seccionTodasCargada = false;
 let seccionPagosCargada = false;
@@ -619,6 +620,10 @@ pestanas.forEach((pestana) => {
 
         if (pestana.dataset.pestana === 'inicio') {
             cargarInicio();
+        }
+
+        if (pestana.dataset.pestana === 'usuarios') {
+            cargarUsuariosAdmin();
         }
 
         if (pestana.dataset.pestana === 'todas' && !seccionTodasCargada) {
@@ -920,4 +925,136 @@ document.querySelectorAll('[data-ir]').forEach((tarjeta) => {
     tarjeta.addEventListener('click', () => {
         document.querySelector(`.panel-pestana[data-pestana="${tarjeta.dataset.ir}"]`)?.click();
     });
+});
+
+// ---------- Sanciones a usuarios ----------
+let usuariosListados = [];
+let usuarioASancionar = null;
+let temporizadorBusqueda = null;
+const nombresRol = { cliente: 'Cliente', vendedor: 'Vendedor', repartidor: 'Repartidor' };
+
+async function cargarUsuariosAdmin() {
+    const lista = document.getElementById('lista-usuarios');
+    const estado = document.getElementById('estado-usuarios');
+
+    const { data, error } = await supabaseCliente.rpc('buscar_usuarios_admin', {
+        p_texto: document.getElementById('buscar-usuario').value.trim(),
+        p_rol: document.getElementById('filtro-rol-usuario').value
+    });
+
+    if (error) {
+        estado.textContent = 'No pudimos cargar los usuarios. Recargá la página.';
+        estado.classList.remove('oculto');
+        return;
+    }
+
+    usuariosListados = data || [];
+    estado.classList.toggle('oculto', usuariosListados.length > 0);
+    estado.textContent = 'No encontramos usuarios con ese dato.';
+
+    lista.innerHTML = usuariosListados.map((usuario) => {
+        const hasta = usuario.suspension_hasta
+            ? `hasta el ${formatearFechaAdmin(usuario.suspension_hasta)}`
+            : 'hasta que se levante';
+
+        return `
+            <article class="tarjeta-usuario ${usuario.suspendido ? 'suspendido' : ''}">
+                <div>
+                    <strong>${escaparHtml(usuario.nombre || '')} ${escaparHtml(usuario.apellido || '')}</strong>
+                    <span class="etiqueta-estado-producto inactivo">${nombresRol[usuario.rol] || escaparHtml(usuario.rol)}</span>
+                    ${usuario.suspendido ? '<span class="etiqueta-estado-producto suspendida">Suspendido</span>' : ''}
+                    <small>${escaparHtml(usuario.email || '')}${usuario.telefono ? ' · ' + escaparHtml(usuario.telefono) : ''}</small>
+                    ${usuario.suspendido ? `<small>Motivo: ${escaparHtml(usuario.suspension_motivo || '')} (${hasta})</small>` : ''}
+                    ${usuario.advertencias > 0 ? `<small>Advertencias recibidas: ${usuario.advertencias}</small>` : ''}
+                </div>
+                ${usuario.suspendido
+                    ? `<button type="button" class="btn btn-secundario btn-chico" data-levantar="${usuario.id}">Reactivar cuenta</button>`
+                    : `<button type="button" class="btn btn-principal btn-chico" data-sancionar="${usuario.id}">Sancionar</button>`}
+            </article>
+        `;
+    }).join('');
+}
+
+document.getElementById('buscar-usuario').addEventListener('input', () => {
+    clearTimeout(temporizadorBusqueda);
+    temporizadorBusqueda = setTimeout(cargarUsuariosAdmin, 350);
+});
+
+document.getElementById('filtro-rol-usuario').addEventListener('change', cargarUsuariosAdmin);
+
+document.getElementById('lista-usuarios').addEventListener('click', async (evento) => {
+    const botonSancionar = evento.target.closest('[data-sancionar]');
+    const botonLevantar = evento.target.closest('[data-levantar]');
+
+    if (botonSancionar) {
+        usuarioASancionar = usuariosListados.find((u) => u.id === botonSancionar.dataset.sancionar);
+        document.getElementById('detalle-sancion').textContent =
+            `${usuarioASancionar.nombre || ''} ${usuarioASancionar.apellido || ''} (${nombresRol[usuarioASancionar.rol] || usuarioASancionar.rol})`;
+        document.getElementById('tipo-sancion').value = 'advertencia';
+        document.getElementById('campo-duracion-sancion').hidden = true;
+        document.getElementById('motivo-sancion').value = '';
+        document.getElementById('error-sancion').hidden = true;
+        document.getElementById('modal-sancion').showModal();
+    }
+
+    if (botonLevantar) {
+        const usuario = usuariosListados.find((u) => u.id === botonLevantar.dataset.levantar);
+
+        if (!window.confirm(`¿Reactivar la cuenta de ${usuario.nombre || ''} ${usuario.apellido || ''}?`)) {
+            return;
+        }
+
+        botonLevantar.disabled = true;
+        const { error } = await supabaseCliente.rpc('levantar_suspension', { p_usuario_id: usuario.id });
+
+        if (error) {
+            window.alert('No pudimos reactivar la cuenta. Intentá de nuevo.');
+        }
+
+        cargarUsuariosAdmin();
+    }
+});
+
+document.getElementById('tipo-sancion').addEventListener('change', (evento) => {
+    document.getElementById('campo-duracion-sancion').hidden = evento.target.value !== 'suspension';
+});
+
+document.getElementById('cancelar-sancion').addEventListener('click', () => {
+    document.getElementById('modal-sancion').close();
+});
+
+document.getElementById('formulario-sancion').addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+
+    const tipo = document.getElementById('tipo-sancion').value;
+    const motivo = document.getElementById('motivo-sancion').value.trim();
+    const duracion = document.getElementById('duracion-sancion').value;
+    const error = document.getElementById('error-sancion');
+    const boton = document.getElementById('confirmar-sancion');
+
+    if (!motivo) {
+        error.textContent = 'Escribí el motivo.';
+        error.hidden = false;
+        return;
+    }
+
+    boton.disabled = true;
+
+    const { error: errorRpc } = await supabaseCliente.rpc('sancionar_usuario', {
+        p_usuario_id: usuarioASancionar.id,
+        p_tipo: tipo,
+        p_motivo: motivo,
+        p_dias: tipo === 'suspension' && duracion ? Number(duracion) : null
+    });
+
+    boton.disabled = false;
+
+    if (errorRpc) {
+        error.textContent = 'No pudimos aplicar la sanción. Intentá de nuevo.';
+        error.hidden = false;
+        return;
+    }
+
+    document.getElementById('modal-sancion').close();
+    cargarUsuariosAdmin();
 });
