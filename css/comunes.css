@@ -157,7 +157,7 @@ button:focus-visible {
 }
 
 .pie-pagina-marca .logo {
-  display: block;
+  display: flex;
   margin-bottom: 8px;
 }
 
@@ -496,11 +496,16 @@ button:focus-visible {
 }
 
 .logo-mini {
-    width: 34px;
-    height: 34px;
+    width: 46px;
+    height: 46px;
     flex: none;
     border-radius: 50%;
     object-fit: cover;
+}
+
+.pie-pagina-marca .logo-mini {
+    width: 52px;
+    height: 52px;
 }
 
 @media (max-width: 420px) {
@@ -509,8 +514,8 @@ button:focus-visible {
     }
 
     .logo-mini {
-        width: 26px;
-        height: 26px;
+        width: 34px;
+        height: 34px;
     }
 }
 
@@ -520,7 +525,7 @@ button:focus-visible {
     }
 
     .logo-mini {
-        width: 20px;
-        height: 20px;
+        width: 28px;
+        height: 28px;
     }
 }
