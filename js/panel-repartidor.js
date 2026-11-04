@@ -291,7 +291,14 @@ async function dibujarMapaEntregas(entregas) {
     const limites = [];
 
     if (origen) {
-        L.marker([origen.lat, origen.lon]).addTo(mapaRepartidorInstancia).bindPopup('Tu ubicación');
+        const iconoCamion = L.divIcon({
+            className: '',
+            html: '<div class="marcador-camion-repartidor">🚚</div>',
+            iconSize: [44, 44],
+            iconAnchor: [22, 22]
+        });
+
+        L.marker([origen.lat, origen.lon], { icon: iconoCamion }).addTo(mapaRepartidorInstancia).bindPopup('Tu ubicación');
         limites.push([origen.lat, origen.lon]);
     }
 
@@ -330,7 +337,7 @@ function obtenerUbicacionActual() {
         navigator.geolocation.getCurrentPosition(
             (posicion) => resolve({ lat: posicion.coords.latitude, lon: posicion.coords.longitude }),
             () => reject(new Error('Permiso denegado')),
-            { enableHighAccuracy: true, timeout: 8000 }
+            { enableHighAccuracy: false, timeout: 20000, maximumAge: 60000 }
         );
     });
 }
