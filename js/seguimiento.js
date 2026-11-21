@@ -45,7 +45,16 @@ function dibujarMapaBase(latitudDestino, longitudDestino) {
         attribution: '© OpenStreetMap'
     }).addTo(mapaSeguimientoInstancia);
 
-    marcadorDestino = L.marker([latitudDestino, longitudDestino]).addTo(mapaSeguimientoInstancia).bindPopup('Tu dirección');
+    const iconoCasa = L.divIcon({
+        className: '',
+        html: '<div class="marcador-casa-seguimiento">🏠</div>',
+        iconSize: [44, 44],
+        iconAnchor: [22, 22]
+    });
+
+    marcadorDestino = L.marker([latitudDestino, longitudDestino], { icon: iconoCasa })
+        .addTo(mapaSeguimientoInstancia)
+        .bindPopup('Tu dirección');
 }
 
 function actualizarMarcadorRepartidor(latitud, longitud) {
@@ -56,8 +65,9 @@ function actualizarMarcadorRepartidor(latitud, longitud) {
     if (!marcadorRepartidor) {
         const icono = L.divIcon({
             className: '',
-            html: '<div class="marcador-repartidor-seguimiento"></div>',
-            iconSize: [18, 18]
+            html: '<div class="marcador-camion-seguimiento">🚚</div>',
+            iconSize: [44, 44],
+            iconAnchor: [22, 22]
         });
 
         marcadorRepartidor = L.marker([latitud, longitud], { icon: icono })
