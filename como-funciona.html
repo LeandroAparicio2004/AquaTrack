@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <script>
+    (function () {
+      if (localStorage.getItem('aquatrack_tema') === 'oscuro') {
+        document.documentElement.setAttribute('data-tema', 'oscuro');
+      }
+    })();
+  </script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cómo funciona — AquaTrack</title>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/comunes.css">
+  <link rel="stylesheet" href="css/menu-cliente.css">
+  <link rel="stylesheet" href="css/inicio.css">
+  <link rel="stylesheet" href="css/legal.css">
+</head>
+
+<body>
+  <header class="encabezado inicio-encabezado">
+    <div class="contenedor encabezado-interno">
+      <div class="encabezado-izquierda">
+        <a href="index.html" class="marca-inicio" aria-label="Ir al inicio de AquaTrack">
+          <span class="logo"><img class="logo-mini" src="logo.png" alt="">AquaTrack</span>
+        </a>
+      </div>
+
+      <nav class="navegacion-inicio" aria-label="Navegación principal">
+        <a href="productos.html" class="enlace-nav">Productos</a>
+        <div class="nav-sesion oculto" id="nav-invitado">
+          <a href="login.html" class="enlace-nav">Iniciar sesión</a>
+          <a href="registro.html" class="btn btn-secundario">Crear cuenta</a>
+        </div>
+        <div class="nav-sesion oculto" id="nav-usuario">
+          <a href="historial.html" class="enlace-nav">Mis pedidos</a>
+          <a href="suscripciones.html" class="enlace-nav">Suscripciones</a>
+          <a href="perfil.html" class="enlace-nav">Mi perfil</a>
+          <button type="button" class="btn btn-secundario btn-peligro" id="boton-cerrar-sesion">Salir</button>
+        </div>
+        <button type="button" class="btn-tema" id="btn-tema" aria-label="Cambiar tema"></button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="pagina-legal">
+    <div class="contenedor">
+      <h1>Cómo funciona</h1>
+      <p class="info-intro">Pedir agua con AquaTrack es simple. Elegí tu rol y mirá los pasos.</p>
+
+      <div class="rol-tabs" role="tablist" aria-label="Elegí tu rol">
+        <button type="button" class="rol-tab activo" role="tab" id="tab-comprador" aria-selected="true" aria-controls="panel-comprador" data-rol="comprador">Comprador</button>
+        <button type="button" class="rol-tab" role="tab" id="tab-vendedor" aria-selected="false" aria-controls="panel-vendedor" data-rol="vendedor">Vendedor</button>
+        <button type="button" class="rol-tab" role="tab" id="tab-repartidor" aria-selected="false" aria-controls="panel-repartidor" data-rol="repartidor">Repartidor</button>
+      </div>
+      <section class="rol-panel" id="panel-comprador" role="tabpanel" aria-labelledby="tab-comprador"><ol class="info-pasos"><li><strong>Elegí tu agua</strong><span>Entrá a Productos, mirá las distribuidoras y agregá lo que necesites al carrito.</span></li><li><strong>Pagá como prefieras</strong><span>En efectivo cuando llega el repartidor, o por transferencia subiendo tu comprobante.</span></li><li><strong>Seguí tu pedido</strong><span>Desde Mis pedidos ves en el mapa dónde está tu repartidor.</span></li><li><strong>Recibí y confirmá</strong><span>Mostrale el código de tu ticket al repartidor. Así queda confirmada tu entrega.</span></li></ol><p class="info-nota">¿Tomás agua seguido? Armá una <strong>suscripción</strong>: elegís producto, cantidad y días de la semana, y te llevamos el pedido sin que tengas que pedirlo cada vez.</p><div class="info-acciones"><a class="btn btn-principal" href="productos.html">Ver productos</a><a class="btn btn-secundario" href="registro.html">Crear cuenta</a></div></section><section class="rol-panel" id="panel-vendedor" role="tabpanel" aria-labelledby="tab-vendedor" hidden><ol class="info-pasos"><li><strong>Creá tu cuenta</strong><span>Registrá los datos de tu negocio.</span></li><li><strong>Cargá tus productos</strong><span>Publicá lo que vendés con sus precios.</span></li><li><strong>Recibí y organizá pedidos</strong><span>Asigná cada pedido, o varios juntos, a tus repartidores.</span></li><li><strong>Cobrá y hacé crecer tu negocio</strong><span>En tu panel ves tus cobros. Si el cliente paga por transferencia, AquaTrack descuenta una comisión y te liquida el resto. También podés pedir publicidad para tu negocio.</span></li></ol><div class="info-acciones"><a class="btn btn-principal" href="registro.html">Sumate como vendedor</a></div></section><section class="rol-panel" id="panel-repartidor" role="tabpanel" aria-labelledby="tab-repartidor" hidden><ol class="info-pasos"><li><strong>Recibí tu hoja de ruta</strong><span>Ves los pedidos que te asignaron, ordenados en un mapa de más cerca a más lejos.</span></li><li><strong>Salí a entregar</strong><span>Mientras estás en camino, el cliente puede seguirte en vivo.</span></li><li><strong>Confirmá cada entrega</strong><span>Pedile al cliente el código de su ticket y registrá la entrega.</span></li><li><strong>¿No pudiste entregar?</strong><span>Lo marcás en la app y el vendedor lo reasigna.</span></li></ol></section>
+
+        <div class="legal-contacto">
+          <h2>¿Dudas o reclamos?</h2>
+          <p>Escribinos y te respondemos de lunes a viernes, de 9 a 18 hs.</p>
+          <a class="btn btn-principal" href="chat.html?soporte=1">Hablar con Soporte</a>
+          <a class="legal-contacto-dato" href="mailto:aquatrack.oficial@gmail.com">aquatrack.oficial@gmail.com</a>
+          <a class="legal-contacto-dato" href="tel:+543834579406">3834 57-9406</a>
+        </div>
+    </div>
+  </main>
+
+  <footer class="pie-pagina">
+    <div class="contenedor pie-pagina-superior">
+      <div class="pie-pagina-marca">
+        <span class="logo"><img class="logo-mini" src="logo.png" alt="">AquaTrack</span>
+        <p>Agua a domicilio en Catamarca.</p>
+      </div>
+
+      <nav class="pie-pagina-columnas" aria-label="Enlaces del pie de página">
+        <div class="pie-pagina-columna">
+          <h3>Empresa</h3>
+          <a href="sobre-nosotros.html">Sobre nosotros</a>
+          <a href="como-funciona.html">Cómo funciona</a>
+          <a href="registro.html">Sumate como Vendedor</a>
+        </div>
+
+        <div class="pie-pagina-columna">
+          <h3>Ayuda</h3>
+          <a href="ayuda.html">Preguntas frecuentes</a>
+          <a href="contacto.html">Contacto</a>
+          <a href="arrepentimiento.html">Botón de arrepentimiento</a>
+          <a href="baja.html">Botón de baja</a>
+        </div>
+
+        <div class="pie-pagina-columna">
+          <h3>Legal</h3>
+          <a href="terminos.html">Términos y Condiciones</a>
+          <a href="privacidad.html">Política de Privacidad</a>
+        </div>
+      </nav>
+    </div>
+
+    <div class="contenedor pie-pagina-inferior">
+      <p>© 2026 AquaTrack — Catamarca, Argentina</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/tema.js"></script>
+  <script src="js/menu-cliente.js"></script>
+
+  <script>
+    (function () {
+      var tabs = document.querySelectorAll('.rol-tab');
+      function mostrar(rol) {
+        tabs.forEach(function (t) {
+          var on = t.dataset.rol === rol;
+          t.classList.toggle('activo', on);
+          t.setAttribute('aria-selected', on ? 'true' : 'false');
+          document.getElementById('panel-' + t.dataset.rol).hidden = !on;
+        });
+      }
+      tabs.forEach(function (t) {
+        t.addEventListener('click', function () {
+          mostrar(t.dataset.rol);
+          history.replaceState(null, '', '#' + t.dataset.rol);
+        });
+      });
+      var inicial = location.hash.replace('#', '');
+      if (['comprador', 'vendedor', 'repartidor'].indexOf(inicial) !== -1) mostrar(inicial);
+    })();
+  </script>
+<script src="js/pie-pagina.js"></script>
+</body>
+
+</html>

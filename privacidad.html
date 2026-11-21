@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <script>
+    (function () {
+      if (localStorage.getItem('aquatrack_tema') === 'oscuro') {
+        document.documentElement.setAttribute('data-tema', 'oscuro');
+      }
+    })();
+  </script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Política de Privacidad — AquaTrack</title>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/comunes.css">
+  <link rel="stylesheet" href="css/menu-cliente.css">
+  <link rel="stylesheet" href="css/inicio.css">
+  <link rel="stylesheet" href="css/legal.css">
+</head>
+
+<body>
+  <header class="encabezado inicio-encabezado">
+    <div class="contenedor encabezado-interno">
+      <div class="encabezado-izquierda">
+        <a href="index.html" class="marca-inicio" aria-label="Ir al inicio de AquaTrack">
+          <span class="logo"><img class="logo-mini" src="logo.png" alt="">AquaTrack</span>
+        </a>
+      </div>
+
+      <nav class="navegacion-inicio" aria-label="Navegación principal">
+        <a href="productos.html" class="enlace-nav">Productos</a>
+        <div class="nav-sesion oculto" id="nav-invitado">
+          <a href="login.html" class="enlace-nav">Iniciar sesión</a>
+          <a href="registro.html" class="btn btn-secundario">Crear cuenta</a>
+        </div>
+        <div class="nav-sesion oculto" id="nav-usuario">
+          <a href="historial.html" class="enlace-nav">Mis pedidos</a>
+          <a href="suscripciones.html" class="enlace-nav">Suscripciones</a>
+          <a href="perfil.html" class="enlace-nav">Mi perfil</a>
+          <button type="button" class="btn btn-secundario btn-peligro" id="boton-cerrar-sesion">Salir</button>
+        </div>
+        <button type="button" class="btn-tema" id="btn-tema" aria-label="Cambiar tema"></button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="pagina-legal">
+    <div class="contenedor">
+      <h1>Política de Privacidad</h1>
+      <p class="legal-actualizado">Última actualización: 17 de noviembre de 2026</p>
+
+      <section class="legal-resumen" aria-label="Resumen">
+        <h2>En resumen</h2>
+        <ul><li>Guardamos solo lo necesario para que tu pedido llegue.</li><li>Tu ubicación se usa para entregar y para el seguimiento en vivo.</li><li><strong>No vendemos tus datos.</strong></li><li>Podés ver, corregir o borrar tus datos cuando quieras.</li><li>No usamos cookies de publicidad ni herramientas de análisis de terceros.</li></ul>
+      </section>
+
+      <p class="legal-ayuda-lectura">Tocá cada título para leer el detalle.</p>
+      <div class="legal-lista">
+        <details class="legal-seccion">
+          <summary><span class="legal-num">1</span>Quién es responsable</summary>
+          <div class="legal-texto"><p>AquaTrack es responsable del tratamiento de tus datos personales. Para cualquier consulta escribinos a <a href="mailto:aquatrack.oficial@gmail.com">aquatrack.oficial@gmail.com</a>.</p></div>
+        </details>
+        <details class="legal-seccion">
+          <summary><span class="legal-num">2</span>Qué datos guardamos</summary>
+          <div class="legal-texto"><p><strong>Si comprás:</strong> nombre, apellido, correo, teléfono, tus direcciones con su ubicación en el mapa, tus pedidos, suscripciones y reseñas, y los comprobantes de transferencia que subís.</p><p><strong>Si vendés:</strong> además, tu DNI, los datos de tu negocio y los datos de la cuenta donde cobrás.</p><p><strong>Si repartís:</strong> tus datos de cuenta, tus entregas y tu ubicación mientras entregás.</p><p><strong>En el chat de Soporte:</strong> los mensajes que nos enviás.</p><p>Tu contraseña se guarda protegida. Nosotros no podemos verla.</p></div>
+        </details>
+        <details class="legal-seccion">
+          <summary><span class="legal-num">3</span>Para qué los usamos</summary>
+          <div class="legal-texto"><p>Para crear tu cuenta, procesar y entregar tus pedidos, verificar pagos, mostrarte el seguimiento, avisarte novedades de tu pedido y atender tus consultas y reclamos.</p><p>No los usamos para otra cosa.</p></div>
+        </details>
+        <details class="legal-seccion">
+          <summary><span class="legal-num">4</span>Tu ubicación</summary>
+          <div class="legal-texto"><p>Cuando pedís, usamos la dirección que elegís para que te lleguen los productos. Solo accedemos a la ubicación de tu dispositivo si vos lo permitís.</p><p>La ubicación del repartidor se muestra al cliente durante la entrega para que pueda seguir su pedido.</p></div>
+        </details>
+        <details class="legal-seccion">
+          <summary><span class="legal-num">5</span>Con quién los compartimos</summary>
+          <div class="legal-texto"><p>El vendedor y el repartidor de tu pedido ven lo necesario para entregarlo: tu nombre, tu dirección y el detalle del pedido.</p><p>Usamos servicios técnicos para funcionar: Supabase para guardar los datos y las cuentas, y OpenStreetMap para mostrar los mapas.</p><p>No vendemos ni alquilamos tus datos a nadie. Solo los compartimos si una autoridad competente nos lo exige por ley.</p></div>
+        </details>
+        <details class="legal-seccion">
+          <summary><span class="legal-num">6</span>Cuánto tiempo los guardamos</summary>
+          <div class="legal-texto"><p>Mientras tu cuenta esté activa. Algunos registros de ventas los conservamos el tiempo que exige la ley.</p></div>
+        </details>
+        <details class="legal-seccion">
+          <summary><span class="legal-num">7</span>Cómo los protegemos</summary>
+          <div class="legal-texto"><p>Cada usuario accede solo a la información que le corresponde según su rol. Las contraseñas se guardan protegidas, y los comprobantes y archivos se almacenan en un servicio seguro.</p></div>
+        </details>
+        <details class="legal-seccion">
+          <summary><span class="legal-num">8</span>Qué guardamos en tu navegador</summary>
+          <div class="legal-texto"><p>Solo lo necesario para que funcione: tu sesión iniciada y tu preferencia de tema (claro u oscuro). No usamos cookies de publicidad ni herramientas de análisis de terceros.</p></div>
+        </details>
+        <details class="legal-seccion">
+          <summary><span class="legal-num">9</span>Tus derechos</summary>
+          <div class="legal-texto"><p>Podés pedirnos en cualquier momento acceder a tus datos, corregirlos, actualizarlos o eliminarlos. Escribinos al correo de arriba y te respondemos en los plazos que fija la ley.</p><p>La Ley 25.326 de Protección de los Datos Personales te garantiza estos derechos. La Agencia de Acceso a la Información Pública (AAIP) es el órgano de control: recibe denuncias y reclamos por incumplimientos de esa ley.</p></div>
+        </details>
+        <details class="legal-seccion">
+          <summary><span class="legal-num">10</span>Menores de edad</summary>
+          <div class="legal-texto"><p>AquaTrack no está dirigido a menores de 18 años.</p></div>
+        </details>
+        <details class="legal-seccion">
+          <summary><span class="legal-num">11</span>Cambios en esta política</summary>
+          <div class="legal-texto"><p>Si la actualizamos, te avisamos y mostramos arriba la fecha de la última actualización.</p></div>
+        </details>
+      </div>
+
+        <div class="legal-contacto">
+          <h2>¿Dudas o reclamos?</h2>
+          <p>Escribinos y te respondemos de lunes a viernes, de 9 a 18 hs.</p>
+          <a class="btn btn-principal" href="chat.html?soporte=1">Hablar con Soporte</a>
+          <a class="legal-contacto-dato" href="mailto:aquatrack.oficial@gmail.com">aquatrack.oficial@gmail.com</a>
+          <a class="legal-contacto-dato" href="tel:+543834579406">3834 57-9406</a>
+        </div>
+    </div>
+  </main>
+
+  <footer class="pie-pagina">
+    <div class="contenedor pie-pagina-superior">
+      <div class="pie-pagina-marca">
+        <span class="logo"><img class="logo-mini" src="logo.png" alt="">AquaTrack</span>
+        <p>Agua a domicilio en Catamarca.</p>
+      </div>
+
+      <nav class="pie-pagina-columnas" aria-label="Enlaces del pie de página">
+        <div class="pie-pagina-columna">
+          <h3>Empresa</h3>
+          <a href="sobre-nosotros.html">Sobre nosotros</a>
+          <a href="como-funciona.html">Cómo funciona</a>
+          <a href="registro.html">Sumate como Vendedor</a>
+        </div>
+
+        <div class="pie-pagina-columna">
+          <h3>Ayuda</h3>
+          <a href="ayuda.html">Preguntas frecuentes</a>
+          <a href="contacto.html">Contacto</a>
+          <a href="arrepentimiento.html">Botón de arrepentimiento</a>
+          <a href="baja.html">Botón de baja</a>
+        </div>
+
+        <div class="pie-pagina-columna">
+          <h3>Legal</h3>
+          <a href="terminos.html">Términos y Condiciones</a>
+          <a href="privacidad.html">Política de Privacidad</a>
+        </div>
+      </nav>
+    </div>
+
+    <div class="contenedor pie-pagina-inferior">
+      <p>© 2026 AquaTrack — Catamarca, Argentina</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/tema.js"></script>
+  <script src="js/menu-cliente.js"></script>
+<script src="js/pie-pagina.js"></script>
+</body>
+
+</html>

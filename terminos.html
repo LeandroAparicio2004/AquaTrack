@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <script>
+    (function () {
+      if (localStorage.getItem('aquatrack_tema') === 'oscuro') {
+        document.documentElement.setAttribute('data-tema', 'oscuro');
+      }
+    })();
+  </script>
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Términos y Condiciones — AquaTrack</title>
+  <link rel="icon" href="favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/comunes.css">
+  <link rel="stylesheet" href="css/menu-cliente.css">
+  <link rel="stylesheet" href="css/inicio.css">
+  <link rel="stylesheet" href="css/legal.css">
+</head>
+
+<body>
+  <header class="encabezado inicio-encabezado">
+    <div class="contenedor encabezado-interno">
+      <div class="encabezado-izquierda">
+        <a href="index.html" class="marca-inicio" aria-label="Ir al inicio de AquaTrack">
+          <span class="logo"><img class="logo-mini" src="logo.png" alt="">AquaTrack</span>
+        </a>
+      </div>
+
+      <nav class="navegacion-inicio" aria-label="Navegación principal">
+        <a href="productos.html" class="enlace-nav">Productos</a>
+        <div class="nav-sesion oculto" id="nav-invitado">
+          <a href="login.html" class="enlace-nav">Iniciar sesión</a>
+          <a href="registro.html" class="btn btn-secundario">Crear cuenta</a>
+        </div>
+        <div class="nav-sesion oculto" id="nav-usuario">
+          <a href="historial.html" class="enlace-nav">Mis pedidos</a>
+          <a href="suscripciones.html" class="enlace-nav">Suscripciones</a>
+          <a href="perfil.html" class="enlace-nav">Mi perfil</a>
+          <button type="button" class="btn btn-secundario btn-peligro" id="boton-cerrar-sesion">Salir</button>
+        </div>
+        <button type="button" class="btn-tema" id="btn-tema" aria-label="Cambiar tema"></button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="pagina-legal">
+    <div class="contenedor">
+      <h1>Términos y Condiciones</h1>
+      <p class="legal-actualizado">Última actualización: 17 de noviembre de 2026</p>
+
+      <section class="legal-resumen" aria-label="Resumen">
+        <h2>En resumen</h2>
+        <ul><li>AquaTrack es la plataforma donde pedís agua a distribuidoras de tu zona y seguís la entrega.</li><li>Crear tu cuenta y comprar <strong>no tiene costo</strong> para vos.</li><li>Pagás en <strong>efectivo al recibir</strong> o por <strong>transferencia</strong>.</li><li>Podés cancelar un pedido pendiente y <strong>arrepentirte hasta 10 días</strong> después de recibirlo.</li><li>Si algo sale mal, <strong>Soporte</strong> te ayuda.</li></ul>
+      </section>
+
+      <p class="legal-ayuda-lectura">Tocá cada título para leer el detalle.</p>
+      <div class="legal-lista">
+        <details class="legal-seccion">
+          <summary><span class="legal-num">1</span>Qué es AquaTrack</summary>
+          <div class="legal-texto"><p>AquaTrack es una plataforma que conecta a compradores con distribuidoras de agua (vendedores) y con sus repartidores.</p><p>El agua la ofrece y la entrega el vendedor que elegís. AquaTrack pone las herramientas para pedir, pagar y seguir tu pedido.</p></div>
+        </details>
+        <details class="legal-seccion">
+          <summary><span class="legal-num">2</span>Tu cuenta</summary>
+          <div class="legal-texto"><p>Para comprar necesitás crear una cuenta con tus datos reales. Tenés que tener capacidad legal para contratar (ser mayor de 18 años).</p><p>Tu contraseña es personal. Cuidala y no la compartas. Todo lo que se haga con tu cuenta se considera hecho por vos.</p><p>Hay tres tipos de cuenta: comprador, vendedor y repartidor.</p></div>
+        </details>
+        <details class="legal-seccion">
+          <summary><span class="legal-num">3</span>Cómo se hace un pedido</summary>
+          <div class="legal-texto"><p>Elegís productos, indicás tu dirección y la forma de pago, y confirmás. Te mostramos un ticket con un código QR y un código corto.</p><p>El vendedor prepara tu pedido y se lo asigna a un repartidor. Podés seguirlo en vivo en el mapa.</p><p>Cuando llega, mostrale el QR o decile el código al repartidor. Así queda confirmado que te lo entregó a vos. No compartas el código antes de recibir tu pedido.</p></div>
+        </details>
+        <details class="legal-seccion">
+          <summary><span class="legal-num">4</span>Precios y formas de pago</summary>
+          <div class="legal-texto"><p>Cada vendedor fija sus precios, siempre en pesos argentinos. Los ves completos antes de confirmar.</p><p><strong>Efectivo:</strong> pagás al repartidor cuando llega.</p><p><strong>Transferencia:</strong> te mostramos el alias y el CBU de AquaTrack, hacés la transferencia y subís la captura del comprobante. Lo verificamos y tu pedido pasa a “pago verificado”. Algunas distribuidoras aceptan solo un método.</p><p>Si devolvés envases vacíos, ese importe se descuenta del precio.</p><p>AquaTrack no te cobra ningún cargo extra por usar la plataforma.</p></div>
+        </details>
+        <details class="legal-seccion">
+          <summary><span class="legal-num">5</span>Suscripciones</summary>
+          <div class="legal-texto"><p>Podés programar entregas repetidas: elegís producto, cantidad y los días de la semana. Se genera una entrega por cada día elegido.</p><p>Podés pausar o dar de baja la suscripción cuando quieras. Al darla de baja no se generan pedidos nuevos. Las entregas ya en camino se cumplen.</p><p>Si un día no podés recibir, avisale al vendedor.</p></div>
+        </details>
+        <details class="legal-seccion">
+          <summary><span class="legal-num">6</span>Cancelar, arrepentirte o dar de baja</summary>
+          <div class="legal-texto"><p><strong>Cancelar un pedido:</strong> podés hacerlo desde “Mis pedidos” mientras esté pendiente, antes de que lo asignen a un repartidor.</p><p><strong>Botón de arrepentimiento:</strong> tenés 10 días corridos desde que recibís el pedido para arrepentirte, sin dar explicaciones. Lo encontrás al pie de cada página.</p><p><strong>Botón de baja:</strong> sirve para dar de baja tus suscripciones. También está al pie de cada página.</p><p>En ambos casos te damos un código de registro.</p></div>
+        </details>
+        <details class="legal-seccion">
+          <summary><span class="legal-num">7</span>Reclamos y problemas con el producto</summary>
+          <div class="legal-texto"><p>Si tu pedido no llegó, llegó incompleto o el agua tiene mal aspecto o sabor, escribinos por el chat de Soporte, por correo o por teléfono. Los datos están al final de esta página.</p><p>Atendemos de lunes a viernes, de 9 a 18 hs.</p><p>Podemos pedirte datos o fotos para resolverlo. Si hace falta, hablamos con el vendedor y el repartidor.</p></div>
+        </details>
+        <details class="legal-seccion">
+          <summary><span class="legal-num">8</span>Si sos vendedor o repartidor</summary>
+          <div class="legal-texto"><p><strong>Vendedores:</strong> declaran datos reales de su negocio y son responsables de sus productos, precios y entregas.</p><p>Cuando un pago se hace por transferencia, entra a AquaTrack. Descontamos un porcentaje de comisión y liquidamos el resto al vendedor. El porcentaje de cada cobro lo ves en tu panel.</p><p>Publicar anuncios en AquaTrack tiene un costo según la tarifa vigente al momento de solicitarlo.</p><p><strong>Repartidores:</strong> entregan los pedidos que se les asignan y confirman cada entrega con el código del cliente. Mientras entregan, su ubicación se muestra al cliente para el seguimiento.</p></div>
+        </details>
+        <details class="legal-seccion">
+          <summary><span class="legal-num">9</span>Uso correcto y suspensión de cuentas</summary>
+          <div class="legal-texto"><p>No se puede usar AquaTrack para engañar, acosar, falsear datos o perjudicar a otros usuarios.</p><p>Si alguien incumple estas reglas, AquaTrack puede suspender su cuenta. Se lo avisamos por correo.</p></div>
+        </details>
+        <details class="legal-seccion">
+          <summary><span class="legal-num">10</span>Responsabilidad</summary>
+          <div class="legal-texto"><p>Trabajamos para que la plataforma funcione siempre, pero puede haber interrupciones por mantenimiento o por causas ajenas.</p><p>AquaTrack no fabrica el agua ni la entrega. De todos modos, intermedia y te ayuda a resolver cualquier problema con tu pedido.</p></div>
+        </details>
+        <details class="legal-seccion">
+          <summary><span class="legal-num">11</span>Tus datos personales</summary>
+          <div class="legal-texto"><p>Cómo cuidamos tus datos está explicado en la <a href="privacidad.html">Política de Privacidad</a>.</p></div>
+        </details>
+        <details class="legal-seccion">
+          <summary><span class="legal-num">12</span>Cambios en estos términos</summary>
+          <div class="legal-texto"><p>Podemos actualizar estos términos. Cuando haya cambios importantes te avisamos, y siempre mostramos arriba la fecha de la última actualización.</p></div>
+        </details>
+        <details class="legal-seccion">
+          <summary><span class="legal-num">13</span>Ley aplicable</summary>
+          <div class="legal-texto"><p>Estos términos se rigen por las leyes de la República Argentina, incluida la Ley 24.240 de Defensa del Consumidor.</p></div>
+        </details>
+      </div>
+
+        <div class="legal-contacto">
+          <h2>¿Dudas o reclamos?</h2>
+          <p>Escribinos y te respondemos de lunes a viernes, de 9 a 18 hs.</p>
+          <a class="btn btn-principal" href="chat.html?soporte=1">Hablar con Soporte</a>
+          <a class="legal-contacto-dato" href="mailto:aquatrack.oficial@gmail.com">aquatrack.oficial@gmail.com</a>
+          <a class="legal-contacto-dato" href="tel:+543834579406">3834 57-9406</a>
+        </div>
+    </div>
+  </main>
+
+  <footer class="pie-pagina">
+    <div class="contenedor pie-pagina-superior">
+      <div class="pie-pagina-marca">
+        <span class="logo"><img class="logo-mini" src="logo.png" alt="">AquaTrack</span>
+        <p>Agua a domicilio en Catamarca.</p>
+      </div>
+
+      <nav class="pie-pagina-columnas" aria-label="Enlaces del pie de página">
+        <div class="pie-pagina-columna">
+          <h3>Empresa</h3>
+          <a href="sobre-nosotros.html">Sobre nosotros</a>
+          <a href="como-funciona.html">Cómo funciona</a>
+          <a href="registro.html">Sumate como Vendedor</a>
+        </div>
+
+        <div class="pie-pagina-columna">
+          <h3>Ayuda</h3>
+          <a href="ayuda.html">Preguntas frecuentes</a>
+          <a href="contacto.html">Contacto</a>
+          <a href="arrepentimiento.html">Botón de arrepentimiento</a>
+          <a href="baja.html">Botón de baja</a>
+        </div>
+
+        <div class="pie-pagina-columna">
+          <h3>Legal</h3>
+          <a href="terminos.html">Términos y Condiciones</a>
+          <a href="privacidad.html">Política de Privacidad</a>
+        </div>
+      </nav>
+    </div>
+
+    <div class="contenedor pie-pagina-inferior">
+      <p>© 2026 AquaTrack — Catamarca, Argentina</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/tema.js"></script>
+  <script src="js/menu-cliente.js"></script>
+<script src="js/pie-pagina.js"></script>
+</body>
+
+</html>
